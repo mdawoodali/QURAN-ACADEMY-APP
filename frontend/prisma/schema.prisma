@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  role      String   @default("STUDENT") // STUDENT, TEACHER, ADMIN, PARENT
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  taughtClasses  Class[] @relation("TeacherClasses")
+  studentClasses Class[] @relation("StudentClasses")
+}
+
+model Course {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  classes     Class[]
+}
+
+model Class {
+  id        String   @id @default(cuid())
+  courseId  String
+  teacherId String
+  studentId String
+  startTime DateTime
+  status    String   @default("SCHEDULED") // SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED
+
+  course  Course @relation(fields: [courseId], references: [id])
+  teacher User   @relation("TeacherClasses", fields: [teacherId], references: [id])
+  student User   @relation("StudentClasses", fields: [studentId], references: [id])
+}
