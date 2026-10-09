@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export default function AdminOverview() {
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto">
@@ -78,17 +80,17 @@ export default function AdminOverview() {
                 </div>
               </div>
               <div className="flex gap-4 text-xs font-bold text-gray-400 mt-6 flex-wrap">
-                <span className="hover:text-[#0C4A3A] cursor-pointer transition">Live class monitor</span>
+                <Link href="/admin/scheduling" className="hover:text-[#0C4A3A] transition">Live class monitor</Link>
                 <span>•</span>
-                <span className="hover:text-[#0C4A3A] cursor-pointer transition">Teachers and students</span>
+                <Link href="/admin/teachers" className="hover:text-[#0C4A3A] transition">Teachers and students</Link>
                 <span>•</span>
-                <span className="hover:text-[#0C4A3A] cursor-pointer transition">Revenue and overdue fees</span>
+                <Link href="/admin/finance" className="hover:text-[#0C4A3A] transition">Revenue and overdue fees</Link>
                 <span>•</span>
-                <span className="hover:text-[#0C4A3A] cursor-pointer transition">Reports</span>
+                <Link href="/admin/finance" className="hover:text-[#0C4A3A] transition">Reports</Link>
                 <span>•</span>
-                <span className="hover:text-[#0C4A3A] cursor-pointer transition">Content</span>
+                <Link href="/admin" className="hover:text-[#0C4A3A] transition">Content</Link>
                 <span>•</span>
-                <span className="hover:text-[#0C4A3A] cursor-pointer transition">Policies and settings</span>
+                <Link href="/admin" className="hover:text-[#0C4A3A] transition">Policies and settings</Link>
               </div>
             </div>
             
@@ -96,22 +98,22 @@ export default function AdminOverview() {
             <div className="bg-[#F8F9FA] rounded-3xl p-6 border border-emerald-100 shadow-inner">
               <h3 className="text-xl font-bold text-[#0C4A3A] mb-6">Needs attention</h3>
               <ul className="space-y-4 text-sm text-gray-700">
-                <li className="flex justify-between items-center bg-white p-3 rounded-xl border border-gray-100 shadow-sm cursor-pointer hover:border-[#0C4A3A] transition">
+                <Link href="/admin/teachers" className="flex justify-between items-center bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:border-[#0C4A3A] transition block">
                   <span className="font-medium">12 teacher applications</span>
                   <span className="text-[#0C4A3A] font-bold">&rarr;</span>
-                </li>
-                <li className="flex justify-between items-center bg-white p-3 rounded-xl border border-gray-100 shadow-sm cursor-pointer hover:border-[#0C4A3A] transition">
+                </Link>
+                <Link href="/admin/enrolments" className="flex justify-between items-center bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:border-[#0C4A3A] transition block">
                   <span className="font-medium">18 trial requests</span>
                   <span className="text-[#0C4A3A] font-bold">&rarr;</span>
-                </li>
-                <li className="flex justify-between items-center bg-white p-3 rounded-xl border border-gray-100 shadow-sm cursor-pointer hover:border-[#0C4A3A] transition">
+                </Link>
+                <Link href="/admin/finance" className="flex justify-between items-center bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:border-[#0C4A3A] transition block">
                   <span className="font-medium">7 overdue payments</span>
                   <span className="text-[#0C4A3A] font-bold">&rarr;</span>
-                </li>
-                <li className="flex justify-between items-center bg-white p-3 rounded-xl border border-gray-100 shadow-sm cursor-pointer hover:border-[#0C4A3A] transition">
+                </Link>
+                <Link href="/admin/scheduling" className="flex justify-between items-center bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:border-[#0C4A3A] transition block">
                   <span className="font-medium text-red-600">3 classes need substitutes</span>
                   <span className="text-red-600 font-bold">&rarr;</span>
-                </li>
+                </Link>
               </ul>
             </div>
             

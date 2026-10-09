@@ -1,6 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
 import { z } from 'zod'
 
@@ -74,6 +75,7 @@ export async function registerTeacher(formData: FormData) {
 
     if (dbError) {
       console.error("DB Insert Error:", dbError);
+      redirect('/register/teacher?error=' + encodeURIComponent('Database error: ' + dbError.message));
     }
   } catch (err) {
     if (err instanceof z.ZodError) {
@@ -83,6 +85,7 @@ export async function registerTeacher(formData: FormData) {
     throw err;
   }
 
+  revalidatePath('/', 'layout');
   // Teacher applications go to pending, but for the demo we'll let them into the dashboard
   redirect('/teacher')
 }

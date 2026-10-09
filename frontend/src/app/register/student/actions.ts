@@ -1,6 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
 import { z } from 'zod'
 
@@ -70,6 +71,7 @@ export async function registerStudent(formData: FormData) {
 
     if (dbError) {
       console.error("DB Insert Error:", dbError);
+      redirect('/register/student?error=' + encodeURIComponent('Database error: ' + dbError.message));
     }
   } catch (err) {
     if (err instanceof z.ZodError) {
@@ -79,5 +81,6 @@ export async function registerStudent(formData: FormData) {
     throw err;
   }
 
+  revalidatePath('/', 'layout');
   redirect('/student')
 }

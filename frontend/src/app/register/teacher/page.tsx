@@ -2,7 +2,9 @@ import { BookOpen } from 'lucide-react'
 import Link from 'next/link'
 import { registerTeacher } from './actions'
 
-export default function TeacherRegistrationPage() {
+export default async function TeacherRegistrationPage(props: { searchParams: Promise<{ error?: string }> }) {
+  const searchParams = await props.searchParams;
+  
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F8F9FA] px-4 py-12">
       <div className="max-w-3xl w-full bg-white rounded-3xl p-8 md:p-10 shadow-sm border border-gray-100">
@@ -12,7 +14,13 @@ export default function TeacherRegistrationPage() {
           </div>
         </div>
         <h2 className="text-3xl font-serif text-[#0C4A3A] text-center mb-2">Teacher self-registration</h2>
-        <p className="text-gray-500 text-center text-sm mb-10">Review before confirming. Bank and ID values stay masked; the application is reviewed before submission.</p>
+        <p className="text-gray-500 text-center text-sm mb-6">Review before confirming. Bank and ID values stay masked; the application is reviewed before submission.</p>
+
+        {searchParams?.error && (
+          <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-bold mb-6 border border-red-100">
+            {searchParams.error}
+          </div>
+        )}
 
         <form action={registerTeacher} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

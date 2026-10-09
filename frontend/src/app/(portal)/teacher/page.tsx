@@ -67,12 +67,12 @@ export default function TeacherDashboard() {
       </div>
       
       <div className="flex gap-6 border-b border-gray-200 pb-2 text-sm font-bold text-gray-400">
-        <span className="text-[#0C4A3A] border-b-2 border-[#0C4A3A] pb-2 px-1 cursor-pointer">Today</span>
-        <span className="hover:text-gray-700 cursor-pointer px-1">Schedule</span>
-        <span className="hover:text-gray-700 cursor-pointer px-1">My students</span>
-        <span className="hover:text-gray-700 cursor-pointer px-1">Lesson notes</span>
-        <span className="hover:text-gray-700 cursor-pointer px-1">Earnings</span>
-        <span className="hover:text-gray-700 cursor-pointer px-1">Notices</span>
+        <Link href="/teacher" className="text-[#0C4A3A] border-b-2 border-[#0C4A3A] pb-2 px-1">Today</Link>
+        <Link href="/teacher/schedule" className="hover:text-gray-700 px-1">Schedule</Link>
+        <Link href="/teacher/students" className="hover:text-gray-700 px-1">My students</Link>
+        <Link href="/teacher/students" className="hover:text-gray-700 px-1">Lesson notes</Link>
+        <Link href="/teacher/earnings" className="hover:text-gray-700 px-1">Earnings</Link>
+        <Link href="/teacher" className="hover:text-gray-700 px-1">Notices</Link>
       </div>
     </div>
   )

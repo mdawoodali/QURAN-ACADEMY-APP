@@ -74,22 +74,22 @@ export default function ParentPortal() {
       
       {/* Bottom Features List */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8 text-sm font-bold text-gray-700 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
-        <div className="flex items-center gap-3 cursor-pointer hover:text-[#0C4A3A] transition p-2 rounded-lg hover:bg-gray-50">
+        <Link href="/register/student" className="flex items-center gap-3 hover:text-[#0C4A3A] transition p-2 rounded-lg hover:bg-gray-50">
           <div className="w-6 h-6 rounded-full bg-emerald-100 text-[#0C4A3A] flex items-center justify-center"><Plus size={14} /></div>
           Add another child
-        </div>
-        <div className="flex items-center gap-3 cursor-pointer hover:text-[#0C4A3A] transition p-2 rounded-lg hover:bg-gray-50">
+        </Link>
+        <Link href="/parent" className="flex items-center gap-3 hover:text-[#0C4A3A] transition p-2 rounded-lg hover:bg-gray-50">
           <div className="w-6 h-6 rounded-full bg-emerald-100 text-[#0C4A3A] flex items-center justify-center"><Shield size={14} /></div>
           Child PIN login on shared devices
-        </div>
-        <div className="flex items-center gap-3 cursor-pointer hover:text-[#0C4A3A] transition p-2 rounded-lg hover:bg-gray-50">
+        </Link>
+        <Link href="/parent/support" className="flex items-center gap-3 hover:text-[#0C4A3A] transition p-2 rounded-lg hover:bg-gray-50">
           <div className="w-6 h-6 rounded-full bg-emerald-100 text-[#0C4A3A] flex items-center justify-center"><Shield size={14} /></div>
           Recording consent per child
-        </div>
-        <div className="flex items-center gap-3 cursor-pointer hover:text-[#0C4A3A] transition p-2 rounded-lg hover:bg-gray-50">
+        </Link>
+        <Link href="/parent/billing" className="flex items-center gap-3 hover:text-[#0C4A3A] transition p-2 rounded-lg hover:bg-gray-50">
           <div className="w-6 h-6 rounded-full bg-emerald-100 text-[#0C4A3A] flex items-center justify-center"><CreditCard size={14} /></div>
           One family billing account
-        </div>
+        </Link>
       </div>
     </div>
   )
