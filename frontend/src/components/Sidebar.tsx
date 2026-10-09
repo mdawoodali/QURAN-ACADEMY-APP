@@ -117,10 +117,17 @@ export default function Sidebar({ onClose, role }: { onClose?: () => void; role?
           </div>
           <div className="text-sm font-bold text-emerald-100 cursor-pointer hover:text-white transition">Account</div>
         </div>
-        <button onClick={handleSignOut} className="text-left text-sm font-bold text-red-300 hover:text-red-400 transition flex items-center gap-2">
-          <LogOut size={16} />
-          Sign Out
-        </button>
+        
+        <div className="flex items-center justify-between mt-2">
+          <button onClick={handleSignOut} className="text-left text-sm font-bold text-red-300 hover:text-red-400 transition flex items-center gap-2">
+            <LogOut size={16} />
+            Sign Out
+          </button>
+          
+          <button className="text-sm font-bold text-emerald-100 hover:text-white transition flex items-center gap-2" dir="ltr">
+            EN / <span dir="rtl" className="font-quran text-lg">اردو</span>
+          </button>
+        </div>
       </div>
     </div>
   );
