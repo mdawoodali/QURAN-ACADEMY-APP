@@ -28,7 +28,15 @@ const ADMIN_LINKS = [
   { href: "/admin/finance", label: "Finance", icon: CreditCard },
 ];
 
-export default function Sidebar({ onClose }: { onClose?: () => void }) {
+const PARENT_LINKS = [
+  { href: "/parent", label: "Family", icon: Home },
+  { href: "/parent/classes", label: "Classes", icon: PlaySquare },
+  { href: "/parent/progress", label: "Progress", icon: TrendingUp },
+  { href: "/parent/billing", label: "Billing", icon: CreditCard },
+  { href: "/parent/support", label: "Support", icon: HelpCircle },
+];
+
+export default function Sidebar({ onClose, role }: { onClose?: () => void; role?: string }) {
   const pathname = usePathname();
   const router = useRouter();
   
@@ -40,12 +48,15 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
   let links = STUDENT_LINKS;
   let portalName = "STUDENT";
 
-  if (pathname.startsWith("/teacher")) {
+  if (pathname.startsWith("/teacher") || role === "teacher") {
     links = TEACHER_LINKS;
     portalName = "TEACHER";
-  } else if (pathname.startsWith("/admin")) {
+  } else if (pathname.startsWith("/admin") || role === "admin") {
     links = ADMIN_LINKS;
     portalName = "ADMIN";
+  } else if (pathname.startsWith("/parent") || role === "parent") {
+    links = PARENT_LINKS;
+    portalName = "PARENT";
   }
 
   const handleSignOut = async () => {
