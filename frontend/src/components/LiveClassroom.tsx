@@ -19,6 +19,11 @@ export default function LiveClassroom() {
   const [highlightedIndex, setHighlightedIndex] = useState<number | null>(1);
   const [splitIndex, setSplitIndex] = useState<number | null>(null);
   
+  const [fontSize, setFontSize] = useState<number>(48);
+  const [fontColor, setFontColor] = useState<string>("#111827");
+  const [underlines, setUnderlines] = useState<Record<number, boolean>>({});
+  const [circles, setCircles] = useState<Record<number, boolean>>({});
+  
   // Camera state
   const [isCameraOn, setIsCameraOn] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -33,6 +38,12 @@ export default function LiveClassroom() {
       if (data.type === "highlight") setHighlightedIndex(data.index);
       else if (data.type === "split") setSplitIndex(data.index);
       else if (data.type === "close_split") setSplitIndex(null);
+      else if (data.type === "tool_sync") {
+        if (data.state.fontSize) setFontSize(data.state.fontSize);
+        if (data.state.fontColor) setFontColor(data.state.fontColor);
+        if (data.state.underlines) setUnderlines(data.state.underlines);
+        if (data.state.circles) setCircles(data.state.circles);
+      }
     };
     return () => {
       ws.current?.close();
@@ -41,6 +52,12 @@ export default function LiveClassroom() {
       }
     };
   }, [classId]);
+
+  const syncTools = (newState: any) => {
+    if (ws.current?.readyState === WebSocket.OPEN) {
+      ws.current.send(JSON.stringify({ type: "tool_sync", state: newState }));
+    }
+  };
 
   const toggleCamera = async () => {
     if (isCameraOn) {
@@ -80,6 +97,28 @@ export default function LiveClassroom() {
         index: highlightedIndex 
       }));
     }
+  };
+
+  const toggleUnderline = () => {
+    if (highlightedIndex === null) return;
+    const newUnderlines = { ...underlines, [highlightedIndex]: !underlines[highlightedIndex] };
+    setUnderlines(newUnderlines);
+    syncTools({ underlines: newUnderlines });
+  };
+
+  const toggleCircle = () => {
+    if (highlightedIndex === null) return;
+    const newCircles = { ...circles, [highlightedIndex]: !circles[highlightedIndex] };
+    setCircles(newCircles);
+    syncTools({ circles: newCircles });
+  };
+
+  const clearAll = () => {
+    setUnderlines({});
+    setCircles({});
+    setHighlightedIndex(null);
+    setSplitIndex(null);
+    syncTools({ underlines: {}, circles: {} });
   };
 
   const LetterPracticeTray = ({ wordIndex }: { wordIndex: number | null }) => {
@@ -154,12 +193,20 @@ export default function LiveClassroom() {
             <div className="text-xs md:text-sm text-gray-500 mb-4 md:mb-6 shrink-0">Surah 1 / Ayah 2</div>
             
             <div className="flex-1 flex flex-col items-center justify-center min-h-0 overflow-y-auto w-full">
-              <div className="font-quran text-4xl md:text-5xl lg:text-6xl text-[#111827] leading-[2.5] text-center w-full max-w-lg mx-auto flex items-center justify-center gap-2 md:gap-4 flex-wrap select-none" dir="rtl">
+              <div 
+                className="font-quran leading-[2.5] text-center w-full max-w-lg mx-auto flex items-center justify-center gap-2 md:gap-4 flex-wrap select-none" 
+                style={{ fontSize: `${fontSize}px`, color: fontColor }}
+                dir="rtl"
+              >
                 {VERSE_WORDS.map((word, i) => (
                   <span 
                     key={i} 
                     onClick={() => handleTeacherClickWord(i)}
-                    className={`cursor-pointer transition-all duration-200 px-2 py-1 rounded-xl ${highlightedIndex === i ? 'bg-[#fef3c7] border-2 border-amber-300 scale-110 shadow-sm' : 'hover:bg-gray-50 border-2 border-transparent'}`}
+                    className={`cursor-pointer transition-all duration-200 px-2 py-1 rounded-xl 
+                      ${highlightedIndex === i ? 'bg-[#fef3c7] scale-110 shadow-sm' : 'hover:bg-gray-50'}
+                      ${underlines[i] ? 'underline decoration-4 underline-offset-[12px]' : ''}
+                      ${circles[i] ? 'border-[3px] border-red-500 rounded-full px-4' : 'border-[3px] border-transparent'}
+                    `}
                   >
                     {word}
                   </span>
@@ -182,26 +229,33 @@ export default function LiveClassroom() {
             </div>
             
             {/* Toolbar */}
-            <div className="mt-auto pt-4 md:pt-6 border-t border-gray-100 flex flex-wrap gap-2 shrink-0 pb-2 justify-center">
+            <div className="mt-auto pt-4 md:pt-6 border-t border-gray-100 flex flex-wrap gap-2 shrink-0 pb-2 justify-center items-center">
               <button onClick={() => toast("Mic toggled", { icon: "🎙️" })} className="bg-[#0C4A3A] text-white px-3 md:px-4 py-2 rounded-lg font-bold text-xs">Mic</button>
               <button onClick={toggleCamera} className={`${isCameraOn ? 'bg-red-600' : 'bg-[#0C4A3A]'} text-white px-3 md:px-4 py-2 rounded-lg font-bold text-xs transition`}>
                 {isCameraOn ? 'Stop Cam' : 'Camera'}
               </button>
-              <div className="w-px bg-gray-200 mx-1 hidden sm:block" />
-              {['Pen', 'Size', 'Color'].map(tool => (
-                <button key={tool} onClick={() => toast(`Selected: ${tool}`, { icon: "✏️" })} className="text-[#0C4A3A] bg-emerald-50 hover:bg-emerald-100 px-3 py-2 rounded-lg font-bold text-xs transition hidden sm:block">
-                  {tool}
-                </button>
-              ))}
+              
+              <div className="w-px bg-gray-200 mx-1 hidden sm:block h-6" />
+              
+              {/* Font Sizing */}
+              <button onClick={() => { setFontSize(f => Math.min(f + 8, 80)); syncTools({ fontSize: Math.min(fontSize + 8, 80) }); }} className="text-[#0C4A3A] bg-emerald-50 hover:bg-emerald-100 px-3 py-2 rounded-lg font-bold text-xs transition hidden sm:block">A+</button>
+              <button onClick={() => { setFontSize(f => Math.max(f - 8, 24)); syncTools({ fontSize: Math.max(fontSize - 8, 24) }); }} className="text-[#0C4A3A] bg-emerald-50 hover:bg-emerald-100 px-3 py-2 rounded-lg font-bold text-xs transition hidden sm:block">A-</button>
+              
+              {/* Color Picker (Simplified) */}
+              <input type="color" value={fontColor} onChange={(e) => { setFontColor(e.target.value); syncTools({ fontColor: e.target.value }); }} className="w-8 h-8 rounded border-none cursor-pointer bg-transparent" />
+              
+              <div className="w-px bg-gray-200 mx-1 hidden sm:block h-6" />
+              
+              <button onClick={toggleUnderline} className="text-[#0C4A3A] bg-emerald-50 hover:bg-emerald-100 px-3 py-2 rounded-lg font-bold text-xs transition hidden sm:block">Underline</button>
+              <button onClick={toggleCircle} className="text-[#0C4A3A] bg-emerald-50 hover:bg-emerald-100 px-3 py-2 rounded-lg font-bold text-xs transition hidden sm:block">Circle</button>
+              
               <button onClick={handleSplitWord} className={`px-3 md:px-4 py-2 rounded-lg font-bold text-xs transition ${splitIndex !== null ? 'bg-[#0C4A3A] text-white' : 'text-[#0C4A3A] bg-emerald-50 hover:bg-emerald-100'}`}>
                 Split
               </button>
-              <div className="w-px bg-gray-200 mx-1 hidden sm:block" />
-              {['Undo', 'Clear'].map(tool => (
-                <button key={tool} onClick={() => toast(`Action: ${tool}`, { icon: "↺" })} className="text-gray-500 hover:bg-gray-100 px-3 py-2 rounded-lg font-bold text-xs transition hidden sm:block">
-                  {tool}
-                </button>
-              ))}
+              
+              <div className="w-px bg-gray-200 mx-1 hidden sm:block h-6" />
+              
+              <button onClick={clearAll} className="text-gray-500 hover:bg-gray-100 px-3 py-2 rounded-lg font-bold text-xs transition hidden sm:block">Clear All</button>
             </div>
           </div>
         </div>
@@ -214,12 +268,20 @@ export default function LiveClassroom() {
           <div className="flex-1 bg-white rounded-3xl border border-gray-200 shadow-sm flex flex-col p-4 md:p-6 overflow-hidden relative opacity-90">
             <div className="text-xs md:text-sm text-gray-500 mb-4 md:mb-6 shrink-0">Following teacher</div>
             
-            <div className="flex-1 flex flex-col items-center justify-center pointer-events-none min-h-0 overflow-y-auto">
-              <div className="font-quran text-4xl md:text-5xl lg:text-6xl text-[#111827] leading-[2.5] text-center w-full max-w-lg mx-auto flex items-center justify-center gap-2 md:gap-4 flex-wrap" dir="rtl">
+            <div className="flex-1 flex flex-col items-center justify-center pointer-events-none min-h-0 overflow-y-auto w-full">
+              <div 
+                className="font-quran leading-[2.5] text-center w-full max-w-lg mx-auto flex items-center justify-center gap-2 md:gap-4 flex-wrap" 
+                style={{ fontSize: `${fontSize}px`, color: fontColor }}
+                dir="rtl"
+              >
                 {VERSE_WORDS.map((word, i) => (
                   <span 
                     key={i} 
-                    className={`transition-all duration-300 px-2 py-1 rounded-xl ${highlightedIndex === i ? 'bg-[#fef3c7] border-2 border-amber-300 scale-110 shadow-sm' : 'border-2 border-transparent'}`}
+                    className={`transition-all duration-300 px-2 py-1 rounded-xl 
+                      ${highlightedIndex === i ? 'bg-[#fef3c7] scale-110 shadow-sm' : 'border-2 border-transparent'}
+                      ${underlines[i] ? 'underline decoration-4 underline-offset-[12px]' : ''}
+                      ${circles[i] ? 'border-[3px] border-red-500 rounded-full px-4' : 'border-[3px] border-transparent'}
+                    `}
                   >
                     {word}
                   </span>
