@@ -73,7 +73,7 @@ export async function registerStudent(formData: FormData) {
     }
   } catch (err) {
     if (err instanceof z.ZodError) {
-      console.error("Validation Error:", err.errors);
+      console.error("Validation Error:", err.message);
       redirect('/register/student?error=Invalid+form+data');
     }
     throw err;
