@@ -1,4 +1,24 @@
+"use client";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
 export default function BillingPage() {
+  const router = useRouter();
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handlePayment = () => {
+    setIsProcessing(true);
+    toast.loading("Processing payment...", { id: "payment" });
+    
+    setTimeout(() => {
+      toast.success("Payment successful! Family enrolled.", { id: "payment" });
+      setTimeout(() => {
+        router.push("/parent");
+      }, 1000);
+    }, 2000);
+  };
+
   return (
     <div className="p-4 md:p-8 max-w-5xl mx-auto">
       <header className="flex justify-between items-center mb-8">
@@ -77,8 +97,12 @@ export default function BillingPage() {
                   <span className="text-2xl font-bold text-[#0C4A3A]">PKR 9,000</span>
                 </div>
                 
-                <button className="w-full bg-[#0C4A3A] text-white py-4 rounded-xl font-bold hover:bg-[#0D5C46] transition shadow-sm text-lg">
-                  Pay & enrol
+                <button 
+                  onClick={handlePayment} 
+                  disabled={isProcessing}
+                  className="w-full bg-[#0C4A3A] text-white py-4 rounded-xl font-bold hover:bg-[#0D5C46] transition shadow-sm text-lg disabled:opacity-50"
+                >
+                  {isProcessing ? "Processing..." : "Pay & enrol"}
                 </button>
               </div>
             </div>
