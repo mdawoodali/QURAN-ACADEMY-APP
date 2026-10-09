@@ -37,7 +37,7 @@ const PARENT_LINKS = [
   { href: "/parent/support", label: "Support", icon: HelpCircle },
 ];
 
-export default function Sidebar({ onClose, role }: { onClose?: () => void; role?: string }) {
+export default function Sidebar({ onClose, role, userName, initials }: { onClose?: () => void; role?: string; userName?: string; initials?: string }) {
   const pathname = usePathname();
   const router = useRouter();
   
@@ -114,9 +114,11 @@ export default function Sidebar({ onClose, role }: { onClose?: () => void; role?
       <div className="mt-auto p-6 flex flex-col gap-4 border-t border-white/10">
         <div className="flex items-center gap-4">
           <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center font-bold text-sm">
-            U
+            {initials || 'U'}
           </div>
-          <div className="text-sm font-bold text-emerald-100 cursor-pointer hover:text-white transition">Account</div>
+          <div className="text-sm font-bold text-emerald-100 cursor-pointer hover:text-white transition line-clamp-1">
+            {userName || 'Account'}
+          </div>
         </div>
         
         <div className="flex items-center justify-between mt-2">
