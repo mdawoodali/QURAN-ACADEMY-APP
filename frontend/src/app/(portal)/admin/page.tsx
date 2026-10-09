@@ -1,23 +1,17 @@
-import Sidebar from '@/components/Sidebar'
-
 export default function AdminOverview() {
   return (
-    <div className="flex h-screen bg-[#F8F9FA] text-[#111827]">
-      <Sidebar role="admin" />
+    <div className="p-4 md:p-8 max-w-6xl mx-auto">
+      <header className="flex justify-between items-center mb-8">
+        <h1 className="text-2xl md:text-3xl font-serif text-[#0C4A3A]">Academy overview</h1>
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-bold text-gray-500">Asia/Karachi</span>
+          <div className="w-8 h-8 rounded-full bg-emerald-100 text-[#0C4A3A] flex items-center justify-center font-bold text-sm">
+            A
+          </div>
+        </div>
+      </header>
       
-      <main className="flex-1 overflow-y-auto p-4 md:p-8">
-        <div className="max-w-6xl mx-auto">
-          <header className="flex justify-between items-center mb-8">
-            <h1 className="text-2xl md:text-3xl font-serif text-[#0C4A3A]">Academy overview</h1>
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-bold text-gray-500">Asia/Karachi</span>
-              <div className="w-8 h-8 rounded-full bg-emerald-100 text-[#0C4A3A] flex items-center justify-center font-bold text-sm">
-                A
-              </div>
-            </div>
-          </header>
-          
-          <p className="text-gray-500 mb-8">Sample operating dashboard • September 2026</p>
+      <p className="text-gray-500 mb-8">Sample operating dashboard • September 2026</p>
           
           {/* Top KPIs */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6 mb-8">
