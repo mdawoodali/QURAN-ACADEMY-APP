@@ -1,0 +1,9 @@
+{
+  "name": "@quran/adapters",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/index.ts",
+  "dependencies": {
+    "livekit-server-sdk": "^2.19.1"
+  }
+}
