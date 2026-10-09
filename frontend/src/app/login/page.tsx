@@ -2,7 +2,9 @@ import { login, signup } from './actions'
 import { BookOpen } from 'lucide-react'
 import Link from 'next/link'
 
-export default function LoginPage() {
+export default async function LoginPage(props: { searchParams: Promise<{ error?: string }> }) {
+  const searchParams = await props.searchParams;
+  
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F8F9FA] px-4">
       <div className="max-w-md w-full bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
@@ -12,7 +14,13 @@ export default function LoginPage() {
           </div>
         </div>
         <h2 className="text-3xl font-serif text-[#0C4A3A] text-center mb-2">Welcome Back</h2>
-        <p className="text-gray-500 text-center text-sm mb-8">Sign in to access your classroom and portal.</p>
+        <p className="text-gray-500 text-center text-sm mb-6">Sign in to access your classroom and portal.</p>
+
+        {searchParams?.error && (
+          <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-bold mb-6 border border-red-100">
+            {searchParams.error}
+          </div>
+        )}
 
         <form className="space-y-4">
           <div>

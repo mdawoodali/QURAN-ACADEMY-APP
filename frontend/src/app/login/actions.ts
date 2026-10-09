@@ -17,7 +17,7 @@ export async function login(formData: FormData) {
   if (error) {
     // In a real app we'd handle this more gracefully, perhaps via useActionState
     console.error(error)
-    redirect('/login?error=Could not authenticate user')
+    redirect('/login?error=' + encodeURIComponent(error.message))
   }
 
   // Determine user role (simplistic approach based on email for demo)
