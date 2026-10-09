@@ -1,48 +1,108 @@
-"use client";
-
-import { FadeIn, StaggerContainer, StaggerItem } from "@/components/Animations";
-import toast from "react-hot-toast";
+import Link from 'next/link'
 
 export default function AdminScheduling() {
   return (
-    <div className="p-4 md:p-8 h-full bg-[#F8F9FA] text-[#111827]">
-      <FadeIn className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-serif text-[#0C4A3A]">Scheduling Engine</h1>
-        <button onClick={() => toast.success('Auto-assign algorithm started')} className="bg-[#0C4A3A] text-white px-6 py-2.5 rounded-xl font-bold hover:bg-[#0D5C46] transition shadow-sm">
-          Run Auto-Scheduler
-        </button>
-      </FadeIn>
+    <div className="p-4 md:p-8 max-w-6xl mx-auto">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-2xl md:text-3xl font-serif text-[#0C4A3A]">Academy calendar</h1>
+        <div className="bg-[#D1EBE1] text-[#0C4A3A] font-bold text-xs px-4 py-2 rounded-full hidden sm:block">
+          Calendar | List
+        </div>
+      </div>
       
-      <StaggerContainer className="grid md:grid-cols-2 gap-8 mb-8">
-        <StaggerItem>
-          <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm flex flex-col h-full">
-            <h2 className="text-lg font-bold text-gray-900 mb-6">Orphaned Classes</h2>
-            <div className="flex-1 space-y-4">
-              <div className="p-4 bg-red-50 rounded-2xl border border-red-100 flex justify-between items-center">
-                <div>
-                  <div className="font-bold text-red-900">Zayd Ali (Age 8)</div>
-                  <div className="text-sm text-red-700">Tajweed • EST Timezone</div>
-                </div>
-                <button onClick={() => toast('Opening match finder...', { icon: '🔍'})} className="bg-white text-red-700 font-bold px-4 py-2 rounded-lg text-sm shadow-sm hover:bg-gray-50">Find Match</button>
+      <p className="text-gray-500 mb-8">Week of 14 September 2026 • teacher and student local-time display</p>
+      
+      <div className="bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm">
+        <div className="overflow-x-auto min-w-[800px]">
+          <div className="grid grid-cols-6 border-b border-gray-100 bg-gray-50">
+            <div className="p-4 border-r border-gray-100 text-sm font-bold text-gray-500">Time</div>
+            <div className="p-4 border-r border-gray-100 text-sm font-bold text-gray-900 text-center">Mon 14</div>
+            <div className="p-4 border-r border-gray-100 text-sm font-bold text-gray-900 text-center">Tue 15</div>
+            <div className="p-4 border-r border-gray-100 text-sm font-bold text-gray-900 text-center">Wed 16</div>
+            <div className="p-4 border-r border-gray-100 text-sm font-bold text-gray-900 text-center">Thu 17</div>
+            <div className="p-4 text-sm font-bold text-gray-900 text-center">Fri 18</div>
+          </div>
+          
+          {/* 16:00 */}
+          <div className="grid grid-cols-6 border-b border-gray-100 min-h-[60px]">
+            <div className="p-4 border-r border-gray-100 text-xs font-bold text-gray-400">16:00</div>
+            <div className="p-2 border-r border-gray-100 relative"></div>
+            <div className="p-2 border-r border-gray-100 relative"></div>
+            <div className="p-2 border-r border-gray-100 relative"></div>
+            <div className="p-2 border-r border-gray-100 relative"></div>
+            <div className="p-2 relative"></div>
+          </div>
+
+          {/* 16:30 */}
+          <div className="grid grid-cols-6 border-b border-gray-100 min-h-[60px]">
+            <div className="p-4 border-r border-gray-100 text-xs font-bold text-gray-400">16:30</div>
+            <div className="p-2 border-r border-gray-100 relative"></div>
+            <div className="p-2 border-r border-gray-100 relative">
+              <div className="bg-emerald-100 text-[#0C4A3A] p-2 rounded-lg text-xs absolute inset-1">
+                <div className="font-bold">Amina • Maryam</div>
+                <div className="text-[#0C4A3A]/70">Tajweed • 30 min</div>
+              </div>
+            </div>
+            <div className="p-2 border-r border-gray-100 relative"></div>
+            <div className="p-2 border-r border-gray-100 relative"></div>
+            <div className="p-2 relative"></div>
+          </div>
+
+          {/* 17:00 */}
+          <div className="grid grid-cols-6 border-b border-gray-100 min-h-[60px]">
+            <div className="p-4 border-r border-gray-100 text-xs font-bold text-gray-400">17:00</div>
+            <div className="p-2 border-r border-gray-100 relative">
+              <div className="bg-[#D1EBE1] text-[#0C4A3A] p-2 rounded-lg text-xs absolute inset-1">
+                <div className="font-bold">Yusuf • Maryam</div>
+                <div className="text-[#0C4A3A]/70">Qaida • 30 min</div>
+              </div>
+            </div>
+            <div className="p-2 border-r border-gray-100 relative"></div>
+            <div className="p-2 border-r border-gray-100 relative">
+              <div className="bg-[#D1EBE1] text-[#0C4A3A] p-2 rounded-lg text-xs absolute inset-1">
+                <div className="font-bold">Yusuf • Maryam</div>
+                <div className="text-[#0C4A3A]/70">Qaida • 30 min</div>
+              </div>
+            </div>
+            <div className="p-2 border-r border-gray-100 relative"></div>
+            <div className="p-2 relative">
+              <div className="bg-[#D1EBE1] text-[#0C4A3A] p-2 rounded-lg text-xs absolute inset-1">
+                <div className="font-bold">Yusuf • Maryam</div>
+                <div className="text-[#0C4A3A]/70">Qaida • 30 min</div>
               </div>
             </div>
           </div>
-        </StaggerItem>
-        <StaggerItem>
-          <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm flex flex-col h-full">
-            <h2 className="text-lg font-bold text-gray-900 mb-6">Teacher Capacity</h2>
-            <div className="flex-1 space-y-4">
-              <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 flex justify-between items-center">
-                <div>
-                  <div className="font-bold text-emerald-900">Ustadha Fatima</div>
-                  <div className="text-sm text-emerald-700">Available: 14:00 - 18:00 GMT</div>
-                </div>
-                <div className="text-emerald-800 font-bold bg-white px-3 py-1 rounded-full text-sm">4 slots open</div>
+
+          {/* 17:30 */}
+          <div className="grid grid-cols-6 border-b border-gray-100 min-h-[60px]">
+            <div className="p-4 border-r border-gray-100 text-xs font-bold text-gray-400">17:30</div>
+            <div className="p-2 border-r border-gray-100 relative"></div>
+            <div className="p-2 border-r border-gray-100 relative"></div>
+            <div className="p-2 border-r border-gray-100 relative"></div>
+            <div className="p-2 border-r border-gray-100 relative">
+              <div className="bg-emerald-50 border border-emerald-200 text-[#0C4A3A] p-2 rounded-lg text-xs absolute inset-1">
+                <div className="font-bold">Omar • Bilal</div>
+                <div className="text-[#0C4A3A]/70">Hifz • 30 min</div>
+              </div>
+            </div>
+            <div className="p-2 relative"></div>
+          </div>
+          
+          {/* 18:00 */}
+          <div className="grid grid-cols-6 border-b border-gray-100 min-h-[60px]">
+            <div className="p-4 border-r border-gray-100 text-xs font-bold text-gray-400">18:00</div>
+            <div className="p-2 border-r border-gray-100 relative"></div>
+            <div className="p-2 border-r border-gray-100 relative"></div>
+            <div className="p-2 border-r border-gray-100 relative"></div>
+            <div className="p-2 border-r border-gray-100 relative col-span-2">
+              <div className="bg-orange-100 text-orange-800 p-2 rounded-lg text-xs absolute inset-1 flex items-center justify-center font-bold">
+                Teacher on leave
               </div>
             </div>
           </div>
-        </StaggerItem>
-      </StaggerContainer>
+        </div>
+      </div>
+      <p className="text-xs text-gray-400 mt-4 text-center">Recurring weekly slots • Leave dates • Conflict detection • Out-of-availability warning • UTC-backed times + daylight saving</p>
     </div>
-  );
+  )
 }

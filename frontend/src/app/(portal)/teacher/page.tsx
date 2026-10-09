@@ -1,109 +1,79 @@
-"use client";
-
-import { useState } from "react";
-import Link from "next/link";
-import toast from "react-hot-toast";
-import { FadeIn, StaggerContainer, StaggerItem, ScaleIn } from "@/components/Animations";
+import Link from 'next/link'
 
 export default function TeacherDashboard() {
-  const [shiftActive, setShiftActive] = useState(false);
-
-  const toggleShift = () => {
-    if (shiftActive) {
-      toast("Shift ended", { icon: "🛑" });
-      setShiftActive(false);
-    } else {
-      toast.success("Shift started! You are now visible to students.");
-      setShiftActive(true);
-    }
-  };
-
   return (
-    <div className="w-full h-full p-4 md:p-8 flex flex-col bg-[#F8F9FA] text-[#111827] overflow-x-hidden">
-      <FadeIn className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-serif text-[#0C4A3A]">Today&apos;s Schedule</h1>
-        <button onClick={toggleShift} className={`px-6 py-2 rounded-full font-bold text-sm transition transform hover:scale-105 active:scale-95 ${shiftActive ? 'bg-red-100 text-red-700 hover:bg-red-200 shadow-sm' : 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200 shadow-sm'}`}>
-          {shiftActive ? 'End Shift' : 'Start Shift'}
-        </button>
-      </FadeIn>
+    <div className="p-4 md:p-8 max-w-5xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-2xl md:text-3xl font-serif text-gray-900 mb-2">Assalamu alaikum, Maryam</h1>
+        <p className="text-gray-500">Your learning day, clearly organised.</p>
+      </div>
       
-      <StaggerContainer className="grid md:grid-cols-3 gap-6 mb-8">
-        {[
-          { label: "Completed", value: "3" },
-          { label: "Remaining", value: "2" },
-          { label: "Hours Logged", value: "1.5h" }
-        ].map((stat, i) => (
-          <StaggerItem key={i}>
-            <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm hover:shadow-md transition">
-              <p className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">{stat.label}</p>
-              <p className="text-4xl font-bold text-gray-900">{stat.value}</p>
-            </div>
-          </StaggerItem>
-        ))}
-      </StaggerContainer>
-
-      <FadeIn delay={0.3} className="flex-1 bg-white p-4 md:p-8 rounded-3xl border border-gray-200 shadow-sm flex flex-col relative overflow-hidden">
-        {/* Timeline Line */}
-        <div className="absolute left-[8.5rem] top-8 bottom-8 w-px bg-gray-100 hidden md:block"></div>
-
-        <StaggerContainer className="space-y-8 relative z-10">
+      <div className="flex flex-col lg:flex-row gap-6 mb-8">
+        {/* Next Class Card */}
+        <div className="flex-1 bg-[#0C4A3A] rounded-3xl p-6 md:p-8 text-white shadow-md relative overflow-hidden flex flex-col justify-between">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-800 rounded-full blur-3xl opacity-50 -mr-20 -mt-20 pointer-events-none"></div>
           
-          {/* Class 1 - Next */}
-          <StaggerItem>
-            <div className="flex flex-col md:flex-row gap-6 items-start group">
-              <div className="w-24 text-right shrink-0 pt-2 hidden md:block">
-                <div className="font-bold text-lg text-[#0C4A3A]">15:00</div>
-                <div className="text-xs font-bold text-gray-400 uppercase tracking-widest">30 mins</div>
-              </div>
-              <ScaleIn delay={0.5} className="w-4 h-4 rounded-full bg-[#0C4A3A] border-4 border-white shadow-sm mt-2.5 shrink-0 hidden md:block relative z-10" />
-              <div className="flex-1 w-full bg-emerald-50 rounded-3xl p-6 border border-emerald-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition group-hover:shadow-md hover:-translate-y-1">
-                <div>
-                  <div className="md:hidden flex gap-2 mb-2">
-                    <span className="font-bold text-[#0C4A3A] bg-emerald-100 px-2 rounded">15:00</span>
-                    <span className="text-emerald-700 text-sm">30 mins</span>
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-1">Tajweed & Fluent Recitation</h3>
-                  <div className="text-sm text-gray-600 flex items-center gap-2">
-                    <div className="w-6 h-6 bg-emerald-200 rounded-full flex items-center justify-center text-xs font-bold text-emerald-800">Y</div>
-                    Student: Yusuf Ali (Age 10)
-                  </div>
-                </div>
-                <Link href="/classroom/123" className="shrink-0 bg-[#0C4A3A] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#0D5C46] transition shadow-sm w-full md:w-auto text-center transform hover:scale-105 active:scale-95">
-                  Launch class
-                </Link>
-              </div>
+          <div>
+            <div className="bg-white/20 text-white font-bold text-[10px] tracking-widest uppercase px-3 py-1.5 rounded-full inline-block mb-6">
+              NEXT CLASS • TODAY
             </div>
-          </StaggerItem>
-
-          {/* Class 2 - Later */}
-          <StaggerItem>
-            <div className="flex flex-col md:flex-row gap-6 items-start opacity-80 hover:opacity-100 transition">
-              <div className="w-24 text-right shrink-0 pt-2 hidden md:block">
-                <div className="font-bold text-lg text-gray-900">16:00</div>
-                <div className="text-xs font-bold text-gray-400 uppercase tracking-widest">45 mins</div>
-              </div>
-              <ScaleIn delay={0.6} className="w-4 h-4 rounded-full bg-gray-200 border-4 border-white shadow-sm mt-2.5 shrink-0 hidden md:block relative z-10" />
-              <div className="flex-1 w-full bg-white rounded-3xl p-6 border border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 group-hover:border-gray-200 hover:-translate-y-1 transition">
-                <div>
-                  <div className="md:hidden flex gap-2 mb-2">
-                    <span className="font-bold text-gray-700 bg-gray-100 px-2 rounded">16:00</span>
-                    <span className="text-gray-500 text-sm">45 mins</span>
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-1">Hifz Revision</h3>
-                  <div className="text-sm text-gray-600 flex items-center gap-2">
-                    <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-xs font-bold text-gray-500">M</div>
-                    Student: Musa Ibrahim (Age 14)
-                  </div>
-                </div>
-                <button onClick={() => toast('It is not time for this class yet.', { icon: '⏳' })} className="shrink-0 bg-gray-100 text-gray-400 px-6 py-3 rounded-xl font-bold cursor-not-allowed w-full md:w-auto">
-                  Waiting
-                </button>
-              </div>
+            
+            <h2 className="text-3xl md:text-4xl font-serif mb-4">Quran Reading for Kids</h2>
+            <div className="text-emerald-100 flex gap-4 text-sm font-medium mb-8">
+              <span>17:00–17:30</span>
+              <span>•</span>
+              <span>Asia/Karachi</span>
+              <span>•</span>
+              <span>Qaida lesson 3</span>
             </div>
-          </StaggerItem>
-
-        </StaggerContainer>
-      </FadeIn>
+          </div>
+          
+          <div className="flex justify-end">
+            <Link href="/classroom/teacher" className="bg-white text-[#0C4A3A] px-8 py-3 rounded-xl font-bold hover:bg-emerald-50 transition shadow-sm">
+              Start class
+            </Link>
+          </div>
+        </div>
+        
+        {/* This Week Card */}
+        <div className="w-full lg:w-72 bg-white rounded-3xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between">
+          <div>
+            <h3 className="text-gray-900 font-bold mb-4">This week</h3>
+            <div className="text-4xl font-bold text-[#0C4A3A] mb-2">12 classes</div>
+            <p className="text-gray-500 text-sm">2 awaiting notes</p>
+          </div>
+        </div>
+      </div>
+      
+      {/* Lesson Details Row */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Current lesson</h3>
+          <div className="text-xl font-bold text-gray-900 mb-2">Joined letters</div>
+          <p className="text-xs text-gray-500">Prepare lesson / continue practice</p>
+        </div>
+        
+        <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Homework</h3>
+          <div className="text-xl font-bold text-gray-900 mb-2">Qaida 3</div>
+          <p className="text-xs text-gray-500">Repeat twice before the next class</p>
+        </div>
+        
+        <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Progress</h3>
+          <div className="text-xl font-bold text-gray-900 mb-2">8 / 12 lessons</div>
+          <p className="text-xs text-gray-500">Notes, milestones and monthly report</p>
+        </div>
+      </div>
+      
+      <div className="flex gap-6 border-b border-gray-200 pb-2 text-sm font-bold text-gray-400">
+        <span className="text-[#0C4A3A] border-b-2 border-[#0C4A3A] pb-2 px-1 cursor-pointer">Today</span>
+        <span className="hover:text-gray-700 cursor-pointer px-1">Schedule</span>
+        <span className="hover:text-gray-700 cursor-pointer px-1">My students</span>
+        <span className="hover:text-gray-700 cursor-pointer px-1">Lesson notes</span>
+        <span className="hover:text-gray-700 cursor-pointer px-1">Earnings</span>
+        <span className="hover:text-gray-700 cursor-pointer px-1">Notices</span>
+      </div>
     </div>
-  );
+  )
 }

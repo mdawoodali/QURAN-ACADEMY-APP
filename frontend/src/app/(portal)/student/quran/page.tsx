@@ -1,39 +1,76 @@
-"use client";
-import toast from "react-hot-toast";
-import { FadeIn, StaggerContainer, StaggerItem } from "@/components/Animations";
+import Link from 'next/link'
 
-export default function StudentQuran() {
+export default function StudentQuranLibrary() {
   return (
-    <div className="p-4 md:p-8 h-full bg-[#F8F9FA] text-[#111827]">
-      <FadeIn>
-        <h1 className="text-3xl font-serif text-[#0C4A3A] mb-8">Quran & Duas Library</h1>
-      </FadeIn>
+    <div className="p-4 md:p-8 max-w-6xl mx-auto h-full flex flex-col">
+      <div className="mb-8 shrink-0">
+        <h1 className="text-2xl md:text-3xl font-serif text-[#0C4A3A] mb-2">Quran library</h1>
+        <p className="text-gray-500">114 Surahs • 30 Juz • Page, Hizb, Ruku and Sajdah markers</p>
+      </div>
       
-      <StaggerContainer className="grid md:grid-cols-3 gap-6">
-        {[
-          { title: "Surah Al-Fatihah", type: "Makki", ayahs: 7 },
-          { title: "Surah Al-Baqarah", type: "Madani", ayahs: 286 },
-          { title: "Surah Aal-E-Imran", type: "Madani", ayahs: 200 },
-          { title: "Surah Al-Kahf", type: "Makki", ayahs: 110 },
-          { title: "Surah Yaseen", type: "Makki", ayahs: 83 },
-          { title: "Surah Al-Mulk", type: "Makki", ayahs: 30 },
-        ].map((surah, i) => (
-          <StaggerItem key={i}>
-            <div 
-              onClick={() => toast.success(`Opened ${surah.title} in practice mode`)} 
-              className="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all cursor-pointer flex justify-between items-center group hover:-translate-y-1 hover:border-emerald-200"
-            >
-              <div>
-                <div className="text-xs font-bold text-emerald-600 mb-1">{surah.type} • {surah.ayahs} Ayahs</div>
-                <h2 className="text-lg font-bold text-gray-900 group-hover:text-[#0C4A3A] transition">{surah.title}</h2>
-              </div>
-              <div className="w-10 h-10 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center font-bold text-gray-400 group-hover:bg-[#0C4A3A] group-hover:text-white transition transform group-hover:rotate-12">
-                {i + 1}
-              </div>
+      <div className="flex-1 flex flex-col lg:flex-row gap-6 min-h-0">
+        
+        {/* Left Sidebar: Surah List */}
+        <div className="w-full lg:w-80 bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col overflow-hidden shrink-0">
+          <div className="p-4 border-b border-gray-100">
+            <input 
+              type="text" 
+              placeholder="Search Arabic or translation" 
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[#0C4A3A]"
+            />
+          </div>
+          <div className="flex-1 overflow-y-auto p-2">
+            <div className="bg-[#D1EBE1] text-[#0C4A3A] font-bold p-3 rounded-xl mb-1 cursor-pointer">
+              01 Al-Fatihah
             </div>
-          </StaggerItem>
-        ))}
-      </StaggerContainer>
+            {['02 Al-Baqarah', '03 Ali Imran', '04 An-Nisa', '05 Al-Ma\'idah', '06 Al-An\'am', '07 Al-A\'raf', '08 Al-Anfal'].map(s => (
+              <div key={s} className="text-gray-700 font-medium p-3 rounded-xl hover:bg-gray-50 cursor-pointer transition">
+                {s}
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Right Main Content: Surah View */}
+        <div className="flex-1 bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col p-6 relative overflow-hidden">
+          <div className="flex justify-between items-center mb-12">
+            <h2 className="text-xl font-bold text-gray-900">Al-Fatihah</h2>
+            <div className="bg-[#D1EBE1] text-[#0C4A3A] font-bold text-xs px-4 py-2 rounded-full">
+              Study | Mushaf
+            </div>
+          </div>
+          
+          <div className="flex-1 flex flex-col items-center justify-center mb-12 min-h-[200px]">
+            <div className="font-quran text-5xl md:text-6xl text-[#111827] leading-[2.5] text-center w-full max-w-xl mx-auto flex items-center justify-center gap-4 flex-wrap mb-10" dir="rtl">
+              <span>ٱلْحَمْدُ</span>
+              <span>لِلَّهِ</span>
+              <span>رَبِّ</span>
+              <span>ٱلْعَـٰلَمِينَ</span>
+            </div>
+            
+            <p className="text-gray-600 text-center">All praise belongs to Allah, Lord of all worlds.</p>
+          </div>
+          
+          <div className="flex justify-center gap-6 text-sm font-bold text-[#0C4A3A] mt-auto pb-4">
+            <span className="text-gray-500">Surah 1 • Ayah 2</span>
+            <button className="hover:underline">Bookmark</button>
+            <button className="hover:underline">Note</button>
+            <button className="hover:underline">Resume reading</button>
+          </div>
+          
+        </div>
+      </div>
+      
+      {/* Footer Settings */}
+      <div className="mt-6 flex flex-wrap gap-4 text-xs font-bold text-gray-400 justify-center">
+        <span>Script: Uthmani / IndoPak</span>
+        <span>•</span>
+        <span>Translation: Urdu / English</span>
+        <span>•</span>
+        <span>Theme: light / dark / sepia</span>
+        <span>•</span>
+        <span>Font size: A-  A+</span>
+      </div>
     </div>
-  );
+  )
 }

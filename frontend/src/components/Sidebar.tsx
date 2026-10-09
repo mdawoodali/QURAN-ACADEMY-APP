@@ -23,6 +23,7 @@ const TEACHER_LINKS = [
 
 const ADMIN_LINKS = [
   { href: "/admin", label: "Overview", icon: Home },
+  { href: "/admin/enrolments", label: "Enrolments", icon: Book },
   { href: "/admin/scheduling", label: "Scheduling", icon: PlaySquare },
   { href: "/admin/teachers", label: "Teachers", icon: User },
   { href: "/admin/finance", label: "Finance", icon: CreditCard },

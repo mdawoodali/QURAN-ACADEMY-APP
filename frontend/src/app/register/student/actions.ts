@@ -2,59 +2,81 @@
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
+import { z } from 'zod'
+
+const StudentSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+  fullName: z.string().min(2),
+  fatherName: z.string().min(2),
+  age: z.number().int().positive(),
+  location: z.string().min(2),
+  address: z.string().min(5),
+});
 
 export async function registerStudent(formData: FormData) {
   const supabase = await createClient()
 
-  const email = formData.get('email') as string;
-  const password = formData.get('password') as string;
-  const fullName = formData.get('fullName') as string;
-  const fatherName = formData.get('fatherName') as string;
-  const age = parseInt(formData.get('age') as string);
-  const location = formData.get('location') as string;
-  const address = formData.get('address') as string;
+  try {
+    const rawData = {
+      email: formData.get('email'),
+      password: formData.get('password'),
+      fullName: formData.get('fullName'),
+      fatherName: formData.get('fatherName'),
+      age: parseInt(formData.get('age') as string || '0', 10),
+      location: formData.get('location'),
+      address: formData.get('address'),
+    };
 
-  // Split location into country and city (basic fallback)
-  const parts = location.split(',').map(s => s.trim());
-  const country = parts[0] || 'Unknown';
-  const city = parts.length > 1 ? parts[1] : 'Unknown';
+    const parsed = StudentSchema.parse(rawData);
 
-  const [firstName, ...lastNames] = fullName.split(' ');
-  const lastName = lastNames.join(' ') || ' ';
+    // Split location into country and city (basic fallback)
+    const parts = parsed.location.split(',').map(s => s.trim());
+    const country = parts[0] || 'Unknown';
+    const city = parts.length > 1 ? parts[1] : 'Unknown';
 
-  // 1. Create the user in Supabase Auth
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        role: 'student',
-        first_name: firstName,
-        last_name: lastName
+    const [firstName, ...lastNames] = parsed.fullName.split(' ');
+    const lastName = lastNames.join(' ') || ' ';
+
+    // 1. Create the user in Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: parsed.email,
+      password: parsed.password,
+      options: {
+        data: {
+          role: 'student',
+          first_name: firstName,
+          last_name: lastName
+        }
       }
+    });
+
+    if (authError || !authData.user) {
+      console.error("Auth Error:", authError);
+      redirect('/register/student?error=' + encodeURIComponent(authError?.message || 'Could not create account'));
     }
-  });
 
-  if (authError || !authData.user) {
-    console.error("Auth Error:", authError);
-    redirect('/register/student?error=Could not create account');
-  }
+    // Note: The handle_new_user trigger automatically creates the `profiles` row.
+    // 2. Insert into student_details table
+    const { error: dbError } = await supabase.from('student_details').insert({
+      id: authData.user.id,
+      father_name: parsed.fatherName,
+      age: parsed.age,
+      country: country,
+      city: city,
+      postal_code: '00000', // Extract from address if needed
+      address: parsed.address
+    });
 
-  // Note: The handle_new_user trigger automatically creates the `profiles` row.
-  // 2. Insert into student_details table
-  const { error: dbError } = await supabase.from('student_details').insert({
-    id: authData.user.id,
-    father_name: fatherName,
-    age: age,
-    country: country,
-    city: city,
-    postal_code: '00000', // Extract from address if needed
-    address: address
-  });
-
-  if (dbError) {
-    console.error("DB Insert Error:", dbError);
-    // Continue anyway since auth succeeded (in a real app, handle rollback or upsert)
+    if (dbError) {
+      console.error("DB Insert Error:", dbError);
+    }
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      console.error("Validation Error:", err.errors);
+      redirect('/register/student?error=Invalid+form+data');
+    }
+    throw err;
   }
 
   redirect('/student')
