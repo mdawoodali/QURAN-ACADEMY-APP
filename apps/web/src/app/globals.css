@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+@theme {
+  --color-green-900: #0b3a35;
+  --color-green-600: #0d6150;
+  --color-mint-100: #d8ebe3;
+  --color-ink: #12302b;
+  --color-muted: #5d6f6a;
+  --color-line: #e3ebe7;
+  --color-surface: #fbfcfc;
+  --color-field: #f3f6f5;
+  --color-highlight-bg: #f7e5b8;
+  --color-highlight-border: #e2b862;
+  --color-danger: #b9533f;
+
+  --font-sans: var(--font-ui), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-hero), ui-serif, Georgia, serif;
+  --font-arabic: var(--font-arabic), serif;
+  --font-urdu: var(--font-urdu), serif;
+}
+
+body {
+  background: linear-gradient(to bottom, #f4f7f5, #eef3f0);
+  color: var(--color-ink);
+  min-height: 100vh;
+}
+
+.glass-panel {
+  background: rgba(251, 252, 252, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--color-line);
+}
