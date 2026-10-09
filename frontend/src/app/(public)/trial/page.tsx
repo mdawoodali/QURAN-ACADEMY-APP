@@ -27,9 +27,9 @@ function TrialFormContent() {
   const prevStep = () => setStep(step - 1);
 
   const handleSubmit = () => {
-    toast.success("Trial booked! Redirecting to dashboard...", { duration: 3000 });
+    toast.success("Preferences saved! Please create your account...", { duration: 3000 });
     setTimeout(() => {
-      router.push('/student');
+      router.push('/register/student');
     }, 1500);
   };
 
@@ -153,7 +153,7 @@ function TrialFormContent() {
                 <ArrowLeft size={18} />
               </button>
               <button onClick={handleSubmit} className="flex-1 bg-[#0C4A3A] text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#0D5C46] transition shadow-sm">
-                Save & Enter Portal
+                Save & Continue
               </button>
             </div>
           </div>
