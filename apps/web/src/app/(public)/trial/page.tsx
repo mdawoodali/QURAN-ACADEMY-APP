@@ -1,11 +1,10 @@
-import Link from "next/link";
-import { Calendar } from "lucide-react";
+import TrialFunnel from './TrialFunnel';
 
 export default function FreeTrialPage() {
   return (
     <main className="w-full max-w-[1280px] mx-auto px-6 py-12 md:py-24">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-        <div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+        <div className="sticky top-24">
           <h1 className="text-4xl md:text-5xl font-serif text-[var(--color-ink)] mb-6 leading-tight">
             Book your free trial class.
           </h1>
@@ -31,30 +30,8 @@ export default function FreeTrialPage() {
           </div>
         </div>
         
-        <div className="bg-white rounded-3xl p-8 border border-[var(--color-line)] shadow-xl">
-          <h2 className="text-2xl font-bold text-[var(--color-ink)] mb-6 flex items-center gap-3">
-            <Calendar className="text-[var(--color-green-600)]" /> Select a Time
-          </h2>
-          
-          <p className="text-[var(--color-muted)] text-sm mb-6">
-            (Calendar integration to be implemented)
-          </p>
-          
-          <div className="space-y-4 mb-8 opacity-50">
-            <button className="w-full border-2 border-[var(--color-line)] rounded-xl p-4 text-left font-bold text-[var(--color-ink)]">
-              Today, 4:00 PM
-            </button>
-            <button className="w-full border-2 border-[var(--color-line)] rounded-xl p-4 text-left font-bold text-[var(--color-ink)]">
-              Tomorrow, 10:00 AM
-            </button>
-            <button className="w-full border-2 border-[var(--color-line)] rounded-xl p-4 text-left font-bold text-[var(--color-ink)]">
-              Tomorrow, 6:00 PM
-            </button>
-          </div>
-          
-          <Link href="/register/student" className="block w-full bg-[var(--color-green-600)] hover:bg-[var(--color-green-900)] text-white text-center font-bold py-4 rounded-xl transition-colors">
-            Continue to Registration
-          </Link>
+        <div>
+          <TrialFunnel />
         </div>
       </div>
     </main>
