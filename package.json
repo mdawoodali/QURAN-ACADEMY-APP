@@ -1,0 +1,13 @@
+{
+  "name": "quran-academy",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "gen:feature": "node scripts/gen-feature.js",
+    "check:arch": "dependency-cruiser apps/web/src"
+  },
+  "devDependencies": {
+    "dependency-cruiser": "^15.5.0",
+    "eslint-plugin-security": "^3.0.0"
+  }
+}
