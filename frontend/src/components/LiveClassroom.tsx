@@ -25,9 +25,14 @@ export default function LiveClassroom() {
   const [circles, setCircles] = useState<Record<number, boolean>>({});
   
   // Camera state
+  const [isMicOn, setIsMicOn] = useState(false);
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [showEndModal, setShowEndModal] = useState(false);
   const [isCameraOn, setIsCameraOn] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+
+  // Modal state
   
   const ws = useRef<WebSocket | null>(null);
 
@@ -175,7 +180,7 @@ export default function LiveClassroom() {
             <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
             Recording
           </div>
-          <button onClick={() => router.push('/student')} className="bg-[#b94a48] text-white px-3 md:px-5 py-1.5 rounded-lg font-bold hover:bg-red-800 transition text-xs md:text-sm">
+          <button onClick={() => setShowEndModal(true)} className="bg-[#b94a48] text-white px-3 md:px-5 py-1.5 rounded-lg font-bold hover:bg-red-800 transition text-xs md:text-sm">
             End class
           </button>
         </div>
@@ -183,6 +188,19 @@ export default function LiveClassroom() {
 
       {/* Main Split Area */}
       <main className="flex-1 flex flex-col lg:flex-row bg-[#F8F9FA] p-2 md:p-6 gap-4 md:gap-6 min-h-0 overflow-y-auto lg:overflow-hidden">
+        {/* End Class Modal */}
+        {showEndModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl animate-in zoom-in-95">
+              <h2 className="text-xl font-bold text-gray-900 mb-2">End Class?</h2>
+              <p className="text-gray-500 mb-6 text-sm">Are you sure you want to end this session? The recording will be saved automatically.</p>
+              <div className="flex gap-3">
+                <button onClick={() => setShowEndModal(false)} className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition">Cancel</button>
+                <button onClick={() => router.push('/student')} className="flex-1 bg-red-600 text-white py-3 rounded-xl font-bold hover:bg-red-700 transition">End Session</button>
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* LEFT PANE: TEACHER */}
         <div className="w-full lg:w-1/2 flex flex-col h-[500px] lg:h-full shrink-0 lg:shrink">
@@ -230,7 +248,7 @@ export default function LiveClassroom() {
             
             {/* Toolbar */}
             <div className="mt-auto pt-4 md:pt-6 border-t border-gray-100 flex flex-wrap gap-2 shrink-0 pb-2 justify-center items-center">
-              <button onClick={() => toast("Mic toggled", { icon: "🎙️" })} className="bg-[#0C4A3A] text-white px-3 md:px-4 py-2 rounded-lg font-bold text-xs">Mic</button>
+              <button onClick={() => { setIsMicOn(!isMicOn); toast(isMicOn ? "Mic Muted" : "Mic Unmuted", { icon: "🎙️" }) }} className={`${isMicOn ? 'bg-red-500' : 'bg-[#0C4A3A]'} text-white px-3 md:px-4 py-2 rounded-lg font-bold text-xs transition`}>{isMicOn ? 'Mute' : 'Mic'}</button>
               <button onClick={toggleCamera} className={`${isCameraOn ? 'bg-red-600' : 'bg-[#0C4A3A]'} text-white px-3 md:px-4 py-2 rounded-lg font-bold text-xs transition`}>
                 {isCameraOn ? 'Stop Cam' : 'Camera'}
               </button>
@@ -268,7 +286,7 @@ export default function LiveClassroom() {
           <div className="flex-1 bg-white rounded-3xl border border-gray-200 shadow-sm flex flex-col p-4 md:p-6 overflow-hidden relative opacity-90">
             <div className="text-xs md:text-sm text-gray-500 mb-4 md:mb-6 shrink-0">Following teacher</div>
             
-            <div className="flex-1 flex flex-col items-center justify-center pointer-events-none min-h-0 overflow-y-auto w-full">
+            <div className={`flex-1 flex flex-col items-center justify-center min-h-0 overflow-y-auto w-full ${!isUnlocked ? 'pointer-events-none' : ''}`}>
               <div 
                 className="font-quran leading-[2.5] text-center w-full max-w-lg mx-auto flex items-center justify-center gap-2 md:gap-4 flex-wrap" 
                 style={{ fontSize: `${fontSize}px`, color: fontColor }}
@@ -277,7 +295,8 @@ export default function LiveClassroom() {
                 {VERSE_WORDS.map((word, i) => (
                   <span 
                     key={i} 
-                    className={`transition-all duration-300 px-2 py-1 rounded-xl 
+                    onClick={() => isUnlocked && handleTeacherClickWord(i)}
+                      className={`transition-all duration-300 px-2 py-1 rounded-xl 
                       ${highlightedIndex === i ? 'bg-[#fef3c7] scale-110 shadow-sm' : 'border-2 border-transparent'}
                       ${underlines[i] ? 'underline decoration-4 underline-offset-[12px]' : ''}
                       ${circles[i] ? 'border-[3px] border-red-500 rounded-full px-4' : 'border-[3px] border-transparent'}
@@ -294,9 +313,9 @@ export default function LiveClassroom() {
             <div className="mt-auto pt-4 md:pt-6 border-t border-gray-100 shrink-0">
               <div className="text-xs md:text-sm text-gray-600 mb-2 md:mb-3 text-center md:text-left hidden sm:block">Same word. Same teaching action.</div>
               <div className="flex items-center gap-3 text-xs md:text-sm font-bold text-[#0C4A3A] justify-center md:justify-start">
-                <button onClick={() => toast.success('Following teacher sync restored')} className="hover:underline">Follow teacher</button>
+                <button onClick={() => { setIsUnlocked(false); toast.success('Following teacher sync restored'); }} className={`hover:underline ${!isUnlocked ? 'text-[#0C4A3A]' : 'text-emerald-500'}`}>Follow teacher</button>
                 <span className="text-gray-300">|</span>
-                <button onClick={() => toast('Viewport unlocked', { icon: '🔓' })} className="text-emerald-500 cursor-pointer pointer-events-auto hover:underline">Unlock</button>
+                <button onClick={() => { setIsUnlocked(true); toast('Student Viewport Unlocked', { icon: '🔓' }); }} className={`${isUnlocked ? 'hidden' : 'text-emerald-500 cursor-pointer pointer-events-auto hover:underline'}`}>Unlock</button>
               </div>
             </div>
           </div>
