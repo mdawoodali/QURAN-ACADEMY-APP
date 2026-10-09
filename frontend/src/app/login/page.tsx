@@ -2,7 +2,7 @@ import { login, signup } from './actions'
 import { BookOpen } from 'lucide-react'
 import Link from 'next/link'
 
-export const dynamic = 'force-dynamic'
+export const instant = false
 
 export default async function LoginPage(props: { searchParams: Promise<{ error?: string }> }) {
   const searchParams = await props.searchParams;

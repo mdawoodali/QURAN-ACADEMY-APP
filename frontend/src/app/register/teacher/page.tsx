@@ -2,7 +2,7 @@ import { BookOpen } from 'lucide-react'
 import Link from 'next/link'
 import { registerTeacher } from './actions'
 
-export const dynamic = 'force-dynamic'
+export const instant = false
 
 export default async function TeacherRegistrationPage(props: { searchParams: Promise<{ error?: string }> }) {
   const searchParams = await props.searchParams;
