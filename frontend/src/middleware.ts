@@ -41,11 +41,9 @@ export async function middleware(request: NextRequest) {
       request.nextUrl.pathname.startsWith('/teacher') ||
       request.nextUrl.pathname.startsWith('/admin'))
   ) {
-    // For now, bypass protection in dev so we don't break the UI before auth is wired up
-    // In production:
-    // const url = request.nextUrl.clone()
-    // url.pathname = '/trial'
-    // return NextResponse.redirect(url)
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    return NextResponse.redirect(url)
   }
 
   return supabaseResponse

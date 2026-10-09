@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Home, PlaySquare, Book, TrendingUp, CreditCard, User, HelpCircle, BookOpen, X } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Home, PlaySquare, Book, TrendingUp, CreditCard, User, HelpCircle, BookOpen, X, LogOut } from "lucide-react";
+import { createBrowserClient } from '@supabase/ssr'
 
 const STUDENT_LINKS = [
   { href: "/student", label: "Home", icon: Home },
@@ -29,6 +30,12 @@ const ADMIN_LINKS = [
 
 export default function Sidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
+  const router = useRouter();
+  
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   let links = STUDENT_LINKS;
   let portalName = "STUDENT";
@@ -40,6 +47,12 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
     links = ADMIN_LINKS;
     portalName = "ADMIN";
   }
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
+    router.refresh();
+  };
 
   return (
     <div className="w-64 h-full bg-[#0C4A3A] text-white flex flex-col shadow-xl">
@@ -86,11 +99,17 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
         </nav>
       </div>
 
-      <div className="mt-auto p-6 flex items-center gap-4 border-t border-white/10">
-        <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center font-bold text-sm">
-          N
+      <div className="mt-auto p-6 flex flex-col gap-4 border-t border-white/10">
+        <div className="flex items-center gap-4">
+          <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center font-bold text-sm">
+            U
+          </div>
+          <div className="text-sm font-bold text-emerald-100 cursor-pointer hover:text-white transition">Account</div>
         </div>
-        <div className="text-sm font-bold text-emerald-100 cursor-pointer hover:text-white transition">EN</div>
+        <button onClick={handleSignOut} className="text-left text-sm font-bold text-red-300 hover:text-red-400 transition flex items-center gap-2">
+          <LogOut size={16} />
+          Sign Out
+        </button>
       </div>
     </div>
   );
