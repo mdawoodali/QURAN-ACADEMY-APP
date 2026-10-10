@@ -22,9 +22,33 @@ model User {
 
 model Course {
   id          String   @id @default(cuid())
+  slug        String   @unique
   title       String
   description String
+  level       String
+  targetAge   String
   classes     Class[]
+  modules     CourseModule[]
+}
+
+model CourseModule {
+  id          String         @id @default(cuid())
+  courseId    String
+  title       String
+  description String?
+  orderIndex  Int
+  course      Course         @relation(fields: [courseId], references: [id])
+  lessons     CourseLesson[]
+}
+
+model CourseLesson {
+  id             String       @id @default(cuid())
+  moduleId       String
+  title          String
+  planType       String       @default("lesson") // foundation, rule, sabaq, sabqi, manzil
+  contentSummary String
+  orderIndex     Int
+  module         CourseModule @relation(fields: [moduleId], references: [id])
 }
 
 model Class {
