@@ -13,6 +13,7 @@ export default function TrialFunnel() {
     timezone: 'UTC',
     program: 'Noorani Qaida',
     email: '',
+    mobile: '',
     password: '',
     country: '',
     city: '',
@@ -143,9 +144,15 @@ export default function TrialFunnel() {
         {step === 4 && (
           <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
             <h2 className="text-2xl font-bold text-[var(--color-ink)] mb-6">Account Registration</h2>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Email Address</label>
-              <input required type="email" value={formData.email} onChange={e => updateForm('email', e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-[var(--color-green-600)] outline-none" />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Email Address</label>
+                <input required type="email" value={formData.email} onChange={e => updateForm('email', e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-[var(--color-green-600)] outline-none" />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Mobile Number</label>
+                <input required type="tel" value={formData.mobile} onChange={e => updateForm('mobile', e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-[var(--color-green-600)] outline-none" placeholder="+1 234 567 8900" />
+              </div>
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">Create Password</label>

@@ -11,6 +11,7 @@ const TrialSchema = z.object({
   timezone: z.string(),
   program: z.string(),
   email: z.string().email(),
+  mobile: z.string().min(5),
   password: z.string().min(6),
   country: z.string().min(1),
   city: z.string().min(1),
@@ -34,7 +35,8 @@ export async function submitTrialRegistration(rawData: Record<string, any>) {
           last_name: parsed.lastName,
           // Trial meta tracking
           trial_timezone: parsed.timezone,
-          trial_program: parsed.program
+          trial_program: parsed.program,
+          mobile: parsed.mobile
         }
       }
     });
