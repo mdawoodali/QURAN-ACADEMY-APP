@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Source_Serif_4, Figtree, Amiri_Quran, Noto_Nastaliq_Urdu } from "next/font/google";
 import { Toaster } from "react-hot-toast";
+import { LanguageProvider } from "@/components/LanguageContext";
 import "./globals.css";
 
 const sourceSerif = Source_Serif_4({ subsets: ["latin"], variable: "--font-hero" });
@@ -20,11 +21,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${sourceSerif.variable} ${figtree.variable} ${amiriQuran.variable} ${notoNastaliq.variable} font-sans antialiased`}
+        suppressHydrationWarning
       >
-        {children}
+        <LanguageProvider>
+          {children}
+        </LanguageProvider>
         <Toaster position="bottom-right" />
       </body>
     </html>
