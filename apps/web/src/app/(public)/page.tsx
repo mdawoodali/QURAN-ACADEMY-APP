@@ -1,14 +1,30 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/components/LanguageContext";
+import WelcomeSplash from "@/components/WelcomeSplash";
 
 export default function Home() {
   const { t, language } = useLanguage();
+  const [showSplash, setShowSplash] = useState(true);
 
   return (
-    <div className="w-full min-h-screen bg-[var(--color-page)] flex flex-col items-center">
+    <>
+      <AnimatePresence>
+        {showSplash && (
+          <WelcomeSplash onGetStarted={() => setShowSplash(false)} />
+        )}
+      </AnimatePresence>
+
+      <motion.div 
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+        className="w-full min-h-screen bg-[var(--color-page)] flex flex-col items-center"
+      >
       {/* Hero Section */}
       <main className="w-full max-w-[1280px] mx-auto px-6 py-12 md:py-24 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         {/* Left Column */}
@@ -109,6 +125,7 @@ export default function Home() {
           </p>
         </div>
       </section>
-    </div>
+    </motion.div>
+  </>
   );
 }
