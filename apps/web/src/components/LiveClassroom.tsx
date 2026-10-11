@@ -9,6 +9,34 @@ function splitArabicWord(word: string) {
   return word.match(regex) || [];
 }
 
+function normalizeArabic(text: string) {
+  if (!text) return "";
+  return text
+    // Replace dagger alif \u0670 with standard alif
+    .replace(/\u0670/g, "ا")
+    // Remove Tatweel/Kashida \u0640
+    .replace(/\u0640/g, "")
+    // Remove Quranic annotation signs & pauses
+    .replace(/[\u06D6-\u06ED\u065F\u06E2\u06E3\u06E4\u0600-\u0605]/g, "")
+    // Remove all Harakat (diacritics/vowels)
+    .replace(/[\u0610-\u061A\u064B-\u065E]/g, "")
+    // Normalize all Alif variants
+    .replace(/[إأآٱ]/g, "ا")
+    // Normalize Yaa / Alif Maqsura
+    .replace(/[ىي]/g, "ي")
+    // Normalize Taa Marbuta
+    .replace(/ة/g, "ه")
+    .trim();
+}
+
+// Common phonetic transliterations for fallback matching
+const PHONETIC_MAP: Record<number, string[]> = {
+  0: ["alhamdu", "alhamd", "alhamdulillah", "elhamd", "hamd", "al-hamdu", "الحمد", "حمد"],
+  1: ["lillahi", "lillah", "allah", "lellah", "lillāhi", "لله", "الله"],
+  2: ["rabbi", "rabb", "rab", "rub", "rab-bi", "رب"],
+  3: ["alameen", "alalamin", "al-alameen", "aalamin", "alamin", "al-ʿālamīn", "العالمين", "عالمين"]
+};
+
 export default function LiveClassroom() {
   const params = useParams();
   const router = useRouter();
@@ -29,7 +57,7 @@ export default function LiveClassroom() {
       .catch(err => console.error("Failed to fetch quran", err));
   }, []);
   
-  const [highlightedIndex, setHighlightedIndex] = useState<number | null>(1);
+  const [highlightedIndex, setHighlightedIndex] = useState<number | null>(0);
   const [splitIndex, setSplitIndex] = useState<number | null>(null);
   
   const [fontSize, setFontSize] = useState<number>(48);
@@ -37,6 +65,13 @@ export default function LiveClassroom() {
   const [underlines, setUnderlines] = useState<Record<number, boolean>>({});
   const [circles, setCircles] = useState<Record<number, boolean>>({});
   
+  // Voice Follow (Speech Recognition) state
+  const [isVoiceFollowOn, setIsVoiceFollowOn] = useState(false);
+  const isVoiceFollowOnRef = useRef(false);
+  const [lastSpokenText, setLastSpokenText] = useState("");
+  const [voiceError, setVoiceError] = useState<string | null>(null);
+  const recognitionRef = useRef<any>(null);
+
   // Camera state
   const [isMicOn, setIsMicOn] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
@@ -68,8 +103,154 @@ export default function LiveClassroom() {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
       }
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop(); } catch (e) {}
+      }
     };
   }, [classId]);
+
+  // Arrow key shortcuts for teacher navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") {
+        setHighlightedIndex(prev => {
+          const next = prev === null ? 0 : Math.min(prev + 1, verseWords.length - 1);
+          if (ws.current?.readyState === WebSocket.OPEN) {
+            ws.current.send(JSON.stringify({ type: "highlight", index: next }));
+          }
+          return next;
+        });
+      } else if (e.key === "ArrowLeft") {
+        setHighlightedIndex(prev => {
+          const next = prev === null ? 0 : Math.max(prev - 1, 0);
+          if (ws.current?.readyState === WebSocket.OPEN) {
+            ws.current.send(JSON.stringify({ type: "highlight", index: next }));
+          }
+          return next;
+        });
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [verseWords]);
+
+  const toggleVoiceFollow = () => {
+    if (isVoiceFollowOnRef.current) {
+      isVoiceFollowOnRef.current = false;
+      setIsVoiceFollowOn(false);
+      setVoiceError(null);
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop(); } catch (e) {}
+        recognitionRef.current = null;
+      }
+      toast("Voice Follow paused", { icon: "⏸️" });
+    } else {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        setVoiceError("Browser speech recognition not supported in this browser. Please use Google Chrome or Microsoft Edge.");
+        toast.error("Live voice follow requires Google Chrome or Microsoft Edge.", { duration: 5000 });
+        return;
+      }
+
+      try {
+        const recognition = new SpeechRecognition();
+        recognition.lang = "ar-SA";
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.maxAlternatives = 3;
+
+        recognition.onstart = () => {
+          isVoiceFollowOnRef.current = true;
+          setIsVoiceFollowOn(true);
+          setVoiceError(null);
+          toast.success("Voice Follow active — recite into your microphone!", { icon: "🎙️" });
+        };
+
+        recognition.onresult = (event: any) => {
+          let fullTranscript = "";
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            fullTranscript += " " + event.results[i][0].transcript;
+          }
+          const clean = fullTranscript.trim();
+          if (!clean) return;
+          setLastSpokenText(clean);
+
+          // 1. Check Arabic normalized tokens
+          const spokenTokens = clean.split(/\s+/).map(normalizeArabic).filter(Boolean);
+          const normWords = verseWords.map(normalizeArabic);
+
+          let matchedWordIndex: number | null = null;
+
+          // Check if any word from the verse matches any spoken token
+          for (let vIdx = 0; vIdx < normWords.length; vIdx++) {
+            const vWord = normWords[vIdx];
+            if (!vWord) continue;
+
+            const isMatch = spokenTokens.some(tok => 
+              tok === vWord || 
+              (tok.length >= 3 && vWord.includes(tok)) || 
+              (vWord.length >= 3 && tok.includes(vWord))
+            );
+
+            if (isMatch) {
+              matchedWordIndex = vIdx;
+            }
+          }
+
+          // 2. Fallback: Phonetic / Transliteration matching (if user speaks Latin/English phonetics)
+          if (matchedWordIndex === null) {
+            const lowerClean = clean.toLowerCase();
+            for (let vIdx = 0; vIdx < verseWords.length; vIdx++) {
+              const phonetics = PHONETIC_MAP[vIdx] || [];
+              if (phonetics.some(p => lowerClean.includes(p))) {
+                matchedWordIndex = vIdx;
+              }
+            }
+          }
+
+          // Apply and broadcast highlight
+          if (matchedWordIndex !== null) {
+            setHighlightedIndex(matchedWordIndex);
+            if (ws.current?.readyState === WebSocket.OPEN) {
+              ws.current.send(JSON.stringify({ type: "highlight", index: matchedWordIndex }));
+            }
+          }
+        };
+
+        recognition.onerror = (event: any) => {
+          console.warn("Speech recognition notice:", event.error);
+          if (event.error === "not-allowed") {
+            setVoiceError("Microphone permission was blocked. Please click the lock/settings icon in your browser URL bar and set Microphone to 'Allow'.");
+            toast.error("Microphone permission denied.");
+            isVoiceFollowOnRef.current = false;
+            setIsVoiceFollowOn(false);
+          } else if (event.error === "network") {
+            setVoiceError("Google speech service could not be reached. Check your internet or use the Arrow Keys (→) to follow words.");
+          }
+        };
+
+        recognition.onend = () => {
+          // If still marked as active, restart continuously
+          if (isVoiceFollowOnRef.current && recognitionRef.current) {
+            try {
+              recognitionRef.current.start();
+            } catch (e) {
+              // already running
+            }
+          }
+        };
+
+        recognition.start();
+        recognitionRef.current = recognition;
+        isVoiceFollowOnRef.current = true;
+        setIsVoiceFollowOn(true);
+      } catch (err: any) {
+        console.error("Speech recognition error:", err);
+        setVoiceError("Failed to access microphone. Please check permissions.");
+        toast.error("Could not activate microphone for voice follow.");
+      }
+    }
+  };
 
   const syncTools = (newState: any) => {
     if (ws.current?.readyState === WebSocket.OPEN) {
@@ -186,8 +367,16 @@ export default function LiveClassroom() {
         </div>
 
         <div className="flex items-center gap-2 md:gap-4">
-          <button onClick={() => toast.success('Voice Follow synced!')} className="bg-[#D1EBE1] text-[#0C4A3A] text-[10px] md:text-xs font-bold tracking-widest uppercase px-3 py-1.5 rounded-full hover:bg-[#bce0d0] transition hidden sm:block">
-            Voice Follow On
+          <button 
+            onClick={toggleVoiceFollow} 
+            className={`text-[10px] md:text-xs font-bold tracking-wider uppercase px-3.5 py-1.5 rounded-full transition flex items-center gap-1.5 shadow-xs ${
+              isVoiceFollowOn 
+                ? 'bg-emerald-600 text-white animate-pulse' 
+                : 'bg-[#D1EBE1] text-[#0C4A3A] hover:bg-[#bce0d0]'
+            }`}
+          >
+            <span className={`w-2 h-2 rounded-full ${isVoiceFollowOn ? 'bg-white' : 'bg-emerald-600'}`} />
+            {isVoiceFollowOn ? "Voice Follow: ON" : "Voice Follow: OFF"}
           </button>
           <div className="bg-red-50 text-red-700 text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
@@ -247,14 +436,68 @@ export default function LiveClassroom() {
               <LetterPracticeTray wordIndex={splitIndex} />
               
               <div className="w-full mt-4 md:mt-8 max-w-lg mx-auto shrink-0 hidden md:block">
-                <p className="text-sm md:text-base text-gray-700 mb-4 md:mb-6 text-center">All praise belongs to Allah, Lord of all worlds.</p>
-                <div className="flex items-center justify-center gap-4">
-                  <div className="flex items-end h-6 gap-1 opacity-70">
-                    {[2,4,3,5,8,12,8,5,3,6,10,7,4,2,3,5,9,14,10,6,3,2].map((h, i) => (
-                      <div key={i} className="w-1 md:w-1.5 bg-[#0C4A3A] rounded-full animate-pulse" style={{ height: `${h * 1.5}px`, animationDelay: `${i * 0.1}s` }} />
-                    ))}
+                <p className="text-sm md:text-base text-gray-700 mb-3 text-center">All praise belongs to Allah, Lord of all worlds.</p>
+                <div className="flex flex-col items-center justify-center gap-2">
+                  <div className="flex items-center gap-3">
+                    <div className={`flex items-end h-5 gap-1 ${isVoiceFollowOn ? 'opacity-100' : 'opacity-30'}`}>
+                      {[2,4,3,5,8,12,8,5,3,6,10,7,4,2,3,5,9,14,10,6,3,2].map((h, i) => (
+                        <div 
+                          key={i} 
+                          className={`w-1 rounded-full ${isVoiceFollowOn ? 'bg-emerald-600 animate-pulse' : 'bg-gray-400'}`} 
+                          style={{ height: `${h * 1.2}px`, animationDelay: `${i * 0.08}s` }} 
+                        />
+                      ))}
+                    </div>
+                    <div className="text-[#0C4A3A] font-bold text-[11px] tracking-wide">
+                      {isVoiceFollowOn ? "Listening live (Recite into mic)" : "Voice Follow off (Click button above to start)"}
+                    </div>
                   </div>
-                  <div className="text-[#0C4A3A] font-bold text-[10px] md:text-xs uppercase tracking-wider">Listening</div>
+                  {voiceError && (
+                    <div className="text-[11px] text-red-600 font-medium bg-red-50 border border-red-200 px-3 py-1.5 rounded-xl max-w-md text-center">
+                      ⚠️ {voiceError}
+                    </div>
+                  )}
+
+                  {lastSpokenText && (
+                    <div className="text-[11px] text-gray-600 font-medium bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full max-w-md truncate" dir="rtl">
+                      مسموع: "{lastSpokenText}"
+                    </div>
+                  )}
+
+                  {/* Manual Arrow Stepper for quick navigation */}
+                  <div className="flex items-center gap-2 mt-1">
+                    <button 
+                      onClick={() => {
+                        setHighlightedIndex(prev => {
+                          const next = prev === null ? 0 : Math.max(prev - 1, 0);
+                          if (ws.current?.readyState === WebSocket.OPEN) {
+                            ws.current.send(JSON.stringify({ type: "highlight", index: next }));
+                          }
+                          return next;
+                        });
+                      }}
+                      className="text-[10px] font-bold bg-gray-100 hover:bg-gray-200 text-gray-600 px-2.5 py-1 rounded-md transition"
+                      title="Or press Left Arrow on keyboard"
+                    >
+                      ← Prev
+                    </button>
+                    <span className="text-[10px] text-gray-400 font-mono">Word {(highlightedIndex ?? 0) + 1} / {verseWords.length}</span>
+                    <button 
+                      onClick={() => {
+                        setHighlightedIndex(prev => {
+                          const next = prev === null ? 0 : Math.min(prev + 1, verseWords.length - 1);
+                          if (ws.current?.readyState === WebSocket.OPEN) {
+                            ws.current.send(JSON.stringify({ type: "highlight", index: next }));
+                          }
+                          return next;
+                        });
+                      }}
+                      className="text-[10px] font-bold bg-emerald-100 hover:bg-emerald-200 text-emerald-900 px-2.5 py-1 rounded-md transition"
+                      title="Or press Right Arrow on keyboard"
+                    >
+                      Next →
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
