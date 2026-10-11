@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Home, PlaySquare, Book, TrendingUp, CreditCard, User, HelpCircle, BookOpen, X, LogOut } from "lucide-react";
 import { createBrowserClient } from '@supabase/ssr'
+import { useLanguage } from './LanguageContext';
 
 const STUDENT_LINKS = [
   { href: "/student", label: "Home", icon: Home },
@@ -40,6 +41,7 @@ const PARENT_LINKS = [
 export default function Sidebar({ onClose, role, userName, initials }: { onClose?: () => void; role?: string; userName?: string; initials?: string }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { language, setLanguage } = useLanguage();
   
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -127,8 +129,14 @@ export default function Sidebar({ onClose, role, userName, initials }: { onClose
             Sign Out
           </button>
           
-          <button className="text-sm font-bold text-emerald-100 hover:text-white transition flex items-center gap-2" dir="ltr">
-            EN / <span dir="rtl" className="font-quran text-lg">اردو</span>
+          <button 
+            onClick={() => setLanguage(language === "en" ? "ur" : "en")} 
+            className="text-xs font-bold bg-emerald-900/60 text-emerald-100 hover:text-white px-2.5 py-1.5 rounded-lg border border-emerald-700/50 transition flex items-center gap-1.5 cursor-pointer" 
+            dir="ltr"
+          >
+            <span className={language === "en" ? "text-white font-extrabold" : "text-emerald-300"}>EN</span>
+            <span className="opacity-40">/</span>
+            <span dir="rtl" className={`font-urdu text-sm ${language === "ur" ? "text-white font-extrabold" : "text-emerald-300"}`}>اردو</span>
           </button>
         </div>
       </div>
