@@ -22,12 +22,12 @@ export default function PortalLayoutClient({
     .toUpperCase() || 'U';
 
   return (
-    <div className="flex h-screen bg-[#F8F9FA] overflow-hidden">
+    <div className="flex h-screen bg-transparent overflow-hidden">
       
       {/* Mobile Sidebar Overlay */}
       {mobileMenuOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity"
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 md:hidden transition-opacity"
           onClick={() => setMobileMenuOpen(false)}
         />
       )}
@@ -38,19 +38,19 @@ export default function PortalLayoutClient({
       </div>
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 md:px-8 shrink-0 relative z-30">
+        <header className="h-16 bg-black/35 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-4 md:px-8 shrink-0 relative z-30">
           <div className="flex items-center gap-4">
             <button 
-              className="md:hidden text-[#0C4A3A] hover:text-[#0D5C46] transition p-2 -ml-2"
+              className="md:hidden text-white hover:text-amber-300 transition p-2 -ml-2"
               onClick={() => setMobileMenuOpen(true)}
             >
               <Menu size={24} />
             </button>
-            <div className="font-bold text-gray-400 text-sm hidden sm:block">Portal Dashboard</div>
+            <div className="font-serif font-bold text-white text-base tracking-wide hidden sm:block">Portal Dashboard</div>
           </div>
           <div className="flex items-center gap-4">
-            <div className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full hidden sm:block">Asia/Karachi</div>
-            <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-sm">
+            <div className="text-xs font-bold text-amber-300 bg-emerald-950/70 border border-amber-400/30 px-3.5 py-1.5 rounded-full hidden sm:block shadow-xs">Asia/Karachi</div>
+            <div className="w-9 h-9 rounded-full bg-emerald-800/80 border border-amber-400/40 text-amber-300 flex items-center justify-center font-bold text-sm shadow-md">
               {initials}
             </div>
           </div>

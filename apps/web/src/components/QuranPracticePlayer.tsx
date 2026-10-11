@@ -159,24 +159,24 @@ export default function QuranPracticePlayer() {
       <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full">
+            <span className="text-xs font-bold uppercase tracking-wider bg-emerald-950/80 text-amber-300 border border-amber-400/30 px-3 py-1 rounded-full">
               Approach 3: Audio-Timestamp Sync
             </span>
-            <span className="text-xs text-gray-500 font-medium">
+            <span className="text-xs text-emerald-100/80 font-medium">
               Surah {verse.surahNumber}:{verse.ayahNumber} ({verse.surahName})
             </span>
           </div>
-          <h2 className="text-2xl font-serif text-[#0C4A3A] mt-1 font-bold">Self-Practice & Sabaq Mode</h2>
+          <h2 className="text-2xl font-serif text-white mt-1 font-bold">Self-Practice & Sabaq Mode</h2>
         </div>
 
         {/* Reciter Toggle */}
-        <div className="flex items-center gap-2 bg-gray-100 p-1.5 rounded-2xl border border-gray-200">
+        <div className="flex items-center gap-2 bg-black/40 p-1.5 rounded-2xl border border-white/15">
           <button
             onClick={() => { setReciter("alafasy"); setIsPlaying(false); }}
             className={`text-xs font-bold px-3 py-1.5 rounded-xl transition ${
               reciter === "alafasy"
-                ? "bg-[#0C4A3A] text-white shadow-xs"
-                : "text-gray-600 hover:text-black"
+                ? "bg-amber-400 text-emerald-950 shadow-xs"
+                : "text-emerald-100/70 hover:text-white"
             }`}
           >
             Mishary Alafasy
@@ -185,8 +185,8 @@ export default function QuranPracticePlayer() {
             onClick={() => { setReciter("husary"); setIsPlaying(false); }}
             className={`text-xs font-bold px-3 py-1.5 rounded-xl transition ${
               reciter === "husary"
-                ? "bg-[#0C4A3A] text-white shadow-xs"
-                : "text-gray-600 hover:text-black"
+                ? "bg-amber-400 text-emerald-950 shadow-xs"
+                : "text-emerald-100/70 hover:text-white"
             }`}
           >
             Al-Husary (Tajweed)
@@ -207,8 +207,8 @@ export default function QuranPracticePlayer() {
             }}
             className={`text-xs font-bold px-3.5 py-1.5 rounded-xl transition ${
               currentAyahIdx === idx
-                ? "bg-emerald-700 text-white shadow-xs"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                ? "bg-amber-400 text-emerald-950 shadow-xs"
+                : "bg-white/10 text-emerald-100 hover:bg-white/20"
             }`}
           >
             Ayah {v.ayahNumber}
@@ -217,13 +217,13 @@ export default function QuranPracticePlayer() {
       </div>
 
       {/* Central Arabic Canvas with Word-by-Word Synchronized Highlighting */}
-      <div className="bg-emerald-50/40 border border-emerald-100/80 rounded-3xl p-8 md:p-12 my-auto flex flex-col items-center justify-center relative overflow-hidden shadow-inner">
-        <div className="text-xs text-emerald-800 font-bold uppercase tracking-wider mb-6 bg-white/80 border border-emerald-200 px-3 py-1 rounded-full">
+      <div className="bg-black/35 border border-white/15 rounded-3xl p-8 md:p-12 my-auto flex flex-col items-center justify-center relative overflow-hidden shadow-2xl">
+        <div className="text-xs text-amber-300 font-bold uppercase tracking-wider mb-6 bg-emerald-950/70 border border-amber-400/30 px-3.5 py-1 rounded-full">
           Click any word to jump audio directly to it
         </div>
 
         <div 
-          className="font-quran text-5xl md:text-6xl text-[#111827] leading-[2.5] text-center w-full max-w-2xl mx-auto flex items-center justify-center gap-3 md:gap-5 flex-wrap select-none" 
+          className="font-quran text-5xl md:text-6xl text-white leading-[2.5] text-center w-full max-w-2xl mx-auto flex items-center justify-center gap-3 md:gap-5 flex-wrap select-none" 
           dir="rtl"
         >
           {verse.words.map((word, i) => {
@@ -237,22 +237,22 @@ export default function QuranPracticePlayer() {
                 onClick={() => jumpToWord(i)}
                 className={`relative group cursor-pointer transition-all duration-200 px-3 py-2 rounded-2xl flex flex-col items-center ${
                   isWordActive
-                    ? "bg-[#fef3c7] text-[#92400e] scale-110 shadow-lg ring-3 ring-amber-400"
+                    ? "bg-amber-400 text-emerald-950 scale-110 shadow-lg ring-4 ring-amber-300 font-bold"
                     : isWordPast
-                    ? "text-emerald-950 hover:bg-emerald-100/60"
-                    : "text-gray-800 hover:bg-white hover:shadow-xs"
-                } ${isLooping ? "ring-2 ring-emerald-600" : ""}`}
+                    ? "text-amber-200/90 hover:bg-white/10"
+                    : "text-white hover:bg-white/10 hover:shadow-xs"
+                } ${isLooping ? "ring-2 ring-emerald-400" : ""}`}
               >
                 <span>{word.text}</span>
                 
                 {/* Word Translation Tooltip */}
-                <span className="text-[11px] font-sans text-gray-500 font-medium mt-1 opacity-80 group-hover:opacity-100" dir="ltr">
+                <span className={`text-[11px] font-sans mt-1 opacity-80 group-hover:opacity-100 ${isWordActive ? "text-emerald-950 font-bold" : "text-emerald-100/70 font-medium"}`} dir="ltr">
                   {word.translation}
                 </span>
 
                 {/* Sub-label for current playing state */}
                 {isWordActive && (
-                  <span className="absolute -top-3 right-1/2 translate-x-1/2 bg-amber-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-widest shadow-xs">
+                  <span className="absolute -top-3 right-1/2 translate-x-1/2 bg-emerald-950 text-amber-300 border border-amber-400/40 text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-widest shadow-xs">
                     Reciting
                   </span>
                 )}
@@ -262,28 +262,28 @@ export default function QuranPracticePlayer() {
         </div>
 
         {/* Translation Banner */}
-        <p className="text-gray-600 text-center text-sm md:text-base mt-8 max-w-xl mx-auto font-sans leading-relaxed">
+        <p className="text-emerald-100/90 text-center text-sm md:text-base mt-8 max-w-xl mx-auto font-sans leading-relaxed">
           "{verse.translation}"
         </p>
 
         {/* Word Details Indicator */}
         {activeWordIdx !== null && verse.words[activeWordIdx] && (
-          <div className="mt-4 flex items-center gap-2 text-xs bg-white px-4 py-1.5 rounded-full border border-emerald-200 shadow-xs text-emerald-900 font-medium">
-            <Sparkles size={14} className="text-amber-500" />
-            <span>Active Word: <strong>{verse.words[activeWordIdx].transliteration}</strong> ({verse.words[activeWordIdx].translation})</span>
-            <span className="text-gray-400">|</span>
-            <span className="font-mono text-gray-500">{verse.words[activeWordIdx].start.toFixed(1)}s - {verse.words[activeWordIdx].end.toFixed(1)}s</span>
+          <div className="mt-4 flex items-center gap-2 text-xs bg-black/50 px-4 py-1.5 rounded-full border border-white/15 shadow-xs text-emerald-100 font-medium">
+            <Sparkles size={14} className="text-amber-300" />
+            <span>Active Word: <strong className="text-amber-300">{verse.words[activeWordIdx].transliteration}</strong> ({verse.words[activeWordIdx].translation})</span>
+            <span className="text-white/30">|</span>
+            <span className="font-mono text-emerald-200/70">{verse.words[activeWordIdx].start.toFixed(1)}s - {verse.words[activeWordIdx].end.toFixed(1)}s</span>
           </div>
         )}
       </div>
 
       {/* Audio Controller Toolbar */}
-      <div className="bg-white border border-gray-200 rounded-3xl p-4 md:p-6 shadow-sm mt-6 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-black/40 border border-white/15 rounded-3xl p-4 md:p-6 shadow-xl mt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-white">
         {/* Play/Pause Button */}
         <div className="flex items-center gap-3">
           <button
             onClick={togglePlay}
-            className="w-12 h-12 rounded-2xl bg-[#0C4A3A] hover:bg-emerald-900 text-white flex items-center justify-center transition shadow-md hover:scale-105"
+            className="w-12 h-12 rounded-2xl bg-amber-400 hover:bg-amber-300 text-emerald-950 flex items-center justify-center transition shadow-md hover:scale-105 cursor-pointer"
           >
             {isPlaying ? <Pause size={22} /> : <Play size={22} className="ml-0.5" />}
           </button>
@@ -296,17 +296,17 @@ export default function QuranPracticePlayer() {
                 setActiveWordIdx(null);
               }
             }}
-            className="w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center transition"
+            className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer"
             title="Restart Ayah"
           >
             <RotateCcw size={16} />
           </button>
 
           <div className="flex flex-col">
-            <span className="text-xs font-bold text-gray-900">
+            <span className="text-xs font-bold text-white">
               {isPlaying ? "Playing Recitation" : "Paused"}
             </span>
-            <span className="text-[11px] text-gray-500 font-mono">
+            <span className="text-[11px] text-emerald-200/70 font-mono">
               {currentTime.toFixed(1)}s / {verse.words[verse.words.length - 1]?.end.toFixed(1)}s
             </span>
           </div>
@@ -318,7 +318,7 @@ export default function QuranPracticePlayer() {
             <div
               key={i}
               className={`w-1 rounded-full transition-all duration-150 ${
-                isPlaying ? "bg-emerald-600 animate-pulse" : "bg-gray-200"
+                isPlaying ? "bg-amber-400 animate-pulse" : "bg-white/20"
               }`}
               style={{
                 height: isPlaying ? `${h * 1.3}px` : "6px",
@@ -343,25 +343,25 @@ export default function QuranPracticePlayer() {
                 toast("Click a word first to loop it!");
               }
             }}
-            className={`text-xs font-bold px-3 py-2 rounded-xl transition ${
+            className={`text-xs font-bold px-3 py-2 rounded-xl transition cursor-pointer ${
               loopWordIdx !== null
-                ? "bg-amber-100 text-amber-900 border border-amber-300 font-extrabold"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                ? "bg-amber-400 text-emerald-950 border border-amber-300 font-extrabold"
+                : "bg-white/10 text-emerald-100 hover:bg-white/20"
             }`}
           >
             {loopWordIdx !== null ? "🔁 Word Looping" : "Loop Word"}
           </button>
 
           {/* Speed Buttons */}
-          <div className="flex items-center bg-gray-100 p-1 rounded-xl border border-gray-200">
+          <div className="flex items-center bg-black/40 p-1 rounded-xl border border-white/15">
             {[0.75, 1.0, 1.25].map(speed => (
               <button
                 key={speed}
                 onClick={() => handleSpeedChange(speed)}
-                className={`text-xs font-bold px-2.5 py-1 rounded-lg transition ${
+                className={`text-xs font-bold px-2.5 py-1 rounded-lg transition cursor-pointer ${
                   playbackRate === speed
-                    ? "bg-[#0C4A3A] text-white"
-                    : "text-gray-600 hover:text-black"
+                    ? "bg-amber-400 text-emerald-950"
+                    : "text-emerald-100/70 hover:text-white"
                 }`}
               >
                 {speed}x

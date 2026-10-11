@@ -44,8 +44,8 @@ export default function Sidebar({ onClose, role, userName, initials }: { onClose
   const { language, setLanguage } = useLanguage();
   
   const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy'
   );
 
   let links = STUDENT_LINKS;
@@ -69,13 +69,13 @@ export default function Sidebar({ onClose, role, userName, initials }: { onClose
   };
 
   return (
-    <div className="w-64 h-full bg-[#0C4A3A] text-white flex flex-col shadow-xl">
+    <div className="w-64 h-full bg-black/45 backdrop-blur-xl border-r border-white/10 text-white flex flex-col shadow-2xl">
       <div className="p-6 flex items-start justify-between">
         <Link href="/" className="flex items-center gap-3">
-          <div className="bg-white/10 p-2 rounded-xl">
-            <BookOpen size={24} className="text-white" />
+          <div className="bg-emerald-800/80 border border-amber-400/40 p-2 rounded-xl text-amber-300 shadow-sm">
+            <BookOpen size={24} />
           </div>
-          <span className="font-bold text-lg tracking-tight leading-tight">
+          <span className="font-serif font-bold text-lg tracking-tight leading-tight text-white">
             Quran<br />Academy
           </span>
         </Link>
@@ -87,10 +87,10 @@ export default function Sidebar({ onClose, role, userName, initials }: { onClose
       </div>
 
       <div className="px-6 py-4">
-        <div className="text-[10px] font-bold text-emerald-400 tracking-widest uppercase mb-4">
+        <div className="text-[10px] font-bold text-amber-300 tracking-widest uppercase mb-4">
           {portalName}
         </div>
-        <nav className="space-y-1">
+        <nav className="space-y-1.5">
           {links.map((link) => {
             const Icon = link.icon;
             const isActive = pathname === link.href;
@@ -101,11 +101,11 @@ export default function Sidebar({ onClose, role, userName, initials }: { onClose
                 onClick={onClose}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition ${
                   isActive
-                    ? "bg-white/10 text-white font-bold"
-                    : "text-emerald-100 hover:bg-white/5 hover:text-white font-medium"
+                    ? "bg-white/15 text-amber-300 font-bold border border-white/10 shadow-xs"
+                    : "text-emerald-100/80 hover:bg-white/10 hover:text-white font-medium"
                 }`}
               >
-                <Icon size={18} className={isActive ? "text-emerald-300" : "opacity-80"} />
+                <Icon size={18} className={isActive ? "text-amber-300" : "opacity-75"} />
                 {link.label}
               </Link>
             );

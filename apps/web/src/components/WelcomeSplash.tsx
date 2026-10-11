@@ -87,11 +87,18 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.15 }}
-          className="text-2xl sm:text-4xl md:text-5xl font-serif text-white font-bold leading-snug drop-shadow-[0_4px_20px_rgba(0,0,0,0.95)] max-w-3xl mb-4"
+          className="text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] max-w-4xl mb-4 text-center"
         >
-          {language === "ur" 
-            ? "”تم میں سے بہترین وہ ہے جو قرآن سیکھے اور سکھائے۔“"
-            : "“The best among you is the one who learns the Quran and teaches it.”"}
+          {language === "ur" ? (
+            <span className="block font-urdu text-3xl sm:text-4xl md:text-5xl leading-relaxed font-normal">
+              ”تم میں سے بہترین وہ ہے جو قرآن سیکھے اور سکھائے۔“
+            </span>
+          ) : (
+            <span className="block font-serif italic font-light tracking-wide text-2xl sm:text-4xl md:text-5xl leading-snug">
+              <span className="block">“The best among you is the one</span>
+              <span className="block mt-1 sm:mt-2">who learns the Quran and teaches it.”</span>
+            </span>
+          )}
         </motion.h1>
 
         {/* Hadith Reference: Sahih Bukhari Hadith 5027 */}
@@ -99,7 +106,7 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.25 }}
-          className="text-sm sm:text-lg text-emerald-200/90 font-medium tracking-wide drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] mb-8 sm:mb-10"
+          className="text-xs sm:text-sm md:text-base text-emerald-200/90 font-sans tracking-widest uppercase drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] mb-8 sm:mb-10"
         >
           {language === "ur"
             ? "— صحیح بخاری، حدیث ۵۰۲۷"

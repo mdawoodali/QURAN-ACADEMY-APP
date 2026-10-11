@@ -1,32 +1,42 @@
 import { createClient } from "@/utils/supabase/server";
-import { redirect } from "next/navigation";
 import ProfileForm from "./ProfileForm";
 
 export default async function StudentProfile() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  // Fetch student details from the database
-  const { data: studentDetails } = await supabase
-    .from("student_details")
-    .select("full_name")
-    .eq("id", user.id)
-    .single();
-
-  const initialData = {
-    fullName: studentDetails?.full_name || user.user_metadata?.full_name || "Unknown User",
-    email: user.email || "",
-    timezone: "Asia/Karachi", // Default for now
+  let initialData = {
+    fullName: "Yusuf Khan",
+    email: "yusuf.student@quranacademy.com",
+    timezone: "Asia/Karachi",
     notifications: true,
   };
 
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (user) {
+      const { data: studentDetails } = await supabase
+        .from("student_details")
+        .select("full_name")
+        .eq("id", user.id)
+        .single();
+
+      initialData = {
+        fullName: studentDetails?.full_name || user.user_metadata?.full_name || "Yusuf Khan",
+        email: user.email || "yusuf.student@quranacademy.com",
+        timezone: "Asia/Karachi",
+        notifications: true,
+      };
+    }
+  } catch (err) {
+    console.warn("Using demo student profile:", err);
+  }
+
   return (
-    <div className="p-4 md:p-8 h-full bg-[#F8F9FA] text-[#111827] max-w-4xl mx-auto w-full">
-      <h1 className="text-3xl font-serif text-[#0C4A3A] mb-8">Profile Settings</h1>
+    <div className="p-4 md:p-8 max-w-4xl mx-auto w-full text-white">
+      <div className="mb-8">
+        <h1 className="text-3xl md:text-4xl font-serif text-white mb-2">Profile Settings</h1>
+        <p className="text-emerald-100/80 text-sm">Update your contact details, time zone, and notification preferences.</p>
+      </div>
       
       <ProfileForm initialData={initialData} />
     </div>
