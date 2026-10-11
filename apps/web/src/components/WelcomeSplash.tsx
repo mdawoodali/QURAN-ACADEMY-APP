@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Sparkles } from "lucide-react";
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { ArrowRight, Sparkles, BookOpen, CheckCircle } from "lucide-react";
 import { useLanguage } from "./LanguageContext";
 
 interface WelcomeSplashProps {
@@ -11,7 +10,7 @@ interface WelcomeSplashProps {
 }
 
 export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage } = useLanguage();
   const [isExiting, setIsExiting] = useState(false);
 
   const handleStart = () => {
@@ -28,113 +27,131 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
       animate={{ opacity: 1 }}
       exit={{ 
         opacity: 0, 
-        scale: 1.06, 
+        scale: 1.05, 
         filter: "blur(8px)",
         transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] } 
       }}
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-[#03150F] overflow-hidden select-none"
+      className="fixed inset-0 z-[100] w-full min-h-screen flex flex-col justify-between items-center text-center overflow-hidden select-none bg-[#052b20] bg-cover bg-no-repeat bg-center"
+      style={{
+        backgroundImage: "url('/images/quran_welcome_bg.jpg')",
+        backgroundSize: "cover",
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "center",
+      }}
     >
-      {/* Background Ambient Glows */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-gradient-to-tr from-emerald-600/20 via-teal-500/15 to-transparent rounded-full blur-[120px]" />
-        <div className="absolute -top-32 -left-32 w-96 h-96 bg-emerald-800/20 rounded-full blur-[100px]" />
-        <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-teal-800/20 rounded-full blur-[100px]" />
-      </div>
+      {/* Subtle Ambient Radial Lighting Overlay */}
+      <div className="absolute inset-0 bg-radial from-transparent via-[#031d16]/20 to-[#02130e]/60 pointer-events-none" />
 
-      {/* Main Showcase Canvas (Phone Form Factor on Desktop, Fullscreen on Mobile) */}
-      <motion.div 
-        initial={{ scale: 0.95, opacity: 0, y: 15 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="relative w-full h-full sm:h-[86vh] sm:max-h-[780px] sm:w-[390px] sm:rounded-[2.75rem] overflow-hidden shadow-2xl sm:shadow-emerald-950/80 sm:border sm:border-emerald-500/30 flex flex-col justify-between"
-        style={{
-          background: "linear-gradient(180deg, #105940 0%, #156E4F 35%, #186F51 65%, #0B3E2D 100%)",
-        }}
-      >
-        {/* Subtle decorative glowing corner borders */}
-        <div className="absolute inset-0 pointer-events-none border border-white/10 sm:rounded-[2.75rem]" />
-
-        {/* Top Header: Language Switcher & Academy Tag */}
-        <div className="relative z-20 flex items-center justify-between px-6 pt-7 sm:pt-6">
-          <div className="flex items-center gap-1.5 text-emerald-100/80 text-xs font-semibold tracking-wider uppercase">
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            <span>Quran Academy</span>
+      {/* Top Bar: Brand Crest & Bilingual Language Switcher */}
+      <header className="relative z-20 w-full max-w-[1280px] mx-auto px-6 pt-6 sm:pt-8 flex items-center justify-between">
+        <div className="flex items-center gap-2.5 bg-black/35 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-lg">
+          <div className="bg-emerald-800/80 p-1.5 rounded-full text-amber-300">
+            <BookOpen className="w-4 h-4" />
           </div>
-
-          {/* Language Switcher */}
-          <div className="flex items-center gap-1 bg-black/25 backdrop-blur-md p-1 rounded-full border border-white/10 text-xs">
-            <button
-              onClick={() => setLanguage("en")}
-              className={`px-2.5 py-0.5 rounded-full transition-all font-bold ${
-                language === "en" 
-                  ? "bg-amber-400 text-emerald-950 shadow-xs" 
-                  : "text-emerald-100/70 hover:text-white"
-              }`}
-            >
-              EN
-            </button>
-            <button
-              onClick={() => setLanguage("ur")}
-              className={`px-2.5 py-0.5 rounded-full transition-all font-urdu ${
-                language === "ur" 
-                  ? "bg-amber-400 text-emerald-950 shadow-xs" 
-                  : "text-emerald-100/70 hover:text-white"
-              }`}
-            >
-              اردو
-            </button>
-          </div>
+          <span className="text-white font-serif font-bold text-sm sm:text-base tracking-wide">
+            Quran Academy
+          </span>
         </div>
 
-        {/* Center Artwork Canvas: High Fidelity Islamic Artwork */}
-        <div className="relative flex-1 flex flex-col items-center justify-center px-6 -mt-2">
-          {/* Main Visual Image matching the uploaded design */}
-          <motion.div 
-            initial={{ scale: 0.96, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.15, duration: 0.7 }}
-            className="relative w-[85%] max-w-[270px] aspect-[9/15] rounded-3xl overflow-hidden shadow-2xl border border-emerald-300/20"
+        {/* Language Switcher using CSS :hover pseudo-class */}
+        <div className="flex items-center gap-1.5 bg-black/40 backdrop-blur-md p-1 rounded-full border border-white/15 shadow-lg text-xs font-semibold">
+          <button
+            onClick={() => setLanguage("en")}
+            className={`welcome-lang-btn px-3 py-1 rounded-full font-bold transition-all ${
+              language === "en" 
+                ? "bg-amber-400 text-emerald-950 shadow-xs" 
+                : "text-emerald-100/75"
+            }`}
           >
-            <Image
-              src="/images/splash.png"
-              alt="Quran Academy Welcome"
-              fill
-              priority
-              className="object-cover object-center"
-              sizes="(max-width: 768px) 100vw, 320px"
-            />
-            {/* Subtle Gradient Vignette to seamlessly blend with background */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0B3E2D]/50 via-transparent to-[#105940]/30 pointer-events-none" />
-          </motion.div>
+            English
+          </button>
+          <button
+            onClick={() => setLanguage("ur")}
+            className={`welcome-lang-btn px-3 py-1 rounded-full font-urdu text-sm transition-all ${
+              language === "ur" 
+                ? "bg-amber-400 text-emerald-950 shadow-xs" 
+                : "text-emerald-100/75"
+            }`}
+          >
+            اردو
+          </button>
         </div>
+      </header>
 
-        {/* Bottom Section: Welcome Text & Get Started Button */}
-        <div className="relative z-20 px-6 pb-9 sm:pb-8 flex flex-col items-center text-center">
-          <p className="text-emerald-100/90 text-sm font-medium mb-5 max-w-[280px]">
-            {language === "ur" 
-              ? "قرآن کریم کی تلاوت اور تجوید کا جدید اور آسان پلیٹ فارم"
-              : "Live Quran lessons with qualified teachers & real-time guidance."}
-          </p>
+      {/* Center Hero Card: Welcome Information & Get Started CTA */}
+      <main className="relative z-20 w-full max-w-2xl mx-auto px-6 py-6 flex flex-col items-center justify-center my-auto">
+        {/* Subtle Arabic Sub-badge */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="inline-flex items-center gap-2 bg-emerald-950/60 backdrop-blur-md border border-amber-400/30 px-5 py-1.5 rounded-full mb-5 shadow-lg"
+        >
+          <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+          <span className="font-arabic text-amber-200 text-sm tracking-wider">
+            بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+          </span>
+        </motion.div>
 
-          {/* Prominent "Get Started" CTA Button */}
-          <motion.button
+        {/* Main Title */}
+        <motion.h1
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="text-3xl sm:text-5xl md:text-6xl font-serif text-white font-bold leading-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.7)] mb-4"
+        >
+          {language === "ur" 
+            ? "قرآن مجید کے ساتھ ایک دائمی تعلق"
+            : "A Lifelong Connection with the Quran"}
+        </motion.h1>
+
+        {/* Subtitle */}
+        <motion.p
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="text-base sm:text-xl text-emerald-100/90 font-sans max-w-xl leading-relaxed mb-8 drop-shadow-md"
+        >
+          {language === "ur"
+            ? "مستند اساتذہ، براہ راست لائیو اسباق اور تجوید و فہم قرآن کا مکمل نصاب"
+            : "Learn with certified teachers, live one-on-one lessons, and real-time guidance."}
+        </motion.p>
+
+        {/* "Get Started" CTA Button using CSS :hover pseudo-class */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="w-full flex flex-col items-center"
+        >
+          <button
             onClick={handleStart}
             disabled={isExiting}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            className="w-full max-w-[310px] py-4 px-6 rounded-full font-bold text-base flex items-center justify-center gap-3 text-emerald-950 shadow-xl transition-all duration-300 cursor-pointer"
-            style={{
-              background: "linear-gradient(135deg, #F9E79F 0%, #F4D03F 45%, #D4AC0D 100%)",
-              boxShadow: "0 10px 25px -5px rgba(244, 208, 63, 0.45), 0 8px 10px -6px rgba(0, 0, 0, 0.2)",
-            }}
+            className="welcome-cta-btn w-full max-w-xs sm:max-w-sm py-4 px-8 rounded-full font-bold text-lg flex items-center justify-center gap-3 border border-amber-300/40"
           >
-            <span className={language === "ur" ? "font-urdu text-lg" : "font-sans tracking-wide"}>
+            <span className={language === "ur" ? "font-urdu text-xl" : "tracking-wide"}>
               {language === "ur" ? "شروع کریں" : "Get Started"}
             </span>
-            <ArrowRight className="w-5 h-5 text-emerald-950 stroke-[2.5]" />
-          </motion.button>
+            <ArrowRight className="w-5 h-5 text-[#062b20] stroke-[2.5]" />
+          </button>
+        </motion.div>
+      </main>
+
+      {/* Bottom Feature Badges / Highlights */}
+      <footer className="relative z-20 w-full max-w-[1280px] mx-auto px-6 pb-6 sm:pb-8 flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-xs sm:text-sm text-emerald-100/85 font-medium">
+        <div className="flex items-center gap-2 bg-black/30 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10">
+          <CheckCircle className="w-4 h-4 text-amber-300" />
+          <span>{language === "ur" ? "مستند قاری و قاریہ" : "Qualified Teachers"}</span>
         </div>
-      </motion.div>
+        <div className="flex items-center gap-2 bg-black/30 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10">
+          <CheckCircle className="w-4 h-4 text-amber-300" />
+          <span>{language === "ur" ? "انفرادی کلاسز" : "1-on-1 Live Lessons"}</span>
+        </div>
+        <div className="flex items-center gap-2 bg-black/30 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10">
+          <CheckCircle className="w-4 h-4 text-amber-300" />
+          <span>{language === "ur" ? "آسان اور لچکدار اوقات" : "Flexible Scheduling"}</span>
+        </div>
+      </footer>
     </motion.div>
   );
 }
