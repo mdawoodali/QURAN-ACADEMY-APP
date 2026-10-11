@@ -12,6 +12,7 @@
   --color-highlight-bg: #f7e5b8;
   --color-highlight-border: #e2b862;
   --color-danger: #b9533f;
+  --color-page: transparent;
 
   --font-sans: var(--font-ui), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-hero), ui-serif, Georgia, serif;
@@ -24,8 +25,13 @@ html {
 }
 
 body {
-  background: linear-gradient(to bottom, #f4f7f5, #eef3f0);
-  color: var(--color-ink);
+  background-color: #052b20;
+  background-image: url('/images/emerald_bg.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-attachment: fixed;
+  color: #f4f7f5;
   min-height: 100vh;
 }
 
