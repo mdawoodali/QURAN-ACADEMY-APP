@@ -47,11 +47,11 @@ export default function StudentDashboard() {
       
       {/* Lesson Details Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+        <Link href="/classroom/demo" className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:border-emerald-300 transition-colors block">
           <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Current lesson</h3>
           <div className="text-xl font-bold text-gray-900 mb-2">Joined letters</div>
-          <p className="text-xs text-gray-500">Prepare lesson / continue practice</p>
-        </div>
+          <p className="text-xs text-gray-500">Launch live classroom / continue practice →</p>
+        </Link>
         
         <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
           <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Homework</h3>
@@ -59,11 +59,11 @@ export default function StudentDashboard() {
           <p className="text-xs text-gray-500">Repeat twice before the next class</p>
         </div>
         
-        <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+        <Link href="/student/progress" className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:border-emerald-300 transition-colors block">
           <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Progress</h3>
           <div className="text-xl font-bold text-gray-900 mb-2">8 / 12 lessons</div>
-          <p className="text-xs text-gray-500">Notes, milestones and monthly report</p>
-        </div>
+          <p className="text-xs text-gray-500">View syllabi, milestones & reports →</p>
+        </Link>
       </div>
     </div>
   )
