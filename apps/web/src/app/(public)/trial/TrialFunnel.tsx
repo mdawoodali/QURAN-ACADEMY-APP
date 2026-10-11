@@ -44,26 +44,25 @@ export default function TrialFunnel() {
       setError(result.error)
       setLoading(false)
     } else {
-      // Redirect handled by action or handle it here
       window.location.href = '/student'
     }
   }
 
   return (
-    <div className="max-w-2xl mx-auto bg-white rounded-3xl p-8 border border-[var(--color-line)] shadow-xl">
+    <div className="max-w-2xl mx-auto glass-container rounded-3xl p-8 border border-white/15 shadow-2xl">
       <div className="flex justify-between items-center mb-8">
         {[1, 2, 3, 4].map(s => (
           <div key={s} className="flex items-center">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${step >= s ? 'bg-[var(--color-green-600)] text-white' : 'bg-gray-100 text-gray-400'}`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-sm transition-all ${step >= s ? 'bg-amber-400 text-emerald-950' : 'bg-black/35 text-emerald-100/40 border border-white/10'}`}>
               {s}
             </div>
-            {s < 4 && <div className={`w-12 md:w-24 h-1 ${step > s ? 'bg-[var(--color-green-600)]' : 'bg-gray-100'}`} />}
+            {s < 4 && <div className={`w-12 md:w-24 h-1 transition-all ${step > s ? 'bg-amber-400' : 'bg-white/15'}`} />}
           </div>
         ))}
       </div>
 
       {error && (
-        <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-bold mb-6 border border-red-100">
+        <div className="bg-red-950/60 text-red-200 p-4 rounded-xl text-sm font-bold mb-6 border border-red-500/30">
           {error}
         </div>
       )}
@@ -71,42 +70,42 @@ export default function TrialFunnel() {
       <form onSubmit={handleSubmit} className="space-y-6">
         {step === 1 && (
           <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
-            <h2 className="text-2xl font-bold text-[var(--color-ink)] mb-6">Student Information</h2>
+            <h2 className="text-2xl font-bold font-serif text-white mb-6">Student Information</h2>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">First Name</label>
-                <input required value={formData.firstName} onChange={e => updateForm('firstName', e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-[var(--color-green-600)] outline-none" />
+                <label className="block text-sm font-semibold text-emerald-100 mb-1">First Name</label>
+                <input required value={formData.firstName} onChange={e => updateForm('firstName', e.target.value)} className="w-full px-4 py-3 bg-black/40 border border-white/20 rounded-xl text-white placeholder:text-emerald-200/40 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none text-sm transition" placeholder="First name" />
               </div>
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Last Name</label>
-                <input required value={formData.lastName} onChange={e => updateForm('lastName', e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-[var(--color-green-600)] outline-none" />
+                <label className="block text-sm font-semibold text-emerald-100 mb-1">Last Name</label>
+                <input required value={formData.lastName} onChange={e => updateForm('lastName', e.target.value)} className="w-full px-4 py-3 bg-black/40 border border-white/20 rounded-xl text-white placeholder:text-emerald-200/40 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none text-sm transition" placeholder="Last name" />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Father's Name</label>
-              <input required value={formData.fatherName} onChange={e => updateForm('fatherName', e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-[var(--color-green-600)] outline-none" />
+              <label className="block text-sm font-semibold text-emerald-100 mb-1">Father's Name</label>
+              <input required value={formData.fatherName} onChange={e => updateForm('fatherName', e.target.value)} className="w-full px-4 py-3 bg-black/40 border border-white/20 rounded-xl text-white placeholder:text-emerald-200/40 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none text-sm transition" placeholder="Father's full name" />
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Age</label>
-              <input required type="number" min="4" max="99" value={formData.age} onChange={e => updateForm('age', e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-[var(--color-green-600)] outline-none" />
+              <label className="block text-sm font-semibold text-emerald-100 mb-1">Age</label>
+              <input required type="number" min="4" max="99" value={formData.age} onChange={e => updateForm('age', e.target.value)} className="w-full px-4 py-3 bg-black/40 border border-white/20 rounded-xl text-white placeholder:text-emerald-200/40 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none text-sm transition" placeholder="Student age" />
             </div>
           </div>
         )}
 
         {step === 2 && (
           <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
-            <h2 className="text-2xl font-bold text-[var(--color-ink)] mb-6">Program & Timing</h2>
+            <h2 className="text-2xl font-bold font-serif text-white mb-6">Program & Timing</h2>
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Select Program</label>
-              <select required value={formData.program} onChange={e => updateForm('program', e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-[var(--color-green-600)] outline-none">
+              <label className="block text-sm font-semibold text-emerald-100 mb-1">Select Program</label>
+              <select required value={formData.program} onChange={e => updateForm('program', e.target.value)} className="w-full px-4 py-3 bg-black/40 border border-white/20 rounded-xl text-white focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none text-sm transition [&>option]:bg-[#052b20] [&>option]:text-white">
                 <option>Noorani Qaida</option>
                 <option>Tajweed & Fluent Recitation</option>
                 <option>Hifz — Quran Memorisation</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Your Time Zone</label>
-              <select required value={formData.timezone} onChange={e => updateForm('timezone', e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-[var(--color-green-600)] outline-none">
+              <label className="block text-sm font-semibold text-emerald-100 mb-1">Your Time Zone</label>
+              <select required value={formData.timezone} onChange={e => updateForm('timezone', e.target.value)} className="w-full px-4 py-3 bg-black/40 border border-white/20 rounded-xl text-white focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none text-sm transition [&>option]:bg-[#052b20] [&>option]:text-white">
                 <option value="UTC">UTC / GMT</option>
                 <option value="America/New_York">Eastern Time (US & Canada)</option>
                 <option value="America/Chicago">Central Time (US & Canada)</option>
@@ -123,54 +122,54 @@ export default function TrialFunnel() {
 
         {step === 3 && (
           <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
-            <h2 className="text-2xl font-bold text-[var(--color-ink)] mb-6">Location Details</h2>
+            <h2 className="text-2xl font-bold font-serif text-white mb-6">Location Details</h2>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Country</label>
-                <input required value={formData.country} onChange={e => updateForm('country', e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-[var(--color-green-600)] outline-none" />
+                <label className="block text-sm font-semibold text-emerald-100 mb-1">Country</label>
+                <input required value={formData.country} onChange={e => updateForm('country', e.target.value)} className="w-full px-4 py-3 bg-black/40 border border-white/20 rounded-xl text-white placeholder:text-emerald-200/40 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none text-sm transition" placeholder="Country" />
               </div>
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">City</label>
-                <input required value={formData.city} onChange={e => updateForm('city', e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-[var(--color-green-600)] outline-none" />
+                <label className="block text-sm font-semibold text-emerald-100 mb-1">City</label>
+                <input required value={formData.city} onChange={e => updateForm('city', e.target.value)} className="w-full px-4 py-3 bg-black/40 border border-white/20 rounded-xl text-white placeholder:text-emerald-200/40 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none text-sm transition" placeholder="City" />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Address</label>
-              <input required value={formData.address} onChange={e => updateForm('address', e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-[var(--color-green-600)] outline-none" />
+              <label className="block text-sm font-semibold text-emerald-100 mb-1">Address</label>
+              <input required value={formData.address} onChange={e => updateForm('address', e.target.value)} className="w-full px-4 py-3 bg-black/40 border border-white/20 rounded-xl text-white placeholder:text-emerald-200/40 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none text-sm transition" placeholder="Residential address" />
             </div>
           </div>
         )}
 
         {step === 4 && (
           <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
-            <h2 className="text-2xl font-bold text-[var(--color-ink)] mb-6">Account Registration</h2>
+            <h2 className="text-2xl font-bold font-serif text-white mb-6">Account Registration</h2>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Email Address</label>
-                <input required type="email" value={formData.email} onChange={e => updateForm('email', e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-[var(--color-green-600)] outline-none" />
+                <label className="block text-sm font-semibold text-emerald-100 mb-1">Email Address</label>
+                <input required type="email" value={formData.email} onChange={e => updateForm('email', e.target.value)} className="w-full px-4 py-3 bg-black/40 border border-white/20 rounded-xl text-white placeholder:text-emerald-200/40 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none text-sm transition" placeholder="you@example.com" />
               </div>
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Mobile Number</label>
-                <input required type="tel" value={formData.mobile} onChange={e => updateForm('mobile', e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-[var(--color-green-600)] outline-none" placeholder="+1 234 567 8900" />
+                <label className="block text-sm font-semibold text-emerald-100 mb-1">Mobile Number</label>
+                <input required type="tel" value={formData.mobile} onChange={e => updateForm('mobile', e.target.value)} className="w-full px-4 py-3 bg-black/40 border border-white/20 rounded-xl text-white placeholder:text-emerald-200/40 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none text-sm transition" placeholder="+1 234 567 8900" />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Create Password</label>
-              <input required type="password" minLength={6} value={formData.password} onChange={e => updateForm('password', e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-[var(--color-green-600)] outline-none" />
+              <label className="block text-sm font-semibold text-emerald-100 mb-1">Create Password</label>
+              <input required type="password" minLength={6} value={formData.password} onChange={e => updateForm('password', e.target.value)} className="w-full px-4 py-3 bg-black/40 border border-white/20 rounded-xl text-white placeholder:text-emerald-200/40 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none text-sm transition" placeholder="Choose a password" />
             </div>
-            <div className="bg-[var(--color-mint-100)] p-4 rounded-xl">
-              <p className="text-sm text-[var(--color-ink)] font-medium">By completing registration, you will book your free trial and create your family account.</p>
+            <div className="bg-emerald-950/60 border border-white/10 p-4 rounded-xl">
+              <p className="text-sm text-emerald-100/90 font-medium">By completing registration, you will book your free trial and create your family account.</p>
             </div>
           </div>
         )}
 
         <div className="flex gap-4 pt-6">
           {step > 1 && (
-            <button type="button" onClick={prevStep} className="px-6 py-4 rounded-xl font-bold text-[var(--color-ink)] bg-gray-100 hover:bg-gray-200 transition">
+            <button type="button" onClick={prevStep} className="px-6 py-4 rounded-xl font-bold text-white bg-white/10 hover:bg-white/20 border border-white/20 transition cursor-pointer">
               Back
             </button>
           )}
-          <button type="submit" disabled={loading} className="flex-1 bg-[var(--color-green-600)] text-white py-4 rounded-xl font-bold hover:bg-[var(--color-green-900)] transition shadow-sm">
+          <button type="submit" disabled={loading} className="flex-1 bg-amber-400 text-emerald-950 py-4 rounded-xl font-bold hover:bg-amber-300 transition shadow-lg cursor-pointer">
             {loading ? 'Processing...' : (step === 4 ? 'Book Trial & Register' : 'Continue')}
           </button>
         </div>
