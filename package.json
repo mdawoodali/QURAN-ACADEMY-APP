@@ -9,5 +9,12 @@
   "devDependencies": {
     "dependency-cruiser": "^15.5.0",
     "eslint-plugin-security": "^3.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "unrs-resolver",
+      "workerd"
+    ]
   }
 }
