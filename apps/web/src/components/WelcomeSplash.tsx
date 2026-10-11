@@ -35,7 +35,7 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
       }}
       className="fixed inset-0 z-[100] w-full min-h-screen flex flex-col justify-between items-center text-center overflow-hidden select-none bg-[#052b20] bg-cover bg-no-repeat bg-center"
       style={{
-        backgroundImage: "url('/images/quran_welcome_bg.jpg')",
+        backgroundImage: "url('/images/emerald_bg.jpg')",
         backgroundSize: "cover",
         backgroundRepeat: "no-repeat",
         backgroundPosition: "center",
