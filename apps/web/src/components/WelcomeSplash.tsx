@@ -35,7 +35,7 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
       }}
       className="fixed inset-0 z-[100] w-full min-h-screen flex flex-col justify-between items-center text-center overflow-hidden select-none bg-[#052b20] bg-cover bg-no-repeat bg-center"
       style={{
-        backgroundImage: "url('/images/emerald_bg.jpg')",
+        backgroundImage: "url('/images/emerald_bismillah_bg.jpg')",
         backgroundSize: "cover",
         backgroundRepeat: "no-repeat",
         backgroundPosition: "center",
@@ -80,8 +80,8 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
         </div>
       </header>
 
-      {/* Center Section: Hadith and CTA directly on gradient background */}
-      <main className="relative z-20 w-full max-w-4xl mx-auto px-6 py-6 flex flex-col items-center justify-center my-auto text-center">
+      {/* Center Section: Hadith and CTA placed with comfortable breathing room below top calligraphy */}
+      <main className="relative z-20 w-full max-w-4xl mx-auto px-6 py-6 mt-16 sm:mt-24 md:mt-28 mb-auto flex flex-col items-center justify-center text-center">
         {/* Main Heading: Hadith */}
         <motion.h1
           initial={{ opacity: 0, y: 15 }}
