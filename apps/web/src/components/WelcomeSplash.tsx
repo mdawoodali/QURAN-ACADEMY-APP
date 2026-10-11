@@ -78,8 +78,8 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
         </div>
       </header>
 
-      {/* Center Hero Card: Welcome Information & Get Started CTA */}
-      <main className="relative z-20 w-full max-w-2xl mx-auto px-6 py-6 flex flex-col items-center justify-center my-auto">
+      {/* Center Hero Glassmorphic Container over background image */}
+      <main className="glass-container relative z-20 w-full max-w-2xl mx-auto px-6 sm:px-10 py-8 sm:py-12 my-auto rounded-[2rem] flex flex-col items-center justify-center">
         {/* Subtle Arabic Sub-badge */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
