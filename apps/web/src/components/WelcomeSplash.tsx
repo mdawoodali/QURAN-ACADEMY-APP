@@ -44,8 +44,8 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
       {/* Subtle Ambient Radial Lighting Overlay */}
       <div className="absolute inset-0 bg-radial from-transparent via-[#031d16]/20 to-[#02130e]/60 pointer-events-none" />
 
-      {/* Top Bar: Brand Crest & Bilingual Language Switcher */}
-      <header className="relative z-20 w-full max-w-[1280px] mx-auto px-6 pt-6 sm:pt-8 flex items-center justify-between">
+      {/* Top Bar: Brand Crest & Bilingual Language Switcher pushed to outer edges */}
+      <header className="relative z-20 w-full px-6 sm:px-10 lg:px-14 pt-6 sm:pt-8 flex items-center justify-between">
         <div className="flex items-center gap-2.5 bg-black/35 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-lg">
           <div className="bg-emerald-800/80 p-1.5 rounded-full text-amber-300">
             <BookOpen className="w-4 h-4" />
@@ -55,7 +55,7 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
           </span>
         </div>
 
-        {/* Language Switcher using CSS :hover pseudo-class */}
+        {/* Language Switcher pushed to top-right edge */}
         <div className="flex items-center gap-1.5 bg-black/40 backdrop-blur-md p-1 rounded-full border border-white/15 shadow-lg text-xs font-semibold">
           <button
             onClick={() => setLanguage("en")}
@@ -80,25 +80,13 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
         </div>
       </header>
 
-      {/* Center Section: Content sitting directly on the gradient background without any container outline */}
+      {/* Center Section: Hadith and CTA directly on gradient background */}
       <main className="relative z-20 w-full max-w-4xl mx-auto px-6 py-6 flex flex-col items-center justify-center my-auto text-center">
-        {/* 1. Bismillah-ir-Rahman-ir-Rahim positioned at the top directly on background */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="mb-4 sm:mb-6"
-        >
-          <span className="font-arabic text-amber-200 text-3xl sm:text-5xl md:text-6xl tracking-widest drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
-            بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
-          </span>
-        </motion.div>
-
-        {/* 2. Main Heading: Hadith */}
+        {/* Main Heading: Hadith */}
         <motion.h1
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
+          transition={{ duration: 0.6, delay: 0.15 }}
           className="text-2xl sm:text-4xl md:text-5xl font-serif text-white font-bold leading-snug drop-shadow-[0_4px_20px_rgba(0,0,0,0.95)] max-w-3xl mb-4"
         >
           {language === "ur" 
@@ -106,11 +94,11 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
             : "“The best among you is the one who learns the Quran and teaches it.”"}
         </motion.h1>
 
-        {/* 3. Hadith Reference: Sahih Bukhari Hadith 5027 */}
+        {/* Hadith Reference: Sahih Bukhari Hadith 5027 */}
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
+          transition={{ duration: 0.6, delay: 0.25 }}
           className="text-sm sm:text-lg text-emerald-200/90 font-medium tracking-wide drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] mb-8 sm:mb-10"
         >
           {language === "ur"
@@ -118,11 +106,11 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
             : "— Sahih Bukhari Hadith 5027"}
         </motion.p>
 
-        {/* 4. "Get Started" CTA Button (Not golden by default; golden ONLY active on click) */}
+        {/* "Get Started" CTA Button (Not golden by default; golden ONLY active on click) */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
+          transition={{ duration: 0.6, delay: 0.35 }}
           className="w-full flex flex-col items-center"
         >
           <button
@@ -140,8 +128,8 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
         </motion.div>
       </main>
 
-      {/* Bottom Feature Badges */}
-      <footer className="relative z-20 w-full max-w-[1280px] mx-auto px-6 pb-6 sm:pb-8 flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-xs sm:text-sm text-emerald-100/85 font-medium">
+      {/* Bottom Feature Badges positioned towards bottom-left to leave bottom-right Quran artwork unobstructed */}
+      <footer className="relative z-20 w-full px-6 sm:px-10 lg:px-14 pb-6 sm:pb-8 flex flex-wrap items-center justify-start gap-3 sm:gap-6 text-xs sm:text-sm text-emerald-100/85 font-medium">
         <div className="flex items-center gap-2 bg-black/30 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10 shadow-sm">
           <CheckCircle className="w-4 h-4 text-amber-300" />
           <span>{language === "ur" ? "مستند قاری و قاریہ" : "Qualified Teachers"}</span>
