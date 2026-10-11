@@ -54,27 +54,37 @@ body {
 }
 
 
-/* Welcome Landing Page Button Styles using CSS :hover pseudo-class */
+/* Welcome Landing Page Button Styles using CSS :hover and :active pseudo-classes */
 .welcome-cta-btn {
-  background: linear-gradient(135deg, #f7df8e 0%, #e6be54 50%, #c4962c 100%);
-  color: #062b20;
-  box-shadow: 0 8px 24px -4px rgba(230, 190, 84, 0.45), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   transform: translateY(0);
   cursor: pointer;
 }
 
 .welcome-cta-btn:hover {
-  background: linear-gradient(135deg, #fff2b2 0%, #f9d36e 50%, #d8aa38 100%);
-  box-shadow: 0 16px 36px -4px rgba(249, 211, 110, 0.7), 0 8px 16px -2px rgba(0, 0, 0, 0.4);
-  transform: translateY(-3px) scale(1.025);
-  filter: brightness(1.08);
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.6);
+  color: #ffffff;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+  transform: translateY(-2px);
 }
 
-.welcome-cta-btn:active {
+/* Golden color ONLY active when clicked (:active pseudo-class and .is-active state) */
+.welcome-cta-btn:active,
+.welcome-cta-btn.is-active {
+  background: linear-gradient(135deg, #f7df8e 0%, #e6be54 50%, #c4962c 100%) !important;
+  color: #062b20 !important;
+  border-color: #f7df8e !important;
+  box-shadow: 0 0 32px rgba(247, 223, 142, 0.8), 0 4px 12px rgba(0, 0, 0, 0.4) !important;
   transform: translateY(1px) scale(0.98);
-  box-shadow: 0 4px 12px -2px rgba(230, 190, 84, 0.35);
 }
+
 
 .welcome-lang-btn {
   transition: all 0.25s ease-in-out;
