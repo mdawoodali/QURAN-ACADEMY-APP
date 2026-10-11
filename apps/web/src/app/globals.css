@@ -19,17 +19,40 @@
   --font-urdu: var(--font-urdu), serif;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background: linear-gradient(to bottom, #f4f7f5, #eef3f0);
   color: var(--color-ink);
   min-height: 100vh;
 }
 
+/* Glassmorphism Design: backdrop-filter: blur() combined with semi-transparent backgrounds */
+.glass-container {
+  background: rgba(3, 29, 22, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+}
+
+.glass-container-light {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
 .glass-panel {
   background: rgba(251, 252, 252, 0.95);
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border: 1px solid var(--color-line);
 }
+
 
 /* Welcome Landing Page Button Styles using CSS :hover pseudo-class */
 .welcome-cta-btn {
