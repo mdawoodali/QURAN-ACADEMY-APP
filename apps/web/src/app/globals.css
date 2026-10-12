@@ -117,3 +117,26 @@ body {
   transform: translateY(-1px);
 }
 
+/* Universal Card Pop Hover Effect throughout the project */
+.pop-hover,
+.hover-pop,
+.glass-card-pop {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-color 0.3s ease, background-color 0.3s ease !important;
+  cursor: pointer;
+}
+
+.pop-hover:hover,
+.hover-pop:hover,
+.glass-card-pop:hover {
+  transform: translateY(-6px) scale(1.015) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.55), 0 0 25px rgba(245, 158, 11, 0.15) !important;
+  border-color: rgba(251, 191, 36, 0.6) !important;
+  background-color: rgba(3, 29, 22, 0.85) !important;
+}
+
+.pop-hover:active,
+.hover-pop:active,
+.glass-card-pop:active {
+  transform: translateY(-2px) scale(0.99) !important;
+}
+

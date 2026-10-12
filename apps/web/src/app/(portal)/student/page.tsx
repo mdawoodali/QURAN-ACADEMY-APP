@@ -36,7 +36,7 @@ export default function StudentDashboard() {
         </div>
         
         {/* This Week Card */}
-        <div className="w-full lg:w-72 glass-container rounded-3xl p-6 border border-white/15 shadow-xl flex flex-col justify-between text-white">
+        <div className="w-full lg:w-72 glass-container rounded-3xl p-6 border border-white/15 shadow-xl flex flex-col justify-between text-white pop-hover">
           <div>
             <h3 className="text-white font-bold mb-4">This week</h3>
             <div className="text-4xl font-bold text-amber-300 mb-2">3 lessons</div>
@@ -47,19 +47,19 @@ export default function StudentDashboard() {
       
       {/* Lesson Details Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Link href="/classroom/demo" className="glass-container rounded-3xl p-6 border border-white/15 shadow-xl hover:border-amber-400/50 transition-all block text-white group">
+        <Link href="/classroom/demo" className="glass-container rounded-3xl p-6 border border-white/15 shadow-xl block text-white group pop-hover">
           <h3 className="text-xs font-bold text-amber-300 uppercase tracking-widest mb-2">Current lesson</h3>
           <div className="text-xl font-bold text-white mb-2 group-hover:text-amber-200 transition-colors">Joined letters</div>
           <p className="text-xs text-emerald-100/80">Launch live classroom / continue practice →</p>
         </Link>
         
-        <div className="glass-container rounded-3xl p-6 border border-white/15 shadow-xl text-white">
+        <div className="glass-container rounded-3xl p-6 border border-white/15 shadow-xl text-white pop-hover">
           <h3 className="text-xs font-bold text-amber-300 uppercase tracking-widest mb-2">Homework</h3>
           <div className="text-xl font-bold text-white mb-2">Qaida 3</div>
           <p className="text-xs text-emerald-100/80">Repeat twice before the next class</p>
         </div>
 
-        <div className="glass-container rounded-3xl p-6 border border-white/15 shadow-xl text-white">
+        <div className="glass-container rounded-3xl p-6 border border-white/15 shadow-xl text-white pop-hover">
           <h3 className="text-xs font-bold text-amber-300 uppercase tracking-widest mb-2">Teacher note</h3>
           <div className="text-xl font-bold text-white mb-2">Makharij focus</div>
           <p className="text-xs text-emerald-100/80">Good progress on heavy letters this week</p>

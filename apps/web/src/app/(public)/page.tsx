@@ -57,7 +57,7 @@ export default function Home() {
           {/* Right Column: Glassmorphic Panel */}
           <div className="glass-container rounded-3xl sm:rounded-[2rem] p-6 sm:p-8 md:p-12 relative flex justify-center shadow-2xl h-full items-center min-h-[360px]">
             {/* Frosted Inner Card */}
-            <div className="bg-black/35 backdrop-blur-md border border-white/15 rounded-3xl p-6 sm:p-8 shadow-xl max-w-sm w-full relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
+            <div className="bg-black/35 backdrop-blur-md border border-white/15 rounded-3xl p-6 sm:p-8 shadow-xl max-w-sm w-full relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700 pop-hover">
               <div className="flex justify-between items-start mb-6">
                 <span className="bg-amber-400/20 text-amber-300 text-[10px] sm:text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-amber-400/30">
                   {t("nextClass")}
@@ -100,7 +100,7 @@ export default function Home() {
 
         {/* Trust Cards */}
         <section className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 pb-16 sm:pb-24 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 sm:gap-6">
-          <div className="glass-container rounded-2xl p-6 shadow-sm text-white">
+          <div className="glass-container rounded-2xl p-6 shadow-sm text-white pop-hover">
             <h4 className="font-bold text-amber-300 mb-2 text-base">
               {t("trust1Title")}
             </h4>
@@ -108,7 +108,7 @@ export default function Home() {
               {t("trust1Desc")}
             </p>
           </div>
-          <div className="glass-container rounded-2xl p-6 shadow-sm text-white">
+          <div className="glass-container rounded-2xl p-6 shadow-sm text-white pop-hover">
             <h4 className="font-bold text-amber-300 mb-2 text-base">
               {t("trust2Title")}
             </h4>
@@ -116,7 +116,7 @@ export default function Home() {
               {t("trust2Desc")}
             </p>
           </div>
-          <div className="glass-container rounded-2xl p-6 shadow-sm text-white sm:col-span-2 md:col-span-1">
+          <div className="glass-container rounded-2xl p-6 shadow-sm text-white sm:col-span-2 md:col-span-1 pop-hover">
             <h4 className="font-bold text-amber-300 mb-2 text-base">
               {t("trust3Title")}
             </h4>

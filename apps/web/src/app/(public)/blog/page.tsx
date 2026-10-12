@@ -240,7 +240,7 @@ export default function BlogPage() {
         {filteredBlogs.map((post) => (
           <article
             key={post.id}
-            className="glass-container rounded-3xl overflow-hidden border border-white/15 shadow-2xl flex flex-col justify-between hover:border-amber-400/40 transition duration-300 group"
+            className="glass-container rounded-3xl overflow-hidden border border-white/15 shadow-2xl flex flex-col justify-between pop-hover group"
           >
             <div>
               {/* Featured Image */}

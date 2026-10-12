@@ -24,7 +24,7 @@ export default function PaymentsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
         {/* Card 1: Direct Card / Stripe */}
-        <div className="glass-container rounded-3xl p-8 border border-white/15 shadow-xl flex flex-col justify-between">
+        <div className="glass-container rounded-3xl p-8 border border-white/15 shadow-xl flex flex-col justify-between pop-hover">
           <div>
             <div className="w-14 h-14 bg-emerald-800/80 border border-amber-400/40 rounded-2xl flex items-center justify-center text-amber-300 mb-6 shadow-md">
               <CreditCard size={28} />
@@ -57,7 +57,7 @@ export default function PaymentsPage() {
         </div>
 
         {/* Card 2: Bank Transfer & Local Remittance */}
-        <div className="glass-container rounded-3xl p-8 border border-white/15 shadow-xl flex flex-col justify-between">
+        <div className="glass-container rounded-3xl p-8 border border-white/15 shadow-xl flex flex-col justify-between pop-hover">
           <div>
             <div className="w-14 h-14 bg-emerald-800/80 border border-amber-400/40 rounded-2xl flex items-center justify-center text-amber-300 mb-6 shadow-md">
               <ShieldCheck size={28} />
@@ -92,7 +92,7 @@ export default function PaymentsPage() {
         </div>
 
         {/* Card 3: Security & Guarantees */}
-        <div className="glass-container rounded-3xl p-8 border border-white/15 shadow-xl flex flex-col justify-between">
+        <div className="glass-container rounded-3xl p-8 border border-white/15 shadow-xl flex flex-col justify-between pop-hover">
           <div>
             <div className="w-14 h-14 bg-emerald-800/80 border border-amber-400/40 rounded-2xl flex items-center justify-center text-amber-300 mb-6 shadow-md">
               <Lock size={28} />

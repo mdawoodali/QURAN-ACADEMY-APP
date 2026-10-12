@@ -25,7 +25,7 @@ export default function HowItWorksPage() {
       {/* 3 Step Cards Horizontal Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mb-8 md:mb-10">
         {/* Step 1 */}
-        <section className="glass-container p-6 lg:p-8 rounded-3xl border border-white/15 shadow-xl flex flex-col justify-between hover:border-amber-400/40 transition-all group">
+        <section className="glass-container p-6 lg:p-8 rounded-3xl border border-white/15 shadow-xl flex flex-col justify-between pop-hover group">
           <div>
             <div className="w-12 h-12 bg-emerald-800/80 border border-amber-400/40 rounded-full flex items-center justify-center mb-5 shadow-md group-hover:scale-105 transition-transform">
               <span className="text-amber-300 font-bold text-lg font-serif">1</span>
@@ -44,7 +44,7 @@ export default function HowItWorksPage() {
         </section>
 
         {/* Step 2 */}
-        <section className="glass-container p-6 lg:p-8 rounded-3xl border border-white/15 shadow-xl flex flex-col justify-between hover:border-amber-400/40 transition-all group">
+        <section className="glass-container p-6 lg:p-8 rounded-3xl border border-white/15 shadow-xl flex flex-col justify-between pop-hover group">
           <div>
             <div className="w-12 h-12 bg-emerald-800/80 border border-amber-400/40 rounded-full flex items-center justify-center mb-5 shadow-md group-hover:scale-105 transition-transform">
               <span className="text-amber-300 font-bold text-lg font-serif">2</span>
@@ -63,7 +63,7 @@ export default function HowItWorksPage() {
         </section>
 
         {/* Step 3 */}
-        <section className="glass-container p-6 lg:p-8 rounded-3xl border border-white/15 shadow-xl flex flex-col justify-between hover:border-amber-400/40 transition-all group">
+        <section className="glass-container p-6 lg:p-8 rounded-3xl border border-white/15 shadow-xl flex flex-col justify-between pop-hover group">
           <div>
             <div className="w-12 h-12 bg-emerald-800/80 border border-amber-400/40 rounded-full flex items-center justify-center mb-5 shadow-md group-hover:scale-105 transition-transform">
               <span className="text-amber-300 font-bold text-lg font-serif">3</span>

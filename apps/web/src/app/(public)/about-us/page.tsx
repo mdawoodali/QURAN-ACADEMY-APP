@@ -43,7 +43,7 @@ export default function AboutUsPage() {
       {/* 2. Grid of 4 Core Areas with Hover Pop Effect */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 mb-14">
         {/* Box 1: Purpose & Vision */}
-        <div className="glass-container rounded-2xl sm:rounded-3xl p-6 sm:p-7 border border-white/15 flex flex-col justify-between transition-all duration-300 ease-out hover:-translate-y-2 hover:scale-[1.015] hover:shadow-[0_20px_35px_rgba(0,0,0,0.5)] hover:border-amber-400/60 hover:bg-black/50 cursor-pointer group">
+        <div className="glass-container rounded-2xl sm:rounded-3xl p-6 sm:p-7 border border-white/15 flex flex-col justify-between pop-hover group">
           <div>
             <div className="flex items-center justify-between mb-4">
               <span className="text-amber-400 font-bold text-xs uppercase tracking-wider px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/25">
@@ -73,7 +73,7 @@ export default function AboutUsPage() {
         </div>
 
         {/* Box 2: Solving Modern Challenges */}
-        <div className="glass-container rounded-2xl sm:rounded-3xl p-6 sm:p-7 border border-white/15 flex flex-col justify-between transition-all duration-300 ease-out hover:-translate-y-2 hover:scale-[1.015] hover:shadow-[0_20px_35px_rgba(0,0,0,0.5)] hover:border-amber-400/60 hover:bg-black/50 cursor-pointer group">
+        <div className="glass-container rounded-2xl sm:rounded-3xl p-6 sm:p-7 border border-white/15 flex flex-col justify-between pop-hover group">
           <div>
             <div className="flex items-center justify-between mb-4">
               <span className="text-amber-400 font-bold text-xs uppercase tracking-wider px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/25">
@@ -106,7 +106,7 @@ export default function AboutUsPage() {
         </div>
 
         {/* Box 3: Holistic Character Building */}
-        <div className="glass-container rounded-2xl sm:rounded-3xl p-6 sm:p-7 border border-white/15 flex flex-col justify-between transition-all duration-300 ease-out hover:-translate-y-2 hover:scale-[1.015] hover:shadow-[0_20px_35px_rgba(0,0,0,0.5)] hover:border-amber-400/60 hover:bg-black/50 cursor-pointer group">
+        <div className="glass-container rounded-2xl sm:rounded-3xl p-6 sm:p-7 border border-white/15 flex flex-col justify-between pop-hover group">
           <div>
             <div className="flex items-center justify-between mb-4">
               <span className="text-amber-400 font-bold text-xs uppercase tracking-wider px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/25">
@@ -139,7 +139,7 @@ export default function AboutUsPage() {
         </div>
 
         {/* Box 4: Teaching Excellence */}
-        <div className="glass-container rounded-2xl sm:rounded-3xl p-6 sm:p-7 border border-white/15 flex flex-col justify-between transition-all duration-300 ease-out hover:-translate-y-2 hover:scale-[1.015] hover:shadow-[0_20px_35px_rgba(0,0,0,0.5)] hover:border-amber-400/60 hover:bg-black/50 cursor-pointer group">
+        <div className="glass-container rounded-2xl sm:rounded-3xl p-6 sm:p-7 border border-white/15 flex flex-col justify-between pop-hover group">
           <div>
             <div className="flex items-center justify-between mb-4">
               <span className="text-amber-400 font-bold text-xs uppercase tracking-wider px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/25">
@@ -184,7 +184,7 @@ export default function AboutUsPage() {
             </h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div className="glass-container rounded-2xl p-5 border border-white/10 flex items-start gap-4 transition-all duration-300 hover:-translate-y-1.5 hover:scale-[1.015] hover:shadow-xl hover:border-amber-400/50 cursor-pointer">
+            <div className="glass-container rounded-2xl p-5 border border-white/10 flex items-start gap-4 pop-hover">
               <div className="w-11 h-11 rounded-xl bg-emerald-800/80 border border-amber-400/30 flex items-center justify-center text-amber-300 shrink-0">
                 <GraduationCap size={22} />
               </div>
@@ -196,7 +196,7 @@ export default function AboutUsPage() {
               </div>
             </div>
 
-            <div className="glass-container rounded-2xl p-5 border border-white/10 flex items-start gap-4 transition-all duration-300 hover:-translate-y-1.5 hover:scale-[1.015] hover:shadow-xl hover:border-amber-400/50 cursor-pointer">
+            <div className="glass-container rounded-2xl p-5 border border-white/10 flex items-start gap-4 pop-hover">
               <div className="w-11 h-11 rounded-xl bg-emerald-800/80 border border-amber-400/30 flex items-center justify-center text-amber-300 shrink-0">
                 <UserCheck2 size={22} />
               </div>
@@ -208,7 +208,7 @@ export default function AboutUsPage() {
               </div>
             </div>
 
-            <div className="glass-container rounded-2xl p-5 border border-white/10 flex items-start gap-4 transition-all duration-300 hover:-translate-y-1.5 hover:scale-[1.015] hover:shadow-xl hover:border-amber-400/50 cursor-pointer">
+            <div className="glass-container rounded-2xl p-5 border border-white/10 flex items-start gap-4 pop-hover">
               <div className="w-11 h-11 rounded-xl bg-emerald-800/80 border border-amber-400/30 flex items-center justify-center text-amber-300 shrink-0">
                 <CalendarRange size={22} />
               </div>
@@ -220,7 +220,7 @@ export default function AboutUsPage() {
               </div>
             </div>
 
-            <div className="glass-container rounded-2xl p-5 border border-white/10 flex items-start gap-4 transition-all duration-300 hover:-translate-y-1.5 hover:scale-[1.015] hover:shadow-xl hover:border-amber-400/50 cursor-pointer">
+            <div className="glass-container rounded-2xl p-5 border border-white/10 flex items-start gap-4 pop-hover">
               <div className="w-11 h-11 rounded-xl bg-emerald-800/80 border border-amber-400/30 flex items-center justify-center text-amber-300 shrink-0">
                 <Users size={22} />
               </div>

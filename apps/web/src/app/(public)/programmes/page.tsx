@@ -19,7 +19,7 @@ export default function ProgrammesPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
         {/* Level 1 */}
-        <div className="glass-container rounded-3xl p-6 md:p-8 border border-white/15 shadow-xl flex flex-col justify-between">
+        <div className="glass-container rounded-3xl p-6 md:p-8 border border-white/15 shadow-xl flex flex-col justify-between pop-hover">
           <div>
             <span className="text-amber-300 text-xs font-bold uppercase tracking-widest mb-3 block">
               {t("level1Badge")}
@@ -45,7 +45,7 @@ export default function ProgrammesPage() {
         </div>
 
         {/* Level 2 */}
-        <div className="glass-container rounded-3xl p-6 md:p-8 border border-amber-400/30 shadow-2xl relative overflow-hidden flex flex-col justify-between">
+        <div className="glass-container rounded-3xl p-6 md:p-8 border border-amber-400/30 shadow-2xl relative overflow-hidden flex flex-col justify-between pop-hover">
           <div className="absolute top-0 right-0 bg-amber-400/20 text-amber-300 text-[10px] font-bold px-3 py-1 rounded-bl-xl border-l border-b border-amber-400/30 uppercase tracking-wider">
             {t("level2Popular")}
           </div>
@@ -74,7 +74,7 @@ export default function ProgrammesPage() {
         </div>
 
         {/* Level 3 */}
-        <div className="glass-container rounded-3xl p-6 md:p-8 border border-white/15 shadow-xl flex flex-col justify-between">
+        <div className="glass-container rounded-3xl p-6 md:p-8 border border-white/15 shadow-xl flex flex-col justify-between pop-hover">
           <div>
             <span className="text-amber-300 text-xs font-bold uppercase tracking-widest mb-3 block">
               {t("level3Badge")}

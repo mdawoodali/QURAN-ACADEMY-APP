@@ -50,7 +50,7 @@ export default function DownloadsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
         {resources.map((item, idx) => (
-          <div key={idx} className="glass-container rounded-3xl p-8 border border-white/15 shadow-xl flex flex-col justify-between">
+          <div key={idx} className="glass-container rounded-3xl p-8 border border-white/15 shadow-xl flex flex-col justify-between pop-hover">
             <div>
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 bg-emerald-800/80 border border-amber-400/40 rounded-xl flex items-center justify-center text-amber-300 shadow-sm">

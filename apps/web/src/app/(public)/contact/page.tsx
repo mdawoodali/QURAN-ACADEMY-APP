@@ -23,7 +23,7 @@ export default function ContactPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 mb-16">
         {/* Contact Info Card */}
-        <div className="glass-container rounded-3xl p-8 sm:p-10 border border-white/15 shadow-2xl flex flex-col justify-between">
+        <div className="glass-container rounded-3xl p-8 sm:p-10 border border-white/15 shadow-2xl flex flex-col justify-between pop-hover">
           <div>
             <h2 className="text-2xl font-serif text-white mb-6 flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span>

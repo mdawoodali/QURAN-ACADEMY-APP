@@ -47,7 +47,7 @@ export default function PackagesPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 max-w-4xl mx-auto">
         {/* Basic Plan */}
-        <div className="glass-container rounded-3xl p-6 sm:p-8 border border-white/15 shadow-xl flex flex-col justify-between">
+        <div className="glass-container rounded-3xl p-6 sm:p-8 border border-white/15 shadow-xl flex flex-col justify-between pop-hover">
           <div>
             <h2 className="text-xl sm:text-2xl font-bold font-serif text-white mb-2">
               {t("planBasicTitle")}
@@ -82,7 +82,7 @@ export default function PackagesPage() {
         </div>
 
         {/* Pro Plan */}
-        <div className="glass-container rounded-3xl p-6 sm:p-8 border border-amber-400/40 shadow-2xl relative overflow-hidden flex flex-col justify-between">
+        <div className="glass-container rounded-3xl p-6 sm:p-8 border border-amber-400/40 shadow-2xl relative overflow-hidden flex flex-col justify-between pop-hover">
           <div className="absolute top-0 right-0 bg-amber-400/20 text-amber-300 text-[10px] sm:text-xs font-bold px-3.5 py-1 rounded-bl-xl border-l border-b border-amber-400/30 uppercase tracking-wider">
             {t("mostPopular")}
           </div>
