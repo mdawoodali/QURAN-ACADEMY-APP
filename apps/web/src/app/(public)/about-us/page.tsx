@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, Globe2, Home, Clock } from "lucide-react";
+import { BookOpen, Globe2, Home, Clock, HeartHandshake, Sparkles, MessageSquare } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 
 export default function AboutUsPage() {
@@ -44,7 +44,7 @@ export default function AboutUsPage() {
       </div>
 
       {/* 3. Global Accessibility & Comfort of Home (From Reference URL) */}
-      <div className="glass-container rounded-3xl p-8 sm:p-12 border border-white/15 shadow-2xl mb-12 bg-gradient-to-br from-black/50 via-emerald-950/40 to-black/50">
+      <div className="glass-container rounded-3xl p-8 sm:p-12 border border-white/15 shadow-2xl mb-10 bg-gradient-to-br from-black/50 via-emerald-950/40 to-black/50">
         <div className="max-w-4xl mx-auto">
           <span className="text-amber-400 font-bold text-xs sm:text-sm uppercase tracking-wider block mb-3">
             Solving Modern Challenges
@@ -82,6 +82,47 @@ export default function AboutUsPage() {
                 <Clock size={20} />
               </div>
               <span className="text-sm font-semibold text-emerald-100">Personalized Schedules</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 4. Moral Ethics & Islamic Way of Life (From Reference URL) */}
+      <div className="glass-container rounded-3xl p-8 sm:p-12 border border-white/15 shadow-2xl mb-12">
+        <div className="max-w-4xl mx-auto">
+          <span className="text-amber-400 font-bold text-xs sm:text-sm uppercase tracking-wider block mb-3">
+            Holistic Character Building
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-serif text-white mb-6 leading-snug">
+            Building Moral Ethics & Teaching the Islamic Way of Life
+          </h2>
+          <div className="space-y-4 text-emerald-100/85 text-sm sm:text-base leading-relaxed">
+            <p>
+              As mentioned before, Quran Learn Academy is an independent organization which aims to help everyone who has a desire to learn Quran. In addition to this, our objectives also include building moral ethics of our students and teaching them about the Islamic way of life.
+            </p>
+            <p>
+              With innovative one on one sessions from our expert Quran teachers, you will be learning how you can become a better Muslim and make your life exactly according to the commandments of Islam. With fluency in the English language, our teachers make the best use of one on one online sessions and teach you at a pace that matches exactly your learning ability.
+            </p>
+            <p>
+              In the end, Quran Learn Academy aims to make everyone understand the teachings of the holy Quran through online Quranic sessions, with the comfort of their home, at a time that suits them best.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-8 mt-8 border-t border-white/10">
+            <div className="glass-container rounded-2xl p-5 border border-white/10 text-center">
+              <HeartHandshake size={28} className="mx-auto text-amber-300 mb-2" />
+              <h4 className="font-serif font-bold text-white text-sm mb-1">Moral Ethics</h4>
+              <p className="text-xs text-emerald-100/70">Nurturing Akhlaaq, honesty, and Islamic adab</p>
+            </div>
+            <div className="glass-container rounded-2xl p-5 border border-white/10 text-center">
+              <Sparkles size={28} className="mx-auto text-amber-300 mb-2" />
+              <h4 className="font-serif font-bold text-white text-sm mb-1">Islamic Lifestyle</h4>
+              <p className="text-xs text-emerald-100/70">Living according to the Sunnah and Quran</p>
+            </div>
+            <div className="glass-container rounded-2xl p-5 border border-white/10 text-center">
+              <MessageSquare size={28} className="mx-auto text-amber-300 mb-2" />
+              <h4 className="font-serif font-bold text-white text-sm mb-1">English Fluency</h4>
+              <p className="text-xs text-emerald-100/70">Clear bilingual communication for western learners</p>
             </div>
           </div>
         </div>
