@@ -1,19 +1,24 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, Calendar, CreditCard, Laptop } from "lucide-react";
+import { useLanguage } from "@/components/LanguageContext";
 
 export default function HowItWorksPage() {
+  const { t, language } = useLanguage();
+
   return (
-    <main className="w-full max-w-[1280px] mx-auto px-6 py-6 md:py-10 min-h-[calc(100vh-5rem)] flex flex-col justify-center">
+    <main className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 py-8 md:py-12 min-h-[calc(100vh-5rem)] flex flex-col justify-center">
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto mb-8 md:mb-10">
         <span className="text-amber-300 font-bold tracking-widest text-xs uppercase mb-2 block">
-          Simple 3-Step Journey
+          {t("howItWorksBadge")}
         </span>
-        <h1 className="text-3xl md:text-5xl font-serif text-white mb-3 leading-tight">
-          How it works
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif text-white mb-3 leading-tight">
+          {t("howItWorksTitle")}
         </h1>
-        <p className="text-emerald-100/85 text-base md:text-lg leading-relaxed font-sans max-w-2xl mx-auto">
-          Our platform connects you with certified teachers for a synchronized, interactive learning experience.
+        <p className="text-emerald-100/85 text-sm sm:text-base md:text-lg leading-relaxed max-w-2xl mx-auto">
+          {t("howItWorksDesc")}
         </p>
       </div>
 
@@ -26,15 +31,15 @@ export default function HowItWorksPage() {
               <span className="text-amber-300 font-bold text-lg font-serif">1</span>
             </div>
             <h2 className="text-xl lg:text-2xl font-bold font-serif text-white mb-3">
-              Book a Free Trial
+              {t("step1Title")}
             </h2>
-            <p className="text-emerald-100/80 text-sm lg:text-base leading-relaxed font-sans">
-              Select your timezone, program, and meet your teacher for an initial assessment and walkthrough of the portal.
+            <p className="text-emerald-100/80 text-sm lg:text-base leading-relaxed">
+              {t("step1Desc")}
             </p>
           </div>
           <div className="pt-5 mt-5 border-t border-white/10 flex items-center gap-2 text-xs text-amber-300 font-medium">
             <Calendar className="w-4 h-4 shrink-0" />
-            <span>Zero commitment trial</span>
+            <span>{t("step1Badge")}</span>
           </div>
         </section>
 
@@ -45,15 +50,15 @@ export default function HowItWorksPage() {
               <span className="text-amber-300 font-bold text-lg font-serif">2</span>
             </div>
             <h2 className="text-xl lg:text-2xl font-bold font-serif text-white mb-3">
-              Choose a Package
+              {t("step2Title")}
             </h2>
-            <p className="text-emerald-100/80 text-sm lg:text-base leading-relaxed font-sans">
-              After your trial, choose from one of our flexible pricing plans that fits your schedule and learning goals.
+            <p className="text-emerald-100/80 text-sm lg:text-base leading-relaxed">
+              {t("step2Desc")}
             </p>
           </div>
           <div className="pt-5 mt-5 border-t border-white/10 flex items-center gap-2 text-xs text-amber-300 font-medium">
             <CreditCard className="w-4 h-4 shrink-0" />
-            <span>Monthly flexible billing</span>
+            <span>{t("step2Badge")}</span>
           </div>
         </section>
 
@@ -64,15 +69,15 @@ export default function HowItWorksPage() {
               <span className="text-amber-300 font-bold text-lg font-serif">3</span>
             </div>
             <h2 className="text-xl lg:text-2xl font-bold font-serif text-white mb-3">
-              Start in Classroom
+              {t("step3Title")}
             </h2>
-            <p className="text-emerald-100/80 text-sm lg:text-base leading-relaxed font-sans">
-              Join your scheduled classes via our state-of-the-art interactive classroom with real-time word highlighting.
+            <p className="text-emerald-100/80 text-sm lg:text-base leading-relaxed">
+              {t("step3Desc")}
             </p>
           </div>
           <div className="pt-5 mt-5 border-t border-white/10 flex items-center gap-2 text-xs text-amber-300 font-medium">
             <Laptop className="w-4 h-4 shrink-0" />
-            <span>Synced digital Mushaf</span>
+            <span>{t("step3Badge")}</span>
           </div>
         </section>
       </div>
@@ -83,7 +88,7 @@ export default function HowItWorksPage() {
           href="/trial"
           className="bg-amber-400 hover:bg-amber-300 text-emerald-950 font-bold py-3.5 px-8 rounded-full transition-all text-sm md:text-base shadow-lg hover:shadow-xl flex items-center gap-2 cursor-pointer"
         >
-          <span>Begin Your Free Trial</span>
+          <span>{t("beginTrialCta")}</span>
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>

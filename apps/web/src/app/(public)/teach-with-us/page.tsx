@@ -1,46 +1,52 @@
+"use client";
+
+import { useLanguage } from "@/components/LanguageContext";
+
 export default function TeachWithUsPage() {
+  const { t } = useLanguage();
+
   return (
-    <main className="w-full max-w-[1280px] mx-auto px-6 py-12 md:py-24">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+    <main className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 py-10 md:py-20">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
         {/* Left Column: Information & Steps */}
         <div>
-          <h1 className="text-4xl md:text-5xl font-serif text-white mb-6 leading-tight">
-            Join our faculty of qualified teachers.
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif text-white mb-5 leading-tight">
+            {t("teachTitle")}
           </h1>
-          <p className="text-emerald-100/85 text-lg mb-8 leading-relaxed font-sans">
-            We are looking for dedicated, qualified Qaris and Qariahs who are passionate about teaching the Book of Allah to students worldwide. Enjoy flexible hours and competitive compensation.
+          <p className="text-emerald-100/85 text-base sm:text-lg mb-8 leading-relaxed">
+            {t("teachDesc")}
           </p>
           <div className="space-y-6 mb-8">
             <div className="flex gap-4 items-start">
-              <div className="w-12 h-12 bg-emerald-800/80 border border-amber-400/40 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
-                <span className="text-amber-300 font-bold text-lg">1</span>
+              <div className="w-12 h-12 bg-emerald-800/80 border border-amber-400/40 rounded-full flex items-center justify-center shrink-0 shadow-md">
+                <span className="text-amber-300 font-bold text-lg font-serif">1</span>
               </div>
               <div>
-                <h3 className="font-bold text-white mb-1 text-lg">Apply Online</h3>
+                <h3 className="font-bold text-white mb-1 text-base sm:text-lg">{t("teachStep1Title")}</h3>
                 <p className="text-sm text-emerald-100/80 leading-relaxed">
-                  Submit your details, qualifications, and Ijazah (if applicable).
+                  {t("teachStep1Desc")}
                 </p>
               </div>
             </div>
             <div className="flex gap-4 items-start">
-              <div className="w-12 h-12 bg-emerald-800/80 border border-amber-400/40 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
-                <span className="text-amber-300 font-bold text-lg">2</span>
+              <div className="w-12 h-12 bg-emerald-800/80 border border-amber-400/40 rounded-full flex items-center justify-center shrink-0 shadow-md">
+                <span className="text-amber-300 font-bold text-lg font-serif">2</span>
               </div>
               <div>
-                <h3 className="font-bold text-white mb-1 text-lg">Recitation Test</h3>
+                <h3 className="font-bold text-white mb-1 text-base sm:text-lg">{t("teachStep2Title")}</h3>
                 <p className="text-sm text-emerald-100/80 leading-relaxed">
-                  A short live interview to evaluate your Tajweed and Makharij.
+                  {t("teachStep2Desc")}
                 </p>
               </div>
             </div>
             <div className="flex gap-4 items-start">
-              <div className="w-12 h-12 bg-emerald-800/80 border border-amber-400/40 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
-                <span className="text-amber-300 font-bold text-lg">3</span>
+              <div className="w-12 h-12 bg-emerald-800/80 border border-amber-400/40 rounded-full flex items-center justify-center shrink-0 shadow-md">
+                <span className="text-amber-300 font-bold text-lg font-serif">3</span>
               </div>
               <div>
-                <h3 className="font-bold text-white mb-1 text-lg">Start Teaching</h3>
+                <h3 className="font-bold text-white mb-1 text-base sm:text-lg">{t("teachStep3Title")}</h3>
                 <p className="text-sm text-emerald-100/80 leading-relaxed">
-                  Complete onboarding and start accepting students.
+                  {t("teachStep3Desc")}
                 </p>
               </div>
             </div>
@@ -48,24 +54,24 @@ export default function TeachWithUsPage() {
         </div>
         
         {/* Right Column: Glassmorphic Application Form */}
-        <div className="glass-container rounded-3xl p-8 border border-white/15 shadow-2xl">
+        <div className="glass-container rounded-3xl p-6 sm:p-8 border border-white/15 shadow-2xl">
           <h2 className="text-2xl font-bold font-serif text-white mb-6">
-            Teacher Application
+            {t("appFormTitle")}
           </h2>
           <form className="space-y-4">
             <div>
               <label className="block text-sm font-semibold text-emerald-100 mb-2">
-                Full Name
+                {t("fullNameLabel")}
               </label>
               <input 
                 type="text" 
                 className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-3 text-white placeholder:text-emerald-200/40 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all text-sm" 
-                placeholder="Enter your full name" 
+                placeholder={t("fullNamePlaceholder")}
               />
             </div>
             <div>
               <label className="block text-sm font-semibold text-emerald-100 mb-2">
-                Email Address
+                {t("emailLabel")}
               </label>
               <input 
                 type="email" 
@@ -75,20 +81,20 @@ export default function TeachWithUsPage() {
             </div>
             <div>
               <label className="block text-sm font-semibold text-emerald-100 mb-2">
-                Years of Experience
+                {t("expLabel")}
               </label>
               <select className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all text-sm [&>option]:bg-[#052b20] [&>option]:text-white">
-                <option value="<1">Less than 1 year</option>
-                <option value="1-3">1-3 years</option>
-                <option value="3-5">3-5 years</option>
-                <option value="5+">5+ years</option>
+                <option value="<1">{t("expLess1")}</option>
+                <option value="1-3">{t("exp1to3")}</option>
+                <option value="3-5">{t("exp3to5")}</option>
+                <option value="5+">{t("exp5plus")}</option>
               </select>
             </div>
             <button 
               type="button" 
               className="w-full bg-amber-400 hover:bg-amber-300 text-emerald-950 font-bold py-4 rounded-xl transition-all shadow-lg mt-4 cursor-pointer text-base"
             >
-              Submit Application
+              {t("submitApp")}
             </button>
           </form>
         </div>

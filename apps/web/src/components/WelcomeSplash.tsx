@@ -45,21 +45,21 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
       <div className="absolute inset-0 bg-radial from-transparent via-[#031d16]/20 to-[#02130e]/60 pointer-events-none" />
 
       {/* Top Bar: Brand Crest & Bilingual Language Switcher pushed to outer edges */}
-      <header className="relative z-20 w-full px-6 sm:px-10 lg:px-14 pt-6 sm:pt-8 flex items-center justify-between">
-        <div className="flex items-center gap-2.5 bg-black/35 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-lg">
+      <header className="relative z-20 w-full px-4 sm:px-10 lg:px-14 pt-4 sm:pt-8 flex items-center justify-between">
+        <div className="flex items-center gap-2 sm:gap-2.5 bg-black/35 backdrop-blur-md px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full border border-white/10 shadow-lg">
           <div className="bg-emerald-800/80 p-1.5 rounded-full text-amber-300">
-            <BookOpen className="w-4 h-4" />
+            <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </div>
-          <span className="text-white font-serif font-bold text-sm sm:text-base tracking-wide">
+          <span className="text-white font-serif font-bold text-xs sm:text-base tracking-wide">
             Quran Academy
           </span>
         </div>
 
         {/* Language Switcher pushed to top-right edge */}
-        <div className="flex items-center gap-1.5 bg-black/40 backdrop-blur-md p-1 rounded-full border border-white/15 shadow-lg text-xs font-semibold">
+        <div className="flex items-center gap-1 bg-black/40 backdrop-blur-md p-1 rounded-full border border-white/15 shadow-lg text-xs font-semibold">
           <button
             onClick={() => setLanguage("en")}
-            className={`welcome-lang-btn px-3 py-1 rounded-full font-bold transition-all ${
+            className={`welcome-lang-btn px-2.5 sm:px-3 py-1 rounded-full font-bold transition-all text-xs ${
               language === "en" 
                 ? "bg-amber-400 text-emerald-950 shadow-xs" 
                 : "text-emerald-100/75"
@@ -69,7 +69,7 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
           </button>
           <button
             onClick={() => setLanguage("ur")}
-            className={`welcome-lang-btn px-3 py-1 rounded-full font-urdu text-sm transition-all ${
+            className={`welcome-lang-btn px-2.5 sm:px-3 py-1 rounded-full font-urdu text-xs sm:text-sm transition-all ${
               language === "ur" 
                 ? "bg-amber-400 text-emerald-950 shadow-xs" 
                 : "text-emerald-100/75"
@@ -81,7 +81,7 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
       </header>
 
       {/* Center Section: Hadith and CTA moved 1 inch down below calligraphy */}
-      <main className="relative z-20 w-full max-w-4xl mx-auto px-6 py-6 mt-[calc(4rem+1in)] sm:mt-[calc(6rem+1in)] md:mt-[calc(7rem+1in)] mb-auto flex flex-col items-center justify-center text-center">
+      <main className="relative z-20 w-full max-w-4xl mx-auto px-4 sm:px-6 py-4 mt-[calc(2.5rem+1in)] sm:mt-[calc(5rem+1in)] md:mt-[calc(7rem+1in)] mb-auto flex flex-col items-center justify-center text-center">
         {/* Main Heading: Hadith */}
         <motion.h1
           initial={{ opacity: 0, y: 15 }}
@@ -90,11 +90,11 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
           className="text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] max-w-4xl mb-4 text-center"
         >
           {language === "ur" ? (
-            <span className="block font-urdu text-3xl sm:text-4xl md:text-5xl leading-relaxed font-bold italic">
+            <span className="block font-urdu text-2xl sm:text-4xl md:text-5xl leading-relaxed font-bold italic">
               ”تم میں سے بہترین وہ ہے جو قرآن سیکھے اور سکھائے۔“
             </span>
           ) : (
-            <span className="block font-vileade font-bold italic tracking-wide text-2xl sm:text-4xl md:text-5xl leading-tight">
+            <span className="block font-vileade font-bold italic tracking-wide text-xl sm:text-4xl md:text-5xl leading-tight">
               <span className="block">“The best among you is the one</span>
               <span className="block mt-1 sm:mt-2">who learns the Quran and teaches it.”</span>
             </span>
@@ -106,7 +106,7 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.25 }}
-          className="text-xs sm:text-sm md:text-base text-emerald-200/90 font-sans font-medium tracking-widest uppercase drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] mb-8 sm:mb-10"
+          className="text-[11px] sm:text-sm md:text-base text-emerald-200/90 font-sans font-medium tracking-widest uppercase drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] mb-6 sm:mb-10"
         >
           {language === "ur"
             ? "— صحیح بخاری، حدیث ۵۰۲۷"
@@ -123,20 +123,20 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
           <button
             onClick={handleStart}
             disabled={isExiting}
-            className={`welcome-cta-btn w-full max-w-xs sm:max-w-sm py-4 px-8 rounded-full font-bold text-lg flex items-center justify-center gap-3 transition-all ${
+            className={`welcome-cta-btn w-full max-w-xs sm:max-w-sm py-3.5 sm:py-4 px-6 sm:px-8 rounded-full font-bold text-base sm:text-lg flex items-center justify-center gap-3 transition-all ${
               isClicked ? "is-active" : ""
             }`}
           >
-            <span className={language === "ur" ? "font-urdu text-xl" : "tracking-wide"}>
+            <span className={language === "ur" ? "font-urdu text-lg sm:text-xl" : "tracking-wide"}>
               {language === "ur" ? "شروع کریں" : "Get Started"}
             </span>
-            <ArrowRight className="w-5 h-5 transition-transform" />
+            <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 transition-transform" />
           </button>
         </motion.div>
       </main>
 
-      {/* Bottom Feature Badges positioned towards bottom-left to leave bottom-right Quran artwork unobstructed */}
-      <footer className="relative z-20 w-full px-6 sm:px-10 lg:px-14 pb-6 sm:pb-8 flex flex-wrap items-center justify-start gap-3 sm:gap-6 text-xs sm:text-sm text-emerald-100/85 font-medium">
+      {/* Bottom Feature Badges */}
+      <footer className="relative z-20 w-full px-4 sm:px-10 lg:px-14 pb-4 sm:pb-8 flex flex-wrap items-center justify-start gap-2 sm:gap-6 text-xs sm:text-sm text-emerald-100/85 font-medium">
         <div className="flex items-center gap-2 bg-black/30 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10 shadow-sm">
           <CheckCircle className="w-4 h-4 text-amber-300" />
           <span>{language === "ur" ? "مستند قاری و قاریہ" : "Qualified Teachers"}</span>

@@ -17,7 +17,7 @@
   --font-sans: var(--font-ui), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-hero), ui-serif, Georgia, serif;
   --font-arabic: var(--font-arabic), serif;
-  --font-urdu: var(--font-urdu), serif;
+  --font-urdu: var(--font-urdu-clean), 'Noto Sans Arabic', 'Segoe UI', system-ui, sans-serif;
   --font-vileade: 'Vileade', 'Villade', var(--font-vidaloka), var(--font-cinzel), var(--font-hero), Georgia, serif;
 }
 
