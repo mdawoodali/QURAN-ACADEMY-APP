@@ -29,5 +29,23 @@ export const ACADEMY_SERVICES: CourseService[] = [
     targetAudience: "Children (Ages 4+) & Adult Beginners",
     duration: "3 – 6 Months (Flexible, self-paced)",
     iconName: "BookOpen"
+  },
+  {
+    id: "memorizing-quran-course",
+    title: "Memorizing Quran Course (Hifz)",
+    highlightWord: "Memorizing",
+    subtitle: "Structured Hifz with Sabaq, Sabaqi & Manzil",
+    badge: "Hifz Program",
+    description: "Our Quran memorization course is designed for those who have a deep desire for Hifz but have been unable to do so due to unavailability of competent tutors or lack of disciplined routine. Memorize the Holy Quran word by word under the supervision of skilled, certified Huffaz through structured daily online classes.",
+    features: [
+      "Daily Sabaq (new memorization), Sabaqi (recent lessons), and Manzil (cumulative retention)",
+      "Certified Hafiz-e-Quran instructors with continuous Tajweed monitoring",
+      "Paced memorization tracks tailored to student memory capacity",
+      "Techniques for long-term retention and eliminating common mistakes",
+      "Comprehensive Juz completion certificates and milestones"
+    ],
+    targetAudience: "Motivated Children & Adults (Full or Selected Surahs)",
+    duration: "Selected Surahs (6 Mos) / Full Hifz (2–3 Years)",
+    iconName: "Sparkles"
   }
 ];
