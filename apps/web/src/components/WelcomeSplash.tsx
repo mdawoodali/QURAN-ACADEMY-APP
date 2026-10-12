@@ -90,11 +90,11 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
           className="text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] max-w-4xl mb-4 text-center"
         >
           {language === "ur" ? (
-            <span className="block font-urdu text-3xl sm:text-4xl md:text-5xl leading-relaxed font-bold">
+            <span className="block font-urdu text-3xl sm:text-4xl md:text-5xl leading-relaxed font-bold italic">
               ”تم میں سے بہترین وہ ہے جو قرآن سیکھے اور سکھائے۔“
             </span>
           ) : (
-            <span className="block font-vileade font-bold tracking-wide text-2xl sm:text-4xl md:text-5xl leading-tight">
+            <span className="block font-vileade font-bold italic tracking-wide text-2xl sm:text-4xl md:text-5xl leading-tight">
               <span className="block">“The best among you is the one</span>
               <span className="block mt-1 sm:mt-2">who learns the Quran and teaches it.”</span>
             </span>
