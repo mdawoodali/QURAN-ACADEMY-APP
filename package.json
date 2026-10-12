@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "dev": "pnpm --filter frontend dev",
+    "dev:ws": "pnpm --filter @quran/ws dev",
+    "dev:all": "pnpm -r --parallel dev",
+    "build": "pnpm --filter frontend build",
     "gen:feature": "node scripts/gen-feature.js",
     "check:arch": "dependency-cruiser apps/web/src"
   },
