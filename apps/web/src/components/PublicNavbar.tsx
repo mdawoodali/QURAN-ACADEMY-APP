@@ -2,118 +2,203 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { BookOpen, Menu, X } from "lucide-react";
+import { BookOpen, Menu, X, Mail } from "lucide-react";
 import { useLanguage } from "./LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function PublicNavbar() {
-  const { language, setLanguage, t, dir } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const closeMenu = () => setMobileMenuOpen(false);
 
   return (
-    <header className="w-full bg-[#052b20]/90 backdrop-blur-md sticky top-0 z-50 border-b border-white/10 text-white">
-      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
-        {/* Brand Crest */}
-        <Link href="/" onClick={closeMenu} className="flex items-center gap-3 shrink-0">
-          <div className="bg-emerald-800/90 border border-amber-400/40 p-2 rounded-xl text-amber-300 shadow-sm">
-            <BookOpen size={22} />
-          </div>
-          <span className="font-serif font-bold text-lg sm:text-xl text-white tracking-tight">
-            {t("brand")}
-          </span>
-        </Link>
-        
-        {/* Desktop Navigation */}
-        <nav className="hidden lg:flex items-center gap-7 text-emerald-100/90 font-medium text-sm">
-          <Link href="/programmes" className="hover:text-amber-300 transition">
-            {t("programmes")}
-          </Link>
-          <Link href="/how-it-works" className="hover:text-amber-300 transition">
-            {t("howItWorks")}
-          </Link>
-          <Link href="/packages" className="hover:text-amber-300 transition">
-            {t("packages")}
-          </Link>
-          <Link href="/student/progress" className="hover:text-amber-300 transition">
-            {t("studentPortal")}
-          </Link>
-          <Link href="/teach-with-us" className="hover:text-amber-300 transition">
-            {t("teachWithUs")}
-          </Link>
-        </nav>
-        
-        {/* Desktop Action Buttons */}
-        <div className="hidden lg:flex items-center gap-5">
-          {/* Active EN / UR Toggle Switcher */}
-          <div className="flex items-center gap-1 text-xs font-bold bg-black/40 p-1 rounded-full border border-white/15">
-            <button 
-              onClick={() => setLanguage("en")}
-              className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
-                language === "en" 
-                  ? "bg-amber-400 text-emerald-950 shadow-xs font-bold" 
-                  : "text-emerald-100/70 hover:text-white"
-              }`}
+    <header className="w-full sticky top-0 z-50 text-white shadow-xl">
+      {/* 1. TOP BAR: Contact / WhatsApp Badges & Email & Socials */}
+      <div className="w-full bg-[#021811]/95 border-b border-white/10 text-xs text-emerald-100/90 py-2 px-4 sm:px-6 backdrop-blur-md">
+        <div className="max-w-[1280px] mx-auto flex flex-wrap items-center justify-between gap-3">
+          
+          {/* Left: Contact & WhatsApp Badges */}
+          <div className="flex flex-wrap items-center gap-3 sm:gap-5">
+            <a
+              href="https://wa.me/+13305975880"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 hover:text-amber-300 transition font-semibold"
             >
-              EN
-            </button>
-            <button 
-              onClick={() => setLanguage("ur")}
-              className={`px-3 py-1 rounded-full transition-all font-urdu text-sm cursor-pointer ${
-                language === "ur" 
-                  ? "bg-amber-400 text-emerald-950 shadow-xs font-bold" 
-                  : "text-emerald-100/70 hover:text-white"
-              }`}
+              <WhatsAppTopIcon className="w-3.5 h-3.5 fill-amber-400" />
+              <span>{t("topBarUsa")}</span>
+            </a>
+
+            <span className="text-white/20 hidden sm:inline">|</span>
+
+            <a
+              href="https://wa.me/+442032899880"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 hover:text-amber-300 transition font-semibold"
             >
-              اردو
-            </button>
+              <WhatsAppTopIcon className="w-3.5 h-3.5 fill-amber-400" />
+              <span>{t("topBarUk")}</span>
+            </a>
+
+            <span className="text-white/20 hidden md:inline">|</span>
+
+            <a
+              href="mailto:info@quranlearnacademy.com"
+              className="hidden md:flex items-center gap-1.5 hover:text-amber-300 transition"
+            >
+              <Mail size={13} className="text-amber-400" />
+              <span>{t("topBarEmail")}</span>
+            </a>
           </div>
 
-          <Link href="/login" className="text-sm font-bold text-amber-300 hover:text-amber-200 transition">
-            {t("login")}
-          </Link>
-          <Link 
-            href="/trial" 
-            className="bg-amber-400 hover:bg-amber-300 text-emerald-950 text-sm font-bold px-5 py-2.5 rounded-full transition shadow-md"
-          >
-            {t("bookFreeTrial")}
-          </Link>
+          {/* Right: Social Media & Language Switcher */}
+          <div className="flex items-center gap-4 ml-auto">
+            <div className="hidden sm:flex items-center gap-3 text-emerald-100/70">
+              <a
+                href="https://www.facebook.com/quranlearnacademy/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook"
+                className="hover:text-amber-300 transition"
+              >
+                <FacebookTopIcon className="w-3.5 h-3.5 fill-current" />
+              </a>
+              <a
+                href="https://www.instagram.com/quranlearnacademy/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram"
+                className="hover:text-amber-300 transition"
+              >
+                <InstagramTopIcon className="w-3.5 h-3.5 fill-current" />
+              </a>
+              <a
+                href="https://www.linkedin.com/company/quran-learn-academy"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="LinkedIn"
+                className="hover:text-amber-300 transition"
+              >
+                <LinkedInTopIcon className="w-3.5 h-3.5 fill-current" />
+              </a>
+            </div>
+
+            {/* Desktop / Global Language Toggle Switcher */}
+            <div className="flex items-center gap-1 text-[11px] font-bold bg-black/40 p-0.5 rounded-full border border-white/15">
+              <button 
+                onClick={() => setLanguage("en")}
+                className={`px-2.5 py-0.5 rounded-full transition-all cursor-pointer ${
+                  language === "en" 
+                    ? "bg-amber-400 text-emerald-950 font-bold shadow-xs" 
+                    : "text-emerald-100/70 hover:text-white"
+                }`}
+              >
+                EN
+              </button>
+              <button 
+                onClick={() => setLanguage("ur")}
+                className={`px-2.5 py-0.5 rounded-full transition-all font-urdu text-xs cursor-pointer ${
+                  language === "ur" 
+                    ? "bg-amber-400 text-emerald-950 font-bold shadow-xs" 
+                    : "text-emerald-100/70 hover:text-white"
+                }`}
+              >
+                اردو
+              </button>
+            </div>
+          </div>
+
         </div>
+      </div>
 
-        {/* Mobile Actions: Language Switcher + Hamburger Menu Button */}
-        <div className="flex lg:hidden items-center gap-3">
-          {/* Quick Language Toggle on Mobile */}
-          <div className="flex items-center gap-0.5 text-xs font-bold bg-black/40 p-0.5 rounded-full border border-white/15">
-            <button 
-              onClick={() => setLanguage("en")}
-              className={`px-2 py-0.5 rounded-full text-xs transition-all ${
-                language === "en" 
-                  ? "bg-amber-400 text-emerald-950 font-bold" 
-                  : "text-emerald-100/70"
-              }`}
+      {/* 2. NAVIGATION BAR: Just Below Top Bar */}
+      <div className="w-full bg-[#052b20]/90 backdrop-blur-md border-b border-white/10">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 h-20 flex items-center justify-between gap-4">
+          
+          {/* Brand Logo & Crest */}
+          <Link href="/" onClick={closeMenu} className="flex items-center gap-3 shrink-0">
+            <div className="bg-emerald-800/90 border border-amber-400/40 p-2 rounded-xl text-amber-300 shadow-sm">
+              <BookOpen size={22} />
+            </div>
+            <span className="font-serif font-bold text-lg sm:text-xl text-white tracking-tight">
+              {t("brand")}
+            </span>
+          </Link>
+          
+          {/* Desktop Navigation Links (Names from reference website) */}
+          <nav className="hidden xl:flex items-center gap-5 2xl:gap-6 text-emerald-100/90 font-medium text-sm">
+            <Link href="/" className="hover:text-amber-300 transition">
+              {t("home")}
+            </Link>
+            <Link href="/about-us" className="hover:text-amber-300 transition">
+              {t("aboutUs")}
+            </Link>
+            <Link href="/programmes" className="hover:text-amber-300 transition">
+              {t("ourServices")}
+            </Link>
+            <Link href="/packages" className="hover:text-amber-300 transition">
+              {t("packages")}
+            </Link>
+            <Link href="/payments" className="hover:text-amber-300 transition">
+              {t("payments")}
+            </Link>
+            <Link href="/teach-with-us" className="hover:text-amber-300 transition">
+              {t("careers")}
+            </Link>
+            <Link href="/downloads" className="hover:text-amber-300 transition">
+              {t("downloads")}
+            </Link>
+            <Link href="/blog" className="hover:text-amber-300 transition">
+              {t("blog")}
+            </Link>
+            <Link href="/contact" className="hover:text-amber-300 transition">
+              {t("contact")}
+            </Link>
+          </nav>
+
+          {/* Desktop Compact Navigation for mid-screens (lg to xl) */}
+          <nav className="hidden lg:flex xl:hidden items-center gap-4 text-emerald-100/90 font-medium text-xs">
+            <Link href="/" className="hover:text-amber-300 transition">{t("home")}</Link>
+            <Link href="/about-us" className="hover:text-amber-300 transition">{t("aboutUs")}</Link>
+            <Link href="/programmes" className="hover:text-amber-300 transition">{t("ourServices")}</Link>
+            <Link href="/packages" className="hover:text-amber-300 transition">{t("packages")}</Link>
+            <Link href="/payments" className="hover:text-amber-300 transition">{t("payments")}</Link>
+            <Link href="/teach-with-us" className="hover:text-amber-300 transition">{t("careers")}</Link>
+            <Link href="/contact" className="hover:text-amber-300 transition">{t("contact")}</Link>
+          </nav>
+          
+          {/* Action CTAs */}
+          <div className="hidden lg:flex items-center gap-4 shrink-0">
+            <Link href="/login" className="text-sm font-bold text-amber-300 hover:text-amber-200 transition">
+              {t("login")}
+            </Link>
+            <Link 
+              href="/trial" 
+              className="bg-amber-400 hover:bg-amber-300 text-emerald-950 text-sm font-bold px-4 sm:px-5 py-2.5 rounded-full transition shadow-md whitespace-nowrap"
             >
-              EN
-            </button>
-            <button 
-              onClick={() => setLanguage("ur")}
-              className={`px-2 py-0.5 rounded-full font-urdu text-xs transition-all ${
-                language === "ur" 
-                  ? "bg-amber-400 text-emerald-950 font-bold" 
-                  : "text-emerald-100/70"
-              }`}
-            >
-              اردو
-            </button>
+              {t("bookFreeTrial")}
+            </Link>
           </div>
 
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 text-white hover:text-amber-300 focus:outline-none transition rounded-xl bg-white/10 border border-white/15"
-            aria-label="Toggle navigation menu"
-          >
-            {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
-          </button>
+          {/* Mobile Actions: Hamburger Menu Toggle Button */}
+          <div className="flex lg:hidden items-center gap-3">
+            <Link 
+              href="/trial" 
+              className="bg-amber-400 hover:bg-amber-300 text-emerald-950 text-xs font-bold px-3 py-1.5 rounded-full transition shadow-sm"
+            >
+              {t("bookFreeTrial")}
+            </Link>
+
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 text-white hover:text-amber-300 focus:outline-none transition rounded-xl bg-white/10 border border-white/15"
+              aria-label="Toggle navigation menu"
+            >
+              {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -125,23 +210,30 @@ export default function PublicNavbar() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.25, ease: "easeInOut" }}
-            className="lg:hidden border-t border-white/10 bg-black/90 backdrop-blur-xl overflow-hidden shadow-2xl"
+            className="lg:hidden border-t border-white/10 bg-black/95 backdrop-blur-xl overflow-hidden shadow-2xl max-h-[calc(100vh-6rem)] overflow-y-auto"
           >
             <div className="px-6 py-6 space-y-4">
-              <nav className="flex flex-col space-y-3 font-medium text-base text-emerald-100/90">
+              <nav className="flex flex-col space-y-2 font-medium text-sm text-emerald-100/90">
+                <Link 
+                  href="/" 
+                  onClick={closeMenu}
+                  className="py-2 px-3 rounded-xl hover:bg-white/10 hover:text-amber-300 transition"
+                >
+                  {t("home")}
+                </Link>
+                <Link 
+                  href="/about-us" 
+                  onClick={closeMenu}
+                  className="py-2 px-3 rounded-xl hover:bg-white/10 hover:text-amber-300 transition"
+                >
+                  {t("aboutUs")}
+                </Link>
                 <Link 
                   href="/programmes" 
                   onClick={closeMenu}
                   className="py-2 px-3 rounded-xl hover:bg-white/10 hover:text-amber-300 transition"
                 >
-                  {t("programmes")}
-                </Link>
-                <Link 
-                  href="/how-it-works" 
-                  onClick={closeMenu}
-                  className="py-2 px-3 rounded-xl hover:bg-white/10 hover:text-amber-300 transition"
-                >
-                  {t("howItWorks")}
+                  {t("ourServices")}
                 </Link>
                 <Link 
                   href="/packages" 
@@ -151,18 +243,39 @@ export default function PublicNavbar() {
                   {t("packages")}
                 </Link>
                 <Link 
-                  href="/student/progress" 
+                  href="/payments" 
                   onClick={closeMenu}
                   className="py-2 px-3 rounded-xl hover:bg-white/10 hover:text-amber-300 transition"
                 >
-                  {t("studentPortal")}
+                  {t("payments")}
                 </Link>
                 <Link 
                   href="/teach-with-us" 
                   onClick={closeMenu}
                   className="py-2 px-3 rounded-xl hover:bg-white/10 hover:text-amber-300 transition"
                 >
-                  {t("teachWithUs")}
+                  {t("careers")}
+                </Link>
+                <Link 
+                  href="/downloads" 
+                  onClick={closeMenu}
+                  className="py-2 px-3 rounded-xl hover:bg-white/10 hover:text-amber-300 transition"
+                >
+                  {t("downloads")}
+                </Link>
+                <Link 
+                  href="/blog" 
+                  onClick={closeMenu}
+                  className="py-2 px-3 rounded-xl hover:bg-white/10 hover:text-amber-300 transition"
+                >
+                  {t("blog")}
+                </Link>
+                <Link 
+                  href="/contact" 
+                  onClick={closeMenu}
+                  className="py-2 px-3 rounded-xl hover:bg-white/10 hover:text-amber-300 transition"
+                >
+                  {t("contact")}
                 </Link>
               </nav>
 
@@ -182,10 +295,59 @@ export default function PublicNavbar() {
                   {t("bookFreeTrial")}
                 </Link>
               </div>
+
+              {/* Mobile Contact Shortcuts */}
+              <div className="pt-4 border-t border-white/10 text-xs text-emerald-100/70 space-y-2">
+                <a href="https://wa.me/+13305975880" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-amber-300">
+                  <WhatsAppTopIcon className="w-3.5 h-3.5 fill-amber-400" />
+                  <span>{t("topBarUsa")}</span>
+                </a>
+                <a href="https://wa.me/+442032899880" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-amber-300">
+                  <WhatsAppTopIcon className="w-3.5 h-3.5 fill-amber-400" />
+                  <span>{t("topBarUk")}</span>
+                </a>
+                <a href="mailto:info@quranlearnacademy.com" className="flex items-center gap-2 hover:text-amber-300">
+                  <Mail size={13} className="text-amber-400" />
+                  <span>{t("topBarEmail")}</span>
+                </a>
+              </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
     </header>
+  );
+}
+
+// Icons for Top Bar
+function WhatsAppTopIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12.031 2C6.513 2 2.022 6.49 2.022 12.008c0 1.83.493 3.547 1.348 5.032L2 22l5.12-1.343a9.98 9.98 0 004.911 1.282c5.518 0 10.01-4.49 10.01-10.008C22.041 6.49 17.549 2 12.031 2zm0 18.258a8.21 8.21 0 01-4.187-1.144l-.3-.178-3.111.816.83-3.031-.195-.31a8.214 8.214 0 01-1.272-4.403c0-4.544 3.7-8.243 8.235-8.243 4.536 0 8.236 3.699 8.236 8.243 0 4.545-3.7 8.25-8.236 8.25zm4.516-6.177c-.247-.124-1.464-.722-1.691-.805-.227-.082-.392-.124-.557.124-.165.247-.639.805-.783.97-.145.165-.289.186-.536.062-.248-.124-1.045-.385-1.99-1.229-.737-.656-1.234-1.467-1.379-1.714-.144-.247-.015-.38.109-.504.111-.111.248-.289.371-.433.124-.144.165-.247.247-.412.083-.165.042-.31-.02-.433-.063-.124-.558-1.345-.764-1.841-.201-.484-.405-.418-.557-.426-.144-.008-.31-.01-.475-.01s-.433.062-.66.31c-.227.247-.866.847-.866 2.065 0 1.218.887 2.395 1.011 2.56.124.165 1.745 2.665 4.228 3.738.591.255 1.053.407 1.413.522.594.189 1.134.162 1.562.098.477-.071 1.464-.599 1.67-1.177.206-.578.206-1.074.144-1.177-.062-.103-.227-.165-.474-.289z" />
+    </svg>
+  );
+}
+
+function FacebookTopIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+    </svg>
+  );
+}
+
+function InstagramTopIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+    </svg>
+  );
+}
+
+function LinkedInTopIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+    </svg>
   );
 }
