@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, Globe2, Home, Clock, HeartHandshake, Sparkles, MessageSquare, Laptop, UserCheck, ShieldCheck, CheckCircle2, UserCheck2, CalendarRange, GraduationCap } from "lucide-react";
+import { BookOpen, Globe2, Home, Clock, HeartHandshake, Sparkles, MessageSquare, Laptop, UserCheck, ShieldCheck, UserCheck2, CalendarRange, GraduationCap, ArrowRight, CheckCircle2 } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 
 export default function AboutUsPage() {
@@ -227,17 +227,29 @@ export default function AboutUsPage() {
         </div>
       </div>
 
-      {/* Action Box */}
-      <div className="glass-container rounded-3xl p-8 text-center border border-white/15 max-w-3xl mx-auto shadow-xl">
-        <h3 className="text-xl sm:text-2xl font-serif text-white mb-4">
-          Ready to Begin Your Quranic Journey?
+      {/* 7. Action CTA Card */}
+      <div className="glass-container rounded-3xl p-8 sm:p-12 text-center border border-white/15 max-w-3xl mx-auto shadow-2xl">
+        <h3 className="text-2xl sm:text-3xl font-serif text-white mb-4">
+          Begin Learning Quran with Confidence
         </h3>
-        <Link
-          href="/trial"
-          className="inline-block bg-amber-400 hover:bg-amber-300 text-emerald-950 font-bold px-8 py-3.5 rounded-full transition shadow-lg text-sm sm:text-base"
-        >
-          {t("bookFreeTrial")}
-        </Link>
+        <p className="text-emerald-100/80 text-sm sm:text-base mb-8 max-w-xl mx-auto">
+          Experience our interactive 1-on-1 classes, meet your qualified teacher, and assess your level with a completely free trial.
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-4">
+          <Link
+            href="/trial"
+            className="bg-amber-400 hover:bg-amber-300 text-emerald-950 font-bold px-8 py-3.5 rounded-full transition shadow-lg text-base flex items-center gap-2 cursor-pointer"
+          >
+            <span>{t("bookFreeTrial")}</span>
+            <ArrowRight size={18} />
+          </Link>
+          <Link
+            href="/programmes"
+            className="bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold px-8 py-3.5 rounded-full transition text-base cursor-pointer"
+          >
+            {t("ourServices")}
+          </Link>
+        </div>
       </div>
     </main>
   );
