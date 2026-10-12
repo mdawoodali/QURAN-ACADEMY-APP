@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, Globe2, Home, Clock, HeartHandshake, Sparkles, MessageSquare, Laptop, UserCheck, ShieldCheck } from "lucide-react";
+import { BookOpen, Globe2, Home, Clock, HeartHandshake, Sparkles, MessageSquare, Laptop, UserCheck, ShieldCheck, CheckCircle2, UserCheck2, CalendarRange, GraduationCap } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 
 export default function AboutUsPage() {
@@ -129,7 +129,7 @@ export default function AboutUsPage() {
       </div>
 
       {/* 5. Modern E-Learning Standard & Rigorous Staff Selection (From Reference URL) */}
-      <div className="glass-container rounded-3xl p-8 sm:p-12 border border-white/15 shadow-2xl mb-12 bg-gradient-to-br from-black/50 via-emerald-950/40 to-black/50">
+      <div className="glass-container rounded-3xl p-8 sm:p-12 border border-white/15 shadow-2xl mb-10 bg-gradient-to-br from-black/50 via-emerald-950/40 to-black/50">
         <div className="max-w-4xl mx-auto">
           <span className="text-amber-400 font-bold text-xs sm:text-sm uppercase tracking-wider block mb-3">
             Teaching Excellence
@@ -161,6 +161,67 @@ export default function AboutUsPage() {
                 <ShieldCheck size={20} />
               </div>
               <span className="text-sm font-semibold text-emerald-100">Focused & Engaging Sessions</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 6. Four Foundational Pillars (Exact Bullet List from Reference URL) */}
+      <div className="glass-container rounded-3xl p-8 sm:p-12 border border-white/15 shadow-2xl mb-12">
+        <div className="max-w-4xl mx-auto">
+          <span className="text-amber-400 font-bold text-xs sm:text-sm uppercase tracking-wider block mb-3">
+            Core Academy Pillars
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-serif text-white mb-8 leading-snug">
+            Why Our Quran Teaching Model Succeeds
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="glass-container rounded-2xl p-6 border border-white/10 flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-emerald-800/80 border border-amber-400/30 flex items-center justify-center text-amber-300 shrink-0">
+                <GraduationCap size={24} />
+              </div>
+              <div>
+                <h4 className="font-serif font-bold text-lg text-white mb-1">Easy to Understand Process</h4>
+                <p className="text-xs sm:text-sm text-emerald-100/75 leading-relaxed">
+                  A step-by-step curriculum taking beginners from Qaida to fluent Quran Tajweed with zero confusion.
+                </p>
+              </div>
+            </div>
+
+            <div className="glass-container rounded-2xl p-6 border border-white/10 flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-emerald-800/80 border border-amber-400/30 flex items-center justify-center text-amber-300 shrink-0">
+                <UserCheck2 size={24} />
+              </div>
+              <div>
+                <h4 className="font-serif font-bold text-lg text-white mb-1">Equal Attention to Every Student</h4>
+                <p className="text-xs sm:text-sm text-emerald-100/75 leading-relaxed">
+                  Every child and adult receives devoted, individual focus irrespective of their learning speed.
+                </p>
+              </div>
+            </div>
+
+            <div className="glass-container rounded-2xl p-6 border border-white/10 flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-emerald-800/80 border border-amber-400/30 flex items-center justify-center text-amber-300 shrink-0">
+                <CalendarRange size={24} />
+              </div>
+              <div>
+                <h4 className="font-serif font-bold text-lg text-white mb-1">Timing That Suits Everyone</h4>
+                <p className="text-xs sm:text-sm text-emerald-100/75 leading-relaxed">
+                  Flexible time slots accommodating working parents, busy professionals, and school schedules.
+                </p>
+              </div>
+            </div>
+
+            <div className="glass-container rounded-2xl p-6 border border-white/10 flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-emerald-800/80 border border-amber-400/30 flex items-center justify-center text-amber-300 shrink-0">
+                <Users size={24} />
+              </div>
+              <div>
+                <h4 className="font-serif font-bold text-lg text-white mb-1">One to One Sessions</h4>
+                <p className="text-xs sm:text-sm text-emerald-100/75 leading-relaxed">
+                  Direct personal instruction with verified teachers for maximum focus, feedback, and retention.
+                </p>
+              </div>
             </div>
           </div>
         </div>
