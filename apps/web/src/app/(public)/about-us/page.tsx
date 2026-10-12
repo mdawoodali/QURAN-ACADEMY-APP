@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, Globe2, Home, Clock, HeartHandshake, Sparkles, MessageSquare } from "lucide-react";
+import { BookOpen, Globe2, Home, Clock, HeartHandshake, Sparkles, MessageSquare, Laptop, UserCheck, ShieldCheck } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 
 export default function AboutUsPage() {
@@ -88,7 +88,7 @@ export default function AboutUsPage() {
       </div>
 
       {/* 4. Moral Ethics & Islamic Way of Life (From Reference URL) */}
-      <div className="glass-container rounded-3xl p-8 sm:p-12 border border-white/15 shadow-2xl mb-12">
+      <div className="glass-container rounded-3xl p-8 sm:p-12 border border-white/15 shadow-2xl mb-10">
         <div className="max-w-4xl mx-auto">
           <span className="text-amber-400 font-bold text-xs sm:text-sm uppercase tracking-wider block mb-3">
             Holistic Character Building
@@ -123,6 +123,44 @@ export default function AboutUsPage() {
               <MessageSquare size={28} className="mx-auto text-amber-300 mb-2" />
               <h4 className="font-serif font-bold text-white text-sm mb-1">English Fluency</h4>
               <p className="text-xs text-emerald-100/70">Clear bilingual communication for western learners</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 5. Modern E-Learning Standard & Rigorous Staff Selection (From Reference URL) */}
+      <div className="glass-container rounded-3xl p-8 sm:p-12 border border-white/15 shadow-2xl mb-12 bg-gradient-to-br from-black/50 via-emerald-950/40 to-black/50">
+        <div className="max-w-4xl mx-auto">
+          <span className="text-amber-400 font-bold text-xs sm:text-sm uppercase tracking-wider block mb-3">
+            Teaching Excellence
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-serif text-white mb-6 leading-snug">
+            Worldwide E-Learning Quality & Expert Staff Training
+          </h2>
+          <div className="space-y-4 text-emerald-100/85 text-sm sm:text-base leading-relaxed">
+            <p>
+              E learning is now need of the time and being accepted worldwide. Success of online training depends on the proficiency of the teacher to keep his/her student engaged and focused. We hire trained and qualified staff who are expert in their domain and have online teaching experience.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-8 mt-8 border-t border-white/10">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-800/80 border border-amber-400/40 flex items-center justify-center text-amber-300 shrink-0">
+                <Laptop size={20} />
+              </div>
+              <span className="text-sm font-semibold text-emerald-100">Modern Digital Pedagogy</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-800/80 border border-amber-400/40 flex items-center justify-center text-amber-300 shrink-0">
+                <UserCheck size={20} />
+              </div>
+              <span className="text-sm font-semibold text-emerald-100">Experienced Tutors Only</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-800/80 border border-amber-400/40 flex items-center justify-center text-amber-300 shrink-0">
+                <ShieldCheck size={20} />
+              </div>
+              <span className="text-sm font-semibold text-emerald-100">Focused & Engaging Sessions</span>
             </div>
           </div>
         </div>
