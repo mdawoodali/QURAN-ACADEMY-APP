@@ -8,9 +8,17 @@ export const translations = {
   en: {
     // Navigation
     brand: "Quran Academy",
+    home: "Home",
+    aboutUs: "About Us",
+    ourServices: "Our Services",
     programmes: "Programmes",
     howItWorks: "How it works",
     packages: "Packages",
+    payments: "Payments",
+    careers: "Careers",
+    downloads: "Downloads",
+    blog: "Blog",
+    contact: "Contact",
     studentPortal: "Student Portal",
     teacherPortal: "Teacher Portal",
     teachWithUs: "Teach with us",
@@ -18,6 +26,28 @@ export const translations = {
     bookFreeTrial: "Book a free trial",
     menu: "Menu",
     close: "Close",
+
+    // Top Bar & Contact Badges
+    topBarUsa: "USA +1 330 597 5880",
+    topBarUk: "UK +44 203 289 9880",
+    topBarPk: "PK +92 333 222 2525",
+    topBarEmail: "info@quranlearnacademy.com",
+
+    // Footer
+    footerDesc: "Quran Learn Academy is an independent entity managed by a small group of dedicated professionals.",
+    headOffice: "Headoffice",
+    headOfficeAddress: "H#202, Block J3, Wapda Town, Lahore-54770, Pakistan",
+    quickLinks: "Quick Links",
+    getInTouch: "Get In Touch",
+    contactMoreInfo: "Contact Us For More Information",
+    namePlaceholder: "Name",
+    emailPlaceholder: "Email",
+    phonePlaceholder: "Phone (with country code)",
+    send: "Send",
+    termsConditions: "Terms and Conditions",
+    privacyPolicy: "Privacy Policy",
+    refundPolicy: "Delivery & Refund Policy",
+    copyright: "Copyright © 2026 Quran Learn Academy. All Rights Reserved | A Project by Teletek Solutions",
 
     // Home Hero
     heroSubtitle: "Personal guidance. Every lesson.",
@@ -30,7 +60,6 @@ export const translations = {
     teacherReady: "Your teacher is ready",
     voiceFollow: "Voice-follow classroom",
     enterClassroom: "Enter Live Classroom Demo →",
-    home: "Home",
     classes: "Classes",
     quranDuas: "Quran & Duas",
     progress: "Progress",
@@ -131,9 +160,17 @@ export const translations = {
   ur: {
     // Navigation
     brand: "قرآن اکیڈمی",
+    home: "ہوم",
+    aboutUs: "ہمارے بارے میں",
+    ourServices: "ہماری خدمات",
     programmes: "پروگرامز",
     howItWorks: "طریقہ کار",
     packages: "پیکجز",
+    payments: "فیس و ادائیگی",
+    careers: "ملازمتیں",
+    downloads: "ڈاؤن لوڈز",
+    blog: "بلاگ",
+    contact: "رابطہ کریں",
     studentPortal: "طلباء پورٹل",
     teacherPortal: "اساتذہ پورٹل",
     teachWithUs: "ہمارے ساتھ پڑھائیں",
@@ -141,6 +178,28 @@ export const translations = {
     bookFreeTrial: "مفت ٹرائل لیں",
     menu: "مینو",
     close: "بند کریں",
+
+    // Top Bar & Contact Badges
+    topBarUsa: "امریکہ +1 330 597 5880",
+    topBarUk: "برطانیہ +44 203 289 9880",
+    topBarPk: "پاکستان +92 333 222 2525",
+    topBarEmail: "info@quranlearnacademy.com",
+
+    // Footer
+    footerDesc: "قرآن لرن اکیڈمی ایک آزاد ادارہ ہے جسے باصلاحیت اور مخلص پیشہ ور افراد چلاتے ہیں۔",
+    headOffice: "مرکزی دفتر",
+    headOfficeAddress: "مکان ۲۰۲، بلاک جے ۳، واپڈا ٹاؤن، لاہور-54770، پاکستان",
+    quickLinks: "فوری لنکس",
+    getInTouch: "رابطہ کی معلومات",
+    contactMoreInfo: "مزید معلومات کے لیے ہم سے رابطہ کریں",
+    namePlaceholder: "نام",
+    emailPlaceholder: "ای میل",
+    phonePlaceholder: "فون نمبر (ملکی کوڈ کے ساتھ)",
+    send: "ارسال کریں",
+    termsConditions: "شرائط و ضوابط",
+    privacyPolicy: "پرائیویسی پالیسی",
+    refundPolicy: "ڈلیوری و ریفنڈ پالیسی",
+    copyright: "جملہ حقوق بحق قرآن لرن اکیڈمی ۲۰۲۶ محفوظ ہیں | پراجیکٹ برائے ٹیلی ٹیک سلوشنز",
 
     // Home Hero
     heroSubtitle: "انفرادی رہنمائی۔ ہر سبق۔",
@@ -153,7 +212,6 @@ export const translations = {
     teacherReady: "آپ کے استاد تیار ہیں",
     voiceFollow: "وائس فالو کلاس روم",
     enterClassroom: "لائیو کلاس روم ڈیمو دیکھیں ←",
-    home: "ہوم",
     classes: "کلاسز",
     quranDuas: "قرآن و دعائیں",
     progress: "پیش رفت",
