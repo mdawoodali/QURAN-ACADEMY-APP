@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, Users, Clock, Award, CheckCircle2, HeartHandshake, Globe2, ShieldCheck, Sparkles } from "lucide-react";
+import { BookOpen, Globe2, Home, Clock } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 
 export default function AboutUsPage() {
@@ -24,7 +24,7 @@ export default function AboutUsPage() {
       </div>
 
       {/* 2. Founding Mission & Word-by-Word Tajweed Core (From Reference URL) */}
-      <div className="glass-container rounded-3xl p-8 sm:p-12 border border-white/15 shadow-2xl mb-12">
+      <div className="glass-container rounded-3xl p-8 sm:p-12 border border-white/15 shadow-2xl mb-10">
         <div className="max-w-4xl mx-auto">
           <span className="text-amber-400 font-bold text-xs sm:text-sm uppercase tracking-wider block mb-3">
             Our Purpose & Vision
@@ -43,7 +43,51 @@ export default function AboutUsPage() {
         </div>
       </div>
 
-      {/* Temporary bottom placeholder to be enhanced in subsequent commits */}
+      {/* 3. Global Accessibility & Comfort of Home (From Reference URL) */}
+      <div className="glass-container rounded-3xl p-8 sm:p-12 border border-white/15 shadow-2xl mb-12 bg-gradient-to-br from-black/50 via-emerald-950/40 to-black/50">
+        <div className="max-w-4xl mx-auto">
+          <span className="text-amber-400 font-bold text-xs sm:text-sm uppercase tracking-wider block mb-3">
+            Solving Modern Challenges
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-serif text-white mb-6 leading-snug">
+            Flexible Timings for Global Families & Diverse Routines
+          </h2>
+          <div className="space-y-4 text-emerald-100/85 text-sm sm:text-base leading-relaxed">
+            <p>
+              We at Quran Learn Academy understand that it can become difficult for a Muslim to attend regular Quranic classes in mosques or other Islamic centers in a country where Islam is not the religion of majority of the population. In addition to this, everybody has a different way of life depending upon their routine for work, study, or family setup.
+            </p>
+            <p>
+              Keeping these things in mind, we have put in special efforts into creating our online Quranic classes so that everyone can take part in them at a time that suits them best. You can start your online Quran course from the comfort of your home, pick a timetable that suits you best, and begin this journey of learning the holy Quran right from the basics.
+            </p>
+            <p className="font-semibold text-amber-200/90 pt-1">
+              It doesn’t matter whether you pick things quickly or are a slow learner, we aim to teach you tajweed Quran word by word as long as it takes.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-8 mt-8 border-t border-white/10">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-800/80 border border-amber-400/40 flex items-center justify-center text-amber-300 shrink-0">
+                <Globe2 size={20} />
+              </div>
+              <span className="text-sm font-semibold text-emerald-100">Overseas Friendly</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-800/80 border border-amber-400/40 flex items-center justify-center text-amber-300 shrink-0">
+                <Home size={20} />
+              </div>
+              <span className="text-sm font-semibold text-emerald-100">Comfort of Your Home</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-800/80 border border-amber-400/40 flex items-center justify-center text-amber-300 shrink-0">
+                <Clock size={20} />
+              </div>
+              <span className="text-sm font-semibold text-emerald-100">Personalized Schedules</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Action Box */}
       <div className="glass-container rounded-3xl p-8 text-center border border-white/15 max-w-3xl mx-auto shadow-xl">
         <h3 className="text-xl sm:text-2xl font-serif text-white mb-4">
           Ready to Begin Your Quranic Journey?
