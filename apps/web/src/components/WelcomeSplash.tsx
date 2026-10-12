@@ -80,8 +80,8 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
         </div>
       </header>
 
-      {/* Center Section: Hadith and CTA placed with comfortable breathing room below top calligraphy */}
-      <main className="relative z-20 w-full max-w-4xl mx-auto px-6 py-6 mt-16 sm:mt-24 md:mt-28 mb-auto flex flex-col items-center justify-center text-center">
+      {/* Center Section: Hadith and CTA moved 1 inch down below calligraphy */}
+      <main className="relative z-20 w-full max-w-4xl mx-auto px-6 py-6 mt-[calc(4rem+1in)] sm:mt-[calc(6rem+1in)] md:mt-[calc(7rem+1in)] mb-auto flex flex-col items-center justify-center text-center">
         {/* Main Heading: Hadith */}
         <motion.h1
           initial={{ opacity: 0, y: 15 }}
@@ -90,11 +90,11 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
           className="text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] max-w-4xl mb-4 text-center"
         >
           {language === "ur" ? (
-            <span className="block font-urdu text-3xl sm:text-4xl md:text-5xl leading-relaxed font-normal">
+            <span className="block font-urdu text-3xl sm:text-4xl md:text-5xl leading-relaxed font-bold">
               ”تم میں سے بہترین وہ ہے جو قرآن سیکھے اور سکھائے۔“
             </span>
           ) : (
-            <span className="block font-serif italic font-light tracking-wide text-2xl sm:text-4xl md:text-5xl leading-snug">
+            <span className="block font-vileade font-bold tracking-wide text-2xl sm:text-4xl md:text-5xl leading-tight">
               <span className="block">“The best among you is the one</span>
               <span className="block mt-1 sm:mt-2">who learns the Quran and teaches it.”</span>
             </span>
@@ -106,7 +106,7 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.25 }}
-          className="text-xs sm:text-sm md:text-base text-emerald-200/90 font-sans tracking-widest uppercase drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] mb-8 sm:mb-10"
+          className="text-xs sm:text-sm md:text-base text-emerald-200/90 font-sans font-medium tracking-widest uppercase drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] mb-8 sm:mb-10"
         >
           {language === "ur"
             ? "— صحیح بخاری، حدیث ۵۰۲۷"

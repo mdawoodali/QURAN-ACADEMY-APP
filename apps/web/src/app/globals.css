@@ -18,6 +18,11 @@
   --font-serif: var(--font-hero), ui-serif, Georgia, serif;
   --font-arabic: var(--font-arabic), serif;
   --font-urdu: var(--font-urdu), serif;
+  --font-vileade: 'Vileade', 'Villade', var(--font-vidaloka), var(--font-cinzel), var(--font-hero), Georgia, serif;
+}
+
+.font-vileade {
+  font-family: 'Vileade', 'Villade', var(--font-vidaloka), var(--font-cinzel), var(--font-hero), Georgia, serif;
 }
 
 html {
