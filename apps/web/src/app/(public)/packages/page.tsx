@@ -10,11 +10,11 @@ export default function PackagesPage() {
   const { t } = useLanguage();
   const [selectedCountry, setSelectedCountry] = useState<CountryCode>("UK");
 
-  const countries: { code: CountryCode; label: string; flag: string }[] = [
-    { code: "UK", label: "United Kingdom", flag: "🇬🇧" },
-    { code: "USA", label: "United States", flag: "🇺🇸" },
-    { code: "AUS", label: "Australia", flag: "🇦🇺" },
-    { code: "PK", label: "Pakistan", flag: "🇵🇰" },
+  const countries: { code: CountryCode; label: string; flag: string; currencyLabel: string }[] = [
+    { code: "UK", label: "United Kingdom", flag: "🇬🇧", currencyLabel: "GBP (£)" },
+    { code: "USA", label: "United States", flag: "🇺🇸", currencyLabel: "USD ($)" },
+    { code: "AUS", label: "Australia", flag: "🇦🇺", currencyLabel: "AUD ($)" },
+    { code: "PK", label: "Pakistan", flag: "🇵🇰", currencyLabel: "PKR" },
   ];
 
   return (
@@ -29,25 +29,29 @@ export default function PackagesPage() {
           Academy <span className="text-amber-300">Fee Packages</span>
         </h1>
         <p className="text-emerald-100/85 max-w-2xl mx-auto text-base sm:text-lg leading-relaxed">
-          Transparent monthly plans with zero hidden fees. Choose your country and preferred weekly schedule.
+          Transparent monthly plans with zero hidden fees. Select your country to view fees in your local currency.
         </p>
       </div>
 
       {/* Country Currency Selector */}
-      <div className="flex justify-center mb-12">
-        <div className="glass-container rounded-2xl p-1.5 border border-white/20 flex flex-wrap gap-1.5 shadow-xl">
+      <div className="flex flex-col items-center justify-center mb-12">
+        <span className="text-xs font-bold text-amber-300 uppercase tracking-widest mb-3">
+          Select Your Region & Currency:
+        </span>
+        <div className="glass-container rounded-2xl p-1.5 border border-white/20 flex flex-wrap justify-center gap-2 shadow-xl">
           {countries.map((c) => (
             <button
               key={c.code}
               onClick={() => setSelectedCountry(c.code)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                 selectedCountry === c.code
-                  ? "bg-amber-400 text-emerald-950 shadow-md"
+                  ? "bg-amber-400 text-emerald-950 shadow-md scale-105"
                   : "text-emerald-100/80 hover:text-white hover:bg-white/10"
               }`}
             >
               <span>{c.flag}</span>
               <span>{c.label}</span>
+              <span className="text-[11px] opacity-75 font-mono">({c.currencyLabel})</span>
             </button>
           ))}
         </div>
