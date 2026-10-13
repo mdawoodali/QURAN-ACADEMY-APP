@@ -37,5 +37,29 @@ export const ACADEMY_PACKAGES: PricingPlan[] = [
       AUS: { currency: "AUD", symbol: "$", amount: 55, formatted: "$55" },
       PK: { currency: "PKR", symbol: "PKR ", amount: 6000, formatted: "PKR 6,000" }
     }
+  },
+  {
+    id: "package-2-three-days",
+    name: "Package 2",
+    badge: "3 Days / Week",
+    isPopular: false,
+    schedule: "3 Days / Week",
+    classesPerMonth: 12,
+    durationPerClass: "30 Min / Day",
+    description: "Our most balanced schedule. Perfect for steady progression in Qaida, fluent recitation, and Islamic fundamentals.",
+    features: [
+      "12 Live 1-on-1 Classes / Month",
+      "30 Minutes Dedicated Class Time",
+      "Quran Reading & Tajweed Rules",
+      "Namaz / Salah Learning & Postures",
+      "Daily Masnoon Duas & 6 Kalmas",
+      "Fortnightly Revision & Assessment"
+    ],
+    prices: {
+      UK: { currency: "GBP", symbol: "£", amount: 30, formatted: "£30" },
+      USA: { currency: "USD", symbol: "$", amount: 50, formatted: "$50" },
+      AUS: { currency: "AUD", symbol: "$", amount: 65, formatted: "$65" },
+      PK: { currency: "PKR", symbol: "PKR ", amount: 7000, formatted: "PKR 7,000" }
+    }
   }
 ];
