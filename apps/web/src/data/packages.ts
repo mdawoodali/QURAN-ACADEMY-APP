@@ -85,5 +85,29 @@ export const ACADEMY_PACKAGES: PricingPlan[] = [
       AUS: { currency: "AUD", symbol: "$", amount: 85, formatted: "$85" },
       PK: { currency: "PKR", symbol: "PKR ", amount: 9500, formatted: "PKR 9,500" }
     }
+  },
+  {
+    id: "package-4-weekend",
+    name: "Package 4",
+    badge: "Weekend Classes",
+    isPopular: true,
+    schedule: "Saturday & Sunday",
+    classesPerMonth: 8,
+    durationPerClass: "30 Min / Day",
+    description: "Convenient weekend schedule designed for busy weekday schooling and working parents who want focused sessions.",
+    features: [
+      "8 Weekend Classes / Month (Sat & Sun)",
+      "30 Minutes Dedicated Class Time",
+      "Quran Reading & Tajweed Rules",
+      "Namaz / Salah Learning & Postures",
+      "Daily Masnoon Duas & 6 Kalmas",
+      "Ideal for Busy Weekday Routines"
+    ],
+    prices: {
+      UK: { currency: "GBP", symbol: "£", amount: 35, formatted: "£35" },
+      USA: { currency: "USD", symbol: "$", amount: 60, formatted: "$60" },
+      AUS: { currency: "AUD", symbol: "$", amount: 70, formatted: "$70" },
+      PK: { currency: "PKR", symbol: "PKR ", amount: 8000, formatted: "PKR 8,000" }
+    }
   }
 ];
