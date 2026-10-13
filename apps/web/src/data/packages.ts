@@ -61,5 +61,29 @@ export const ACADEMY_PACKAGES: PricingPlan[] = [
       AUS: { currency: "AUD", symbol: "$", amount: 65, formatted: "$65" },
       PK: { currency: "PKR", symbol: "PKR ", amount: 7000, formatted: "PKR 7,000" }
     }
+  },
+  {
+    id: "package-3-five-days",
+    name: "Package 3",
+    badge: "5 Days / Week",
+    isPopular: false,
+    schedule: "5 Days / Week",
+    classesPerMonth: 20,
+    durationPerClass: "30 Min / Day",
+    description: "Intensive daily learning track. Recommended for fast-track Quran reading, active Hifz students, and daily consistency.",
+    features: [
+      "20 Live 1-on-1 Classes / Month",
+      "30 Minutes Dedicated Class Time",
+      "Quran Reading & Tajweed Rules",
+      "Namaz / Salah Learning & Postures",
+      "Daily Masnoon Duas & 6 Kalmas",
+      "Accelerated Progress & Daily Sabaq"
+    ],
+    prices: {
+      UK: { currency: "GBP", symbol: "£", amount: 40, formatted: "£40" },
+      USA: { currency: "USD", symbol: "$", amount: 65, formatted: "$65" },
+      AUS: { currency: "AUD", symbol: "$", amount: 85, formatted: "$85" },
+      PK: { currency: "PKR", symbol: "PKR ", amount: 9500, formatted: "PKR 9,500" }
+    }
   }
 ];
