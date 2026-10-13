@@ -47,5 +47,23 @@ export const ACADEMY_SERVICES: CourseService[] = [
     targetAudience: "Motivated Children & Adults (Full or Selected Surahs)",
     duration: "Selected Surahs (6 Mos) / Full Hifz (2–3 Years)",
     iconName: "Sparkles"
+  },
+  {
+    id: "learn-basic-islamic-concepts",
+    title: "Learn Basic Islamic Concepts & Salah",
+    highlightWord: "Islamic",
+    subtitle: "Aqeedah, Namaz / Salah, 6 Kalmas & Masnoon Duas",
+    badge: "Essential Knowledge",
+    description: "For the purpose of making our Muslim brothers and sisters better Muslims, we have designed courses to help you understand the core teachings of Islam and the commandments of Allah (SWT). Learn how to perform Salah with correct postures and recitations, memorize essential daily Duas, and apply Islamic principles in everyday life.",
+    features: [
+      "Step-by-step Namaz / Salah instruction (prerequisites, Wudu, and postures)",
+      "Memorization and translation of the 6 Kalmas of Islam",
+      "Essential daily Masnoon Duas (eating, sleeping, leaving home, protection)",
+      "Fundamental Islamic Aqeedah: Tawheed, Prophets, Angels, and the Hereafter",
+      "Character building, Sunnah manners (Akhlaaq), and social etiquettes"
+    ],
+    targetAudience: "All Ages (Children, Youths, Adult Reverts & Refreshers)",
+    duration: "3 – 6 Months (Modular syllabus)",
+    iconName: "HeartHandshake"
   }
 ];
