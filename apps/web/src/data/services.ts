@@ -65,5 +65,23 @@ export const ACADEMY_SERVICES: CourseService[] = [
     targetAudience: "All Ages (Children, Youths, Adult Reverts & Refreshers)",
     duration: "3 – 6 Months (Modular syllabus)",
     iconName: "HeartHandshake"
+  },
+  {
+    id: "quranic-courses-for-children",
+    title: "Quranic Courses for Children",
+    highlightWord: "Children",
+    subtitle: "Interactive 1-on-1 Classes Tailored to Young Reciters",
+    badge: "Kids Special",
+    description: "Being a Muslim, we are expected to recite the Holy Quran properly and this is why Quran Learn Academy offers specialized Quranic courses for kids. We offer interactive, engaging one-on-one sessions ensuring your child recites the Holy Quran without hesitation and develops a lifelong love for Islamic learning.",
+    features: [
+      "Patient, encouraging certified teachers trained in child pedagogy",
+      "Short 30-minute interactive classes preventing screen fatigue",
+      "Child-friendly digital Mushaf with synchronous word highlighting",
+      "Gamified stars, milestones, and completion certificates",
+      "Monthly parent updates and transparent progress tracking"
+    ],
+    targetAudience: "Young Learners (Ages 4 to 15)",
+    duration: "Ongoing Term-Based (Tailored to student pace)",
+    iconName: "Users"
   }
 ];
