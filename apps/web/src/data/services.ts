@@ -83,5 +83,23 @@ export const ACADEMY_SERVICES: CourseService[] = [
     targetAudience: "Young Learners (Ages 4 to 15)",
     duration: "Ongoing Term-Based (Tailored to student pace)",
     iconName: "Users"
+  },
+  {
+    id: "quranic-courses-for-women",
+    title: "Quranic Courses for Women",
+    highlightWord: "Women",
+    subtitle: "1-on-1 Classes with Certified Female Islamic Scholars",
+    badge: "Sisters Dedicated",
+    description: "Women often face difficulties while traveling to Islamic centers or mosques to learn Quran. Therefore, Quran Learn Academy has designed dedicated Quranic courses for females and arranged qualified female tutors (Alima & Qariah) to facilitate our Muslim sisters in learning the teachings of Quran from the privacy and comfort of home.",
+    features: [
+      "100% qualified, certified female Quran instructors (Alimat & Hafizat)",
+      "Safe, private one-on-one virtual classroom environment",
+      "Flexible time slots tailored to homemakers, professionals, and students",
+      "Available across all levels: beginner Qaida, fluent recitation, and Hifz",
+      "Sisterly encouragement, moral mentorship, and Tajweed refinement"
+    ],
+    targetAudience: "Sisters, Working Women, Mothers & Young Girls",
+    duration: "Flexible (3 – 12 Months)",
+    iconName: "GraduationCap"
   }
 ];
