@@ -111,3 +111,22 @@ export const ACADEMY_PACKAGES: PricingPlan[] = [
     }
   }
 ];
+
+export const DISCOUNT_POLICIES = [
+  {
+    title: "Annual Payment",
+    discount: "Save 20%",
+    desc: "Pay for 12 months upfront and get 2.4 months tuition completely free."
+  },
+  {
+    title: "Six Months Payment",
+    discount: "Save 10%",
+    desc: "Pay bi-annually and receive an immediate 10% discount on total fees."
+  },
+  {
+    title: "Quarterly Payment",
+    discount: "Save 5%",
+    desc: "Pay every 3 months and enjoy 5% savings on your family tuition plan."
+  }
+];
+

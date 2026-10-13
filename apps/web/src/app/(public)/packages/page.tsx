@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Check, Calendar, Star } from "lucide-react";
+import { Check, Calendar, Star, Percent } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
-import { ACADEMY_PACKAGES, CountryCode } from "@/data/packages";
+import { ACADEMY_PACKAGES, DISCOUNT_POLICIES, CountryCode } from "@/data/packages";
 
 export default function PackagesPage() {
   const { t } = useLanguage();
@@ -135,6 +135,43 @@ export default function PackagesPage() {
             </div>
           );
         })}
+      </div>
+
+      {/* Discount Policy Section */}
+      <div className="glass-container rounded-3xl p-8 sm:p-10 border border-white/15 shadow-2xl mb-14 pop-hover">
+        <div className="text-center max-w-2xl mx-auto mb-8">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-300 text-xs font-bold uppercase tracking-wider mb-3">
+            <Percent size={14} />
+            <span>Special Long-Term Savings</span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-serif text-white mb-2">
+            Academy Discount Policy
+          </h2>
+          <p className="text-emerald-100/80 text-sm">
+            Save more by choosing advance billing plans for your family.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {DISCOUNT_POLICIES.map((disc, dIdx) => (
+            <div
+              key={dIdx}
+              className="bg-black/35 rounded-2xl p-6 border border-white/10 text-center flex flex-col justify-between"
+            >
+              <div>
+                <span className="text-2xl sm:text-3xl font-extrabold text-amber-300 block mb-2">
+                  {disc.discount}
+                </span>
+                <h4 className="text-lg font-bold font-serif text-white mb-2">
+                  {disc.title}
+                </h4>
+                <p className="text-emerald-100/75 text-xs sm:text-sm leading-relaxed">
+                  {disc.desc}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </main>
   );
