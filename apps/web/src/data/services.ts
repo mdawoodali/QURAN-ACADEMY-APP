@@ -119,5 +119,23 @@ export const ACADEMY_SERVICES: CourseService[] = [
     targetAudience: "Intermediate Reciters, Adults & Advancing Children",
     duration: "4 – 8 Months (Comprehensive practical training)",
     iconName: "Award"
+  },
+  {
+    id: "quran-translation-tafseer",
+    title: "Quran Translation & Tafseer Course",
+    highlightWord: "Translation",
+    subtitle: "Understand the Divine Message & Ayah Meanings",
+    badge: "Understanding Quran",
+    description: "Reciting the Quran brings immense blessings, but understanding its meanings transforms your life. This course is designed for those who want to understand the words of Allah (SWT) directly. Learn Quranic Arabic vocabulary, the context behind revelations (Asbab al-Nuzul), and how to apply the wisdom of the Quran in your modern daily life.",
+    features: [
+      "Word-by-word translation and root word morphological breakdown",
+      "Context of revelation (Asbab al-Nuzul) and thematic Ayah commentary",
+      "Practical life lessons, moral reflections, and spiritual contemplation (Tadabbur)",
+      "Bilingual instruction in clear English and Urdu",
+      "Interactive Q&A and personalized discussion with authorized Islamic scholars"
+    ],
+    targetAudience: "Youth, Adults, Parents & Reverts Seeking Deeper Comprehension",
+    duration: "Modular Surah Tracks / Full Quran (6 – 18 Months)",
+    iconName: "Clock"
   }
 ];
