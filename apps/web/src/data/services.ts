@@ -101,5 +101,23 @@ export const ACADEMY_SERVICES: CourseService[] = [
     targetAudience: "Sisters, Working Women, Mothers & Young Girls",
     duration: "Flexible (3 – 12 Months)",
     iconName: "GraduationCap"
+  },
+  {
+    id: "tajweed-quran-word-by-word",
+    title: "Tajweed Quran Word-by-Word",
+    highlightWord: "Tajweed",
+    subtitle: "Master Makharij, Phonetics & Beautiful Recitation",
+    badge: "Recitation Mastery",
+    description: "Learn to recite the Holy Quran with authentic Tajweed rules as recited by Prophet Muhammad (PBUH). Our step-by-step curriculum teaches you how to pronounce each Arabic letter from its exact point of articulation (Makhraj) and apply rules of elongation, nasalization, and pauses with effortless fluency.",
+    features: [
+      "Mastery of the 17 Makharij (vocal tract articulation points)",
+      "Rules of Noon Sakinah & Tanween: Izhar, Idgham, Iqlab, and Ikhfa",
+      "Meem Sakinah rules, Ghunnah, and Heavy vs Light letters (Tafkheem & Tarqeeq)",
+      "Madd rules (short and long prolongations) and Waqf (stopping signs)",
+      "Real-time audio correction and word-by-word rhythmic intonation"
+    ],
+    targetAudience: "Intermediate Reciters, Adults & Advancing Children",
+    duration: "4 – 8 Months (Comprehensive practical training)",
+    iconName: "Award"
   }
 ];
