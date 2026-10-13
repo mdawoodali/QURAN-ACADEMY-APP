@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Check, Calendar, Star, Percent } from "lucide-react";
+import { Check, Calendar, Star, Percent, HeartHandshake, Gift, ShieldCheck, ArrowRight } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 import { ACADEMY_PACKAGES, DISCOUNT_POLICIES, CountryCode } from "@/data/packages";
 
@@ -172,6 +172,71 @@ export default function PackagesPage() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Sponsor a Child & Referral Program */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-14">
+        {/* Sponsor a Child */}
+        <div className="glass-container rounded-3xl p-8 border border-white/15 shadow-2xl flex flex-col justify-between pop-hover group">
+          <div>
+            <div className="w-12 h-12 rounded-2xl bg-emerald-800/80 border border-amber-400/30 flex items-center justify-center text-amber-300 mb-6 group-hover:scale-110 transition-transform">
+              <HeartHandshake size={26} />
+            </div>
+            <h3 className="text-2xl font-serif text-white mb-3">
+              Sponsor a Child
+            </h3>
+            <p className="text-emerald-100/85 text-sm leading-relaxed mb-6">
+              Sponsor a deserving child to enlighten someone’s life with the teachings of the Holy Quran. Earn perpetual Sadaqah Jariyah by enabling a young student from an underprivileged family to complete Noorani Qaida, Tajweed, or Hifz.
+            </p>
+          </div>
+          <Link
+            href="/contact"
+            className="w-full text-center bg-amber-400 hover:bg-amber-300 text-emerald-950 font-bold py-3.5 rounded-xl transition shadow-md text-sm cursor-pointer"
+          >
+            Sponsor a Student Today
+          </Link>
+        </div>
+
+        {/* Referral Program */}
+        <div className="glass-container rounded-3xl p-8 border border-white/15 shadow-2xl flex flex-col justify-between pop-hover group">
+          <div>
+            <div className="w-12 h-12 rounded-2xl bg-emerald-800/80 border border-amber-400/30 flex items-center justify-center text-amber-300 mb-6 group-hover:scale-110 transition-transform">
+              <Gift size={26} />
+            </div>
+            <h3 className="text-2xl font-serif text-white mb-3">
+              Family Referral Program
+            </h3>
+            <p className="text-emerald-100/85 text-sm leading-relaxed mb-6">
+              Invite your friends, relatives, or community members to Quran Learn Academy. When a referred student completes their trial and enrolls, both your family and the new family receive complimentary tuition credits and discounts.
+            </p>
+          </div>
+          <Link
+            href="/trial"
+            className="w-full text-center bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold py-3.5 rounded-xl transition text-sm cursor-pointer"
+          >
+            Refer a Family & Earn Credits
+          </Link>
+        </div>
+      </div>
+
+      {/* Guarantee Assurance Banner */}
+      <div className="glass-container rounded-3xl p-8 text-center border border-white/15 max-w-3xl mx-auto shadow-2xl pop-hover">
+        <div className="w-14 h-14 bg-emerald-800/80 border border-amber-400/40 rounded-2xl flex items-center justify-center text-amber-300 mx-auto mb-4 shadow-md">
+          <ShieldCheck size={28} />
+        </div>
+        <h3 className="text-2xl font-serif text-white mb-2">
+          100% Satisfaction & Substitute Teacher Guarantee
+        </h3>
+        <p className="text-emerald-100/80 text-sm max-w-xl mx-auto mb-6">
+          Every registration includes our free trial evaluation. If you ever feel your teacher’s schedule or style does not match your child’s needs, we will replace the tutor immediately or refund your fees.
+        </p>
+        <Link
+          href="/trial"
+          className="bg-amber-400 hover:bg-amber-300 text-emerald-950 font-bold px-8 py-3.5 rounded-full transition shadow-lg text-base inline-flex items-center gap-2 cursor-pointer"
+        >
+          <span>{t("bookFreeTrial")}</span>
+          <ArrowRight size={18} />
+        </Link>
       </div>
     </main>
   );
