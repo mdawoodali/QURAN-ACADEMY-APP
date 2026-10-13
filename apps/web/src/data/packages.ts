@@ -1,0 +1,41 @@
+export type CountryCode = "UK" | "USA" | "AUS" | "PK";
+
+export interface PricingPlan {
+  id: string;
+  name: string;
+  badge?: string;
+  isPopular?: boolean;
+  schedule: string;
+  classesPerMonth: number;
+  durationPerClass: string;
+  description: string;
+  features: string[];
+  prices: Record<CountryCode, { currency: string; symbol: string; amount: number; formatted: string }>;
+}
+
+export const ACADEMY_PACKAGES: PricingPlan[] = [
+  {
+    id: "package-1-two-days",
+    name: "Package 1",
+    badge: "2 Days / Week",
+    isPopular: false,
+    schedule: "2 Days / Week",
+    classesPerMonth: 8,
+    durationPerClass: "30 Min / Day",
+    description: "Great starting plan for young beginners balancing academic school routines with steady Quran progress.",
+    features: [
+      "8 Live 1-on-1 Classes / Month",
+      "30 Minutes Dedicated Class Time",
+      "Quran Reading & Tajweed Rules",
+      "Namaz / Salah Learning & Postures",
+      "Daily Masnoon Duas & 6 Kalmas",
+      "Continuous Tutor Feedback"
+    ],
+    prices: {
+      UK: { currency: "GBP", symbol: "£", amount: 25, formatted: "£25" },
+      USA: { currency: "USD", symbol: "$", amount: 40, formatted: "$40" },
+      AUS: { currency: "AUD", symbol: "$", amount: 55, formatted: "$55" },
+      PK: { currency: "PKR", symbol: "PKR ", amount: 6000, formatted: "PKR 6,000" }
+    }
+  }
+];
