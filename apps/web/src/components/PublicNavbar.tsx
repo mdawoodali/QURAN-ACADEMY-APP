@@ -182,10 +182,24 @@ export default function PublicNavbar() {
 
 
           {/* Action CTAs: Log in & Book a free trial (Right edge aligned) */}
-          <div className="hidden lg:flex items-center gap-4 shrink-0">
-            <Link href="/login" className="text-sm font-bold text-amber-300 hover:text-amber-200 transition">
-              {t("login")}
+          <div className="hidden lg:flex items-center gap-5 shrink-0">
+            {/* Log in with ornamental expanding line hover effect */}
+            <Link
+              href="/login"
+              className="group relative py-2 text-sm font-bold text-amber-300 hover:text-amber-200 transition-colors flex flex-col items-center"
+            >
+              <span>{t("login")}</span>
+              <span className="absolute bottom-0 left-0 right-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <span className="h-[2px] bg-gradient-to-l from-amber-400 to-amber-300/40 w-0 group-hover:w-1/2 transition-all duration-300 ease-out origin-right rounded-full" />
+                <span className="flex items-center gap-[2px] px-1 scale-0 group-hover:scale-100 transition-transform duration-300 ease-out">
+                  <span className="w-1 h-1 rounded-full bg-amber-400/70 shrink-0" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.9)] shrink-0" />
+                  <span className="w-1 h-1 rounded-full bg-amber-400/70 shrink-0" />
+                </span>
+                <span className="h-[2px] bg-gradient-to-r from-amber-400 to-amber-300/40 w-0 group-hover:w-1/2 transition-all duration-300 ease-out origin-left rounded-full" />
+              </span>
             </Link>
+
             <Link 
               href="/trial" 
               className="bg-amber-400 hover:bg-amber-300 text-emerald-950 text-sm font-bold px-5 py-2.5 rounded-full transition shadow-md whitespace-nowrap pop-hover"
@@ -193,6 +207,7 @@ export default function PublicNavbar() {
               {t("bookFreeTrial")}
             </Link>
           </div>
+
 
 
           {/* Mobile Actions: Hamburger Menu Toggle Button */}
