@@ -21,16 +21,15 @@ export default function PublicNavbar() {
           {/* Left spacing placeholder to reserve room for the vertically spanning logo */}
           <div className="hidden lg:block w-[230px] xl:w-[250px] shrink-0 pointer-events-none" />
 
-          {/* Left: Contact & WhatsApp Badges */}
-          <div className="flex flex-wrap items-center gap-3 sm:gap-5">
-
+          {/* Center: Contact & WhatsApp Badges & Email */}
+          <div className="flex-1 flex flex-wrap items-center justify-start lg:justify-center gap-3 sm:gap-5 text-[11px] sm:text-xs">
             <a
               href="https://wa.me/+13305975880"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 hover:text-amber-300 transition font-semibold"
+              className="flex items-center gap-1.5 hover:text-amber-300 transition font-semibold whitespace-nowrap"
             >
-              <WhatsAppTopIcon className="w-3.5 h-3.5 fill-amber-400" />
+              <WhatsAppTopIcon className="w-3.5 h-3.5 fill-amber-400 shrink-0" />
               <span>{t("topBarUsa")}</span>
             </a>
 
@@ -40,9 +39,9 @@ export default function PublicNavbar() {
               href="https://wa.me/+442032899880"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 hover:text-amber-300 transition font-semibold"
+              className="flex items-center gap-1.5 hover:text-amber-300 transition font-semibold whitespace-nowrap"
             >
-              <WhatsAppTopIcon className="w-3.5 h-3.5 fill-amber-400" />
+              <WhatsAppTopIcon className="w-3.5 h-3.5 fill-amber-400 shrink-0" />
               <span>{t("topBarUk")}</span>
             </a>
 
@@ -50,15 +49,15 @@ export default function PublicNavbar() {
 
             <a
               href="mailto:info@quranlearnacademy.com"
-              className="hidden md:flex items-center gap-1.5 hover:text-amber-300 transition"
+              className="hidden md:flex items-center gap-1.5 hover:text-amber-300 transition whitespace-nowrap"
             >
-              <Mail size={13} className="text-amber-400" />
+              <Mail size={13} className="text-amber-400 shrink-0" />
               <span>{t("topBarEmail")}</span>
             </a>
           </div>
 
-          {/* Right: Social Media & Language Switcher */}
-          <div className="flex items-center gap-4 ml-auto">
+          {/* Right: Social Media & Language Switcher (pushed far right) */}
+          <div className="flex items-center gap-4 shrink-0">
             <div className="hidden sm:flex items-center gap-3 text-emerald-100/70">
               <a
                 href="https://www.facebook.com/quranlearnacademy/"
@@ -113,6 +112,7 @@ export default function PublicNavbar() {
               </button>
             </div>
           </div>
+
 
         </div>
       </div>
