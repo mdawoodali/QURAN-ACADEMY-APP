@@ -7,7 +7,7 @@ export type Language = "en" | "ur";
 export const translations = {
   en: {
     // Navigation
-    brand: "Quran Academy",
+    brand: "Quran Learn Academy",
     home: "Home",
     aboutUs: "About Us",
     ourServices: "Our Services",
