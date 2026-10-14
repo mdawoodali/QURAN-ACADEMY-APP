@@ -141,37 +141,45 @@ export default function PublicNavbar() {
           <div className="hidden lg:block w-[230px] xl:w-[250px] shrink-0 pointer-events-none" />
 
           
-          {/* Desktop Navigation Links (Centered horizontally in the main bar, font size increased to 16px) */}
+          {/* Desktop Navigation Links (Centered horizontally in the main bar, font size 16px with ornamental expanding line hover effect) */}
           <nav className="hidden lg:flex items-center justify-center gap-3.5 xl:gap-5 2xl:gap-6 text-emerald-100/90 font-medium text-base whitespace-nowrap flex-1 px-2">
+            {[
+              { href: "/", key: "home" },
+              { href: "/about-us", key: "aboutUs" },
+              { href: "/programmes", key: "ourServices" },
+              { href: "/packages", key: "packages" },
+              { href: "/payments", key: "payments" },
+              { href: "/teach-with-us", key: "careers" },
+              { href: "/downloads", key: "downloads" },
+              { href: "/blog", key: "blog" },
+              { href: "/contact", key: "contact" },
+            ].map(({ href, key }) => (
+              <Link
+                key={key}
+                href={href}
+                className="group relative py-2 hover:text-amber-300 transition-colors duration-200 flex flex-col items-center"
+              >
+                <span>{t(key as any)}</span>
 
-            <Link href="/" className="hover:text-amber-300 transition">
-              {t("home")}
-            </Link>
-            <Link href="/about-us" className="hover:text-amber-300 transition">
-              {t("aboutUs")}
-            </Link>
-            <Link href="/programmes" className="hover:text-amber-300 transition">
-              {t("ourServices")}
-            </Link>
-            <Link href="/packages" className="hover:text-amber-300 transition">
-              {t("packages")}
-            </Link>
-            <Link href="/payments" className="hover:text-amber-300 transition">
-              {t("payments")}
-            </Link>
-            <Link href="/teach-with-us" className="hover:text-amber-300 transition">
-              {t("careers")}
-            </Link>
-            <Link href="/downloads" className="hover:text-amber-300 transition">
-              {t("downloads")}
-            </Link>
-            <Link href="/blog" className="hover:text-amber-300 transition">
-              {t("blog")}
-            </Link>
-            <Link href="/contact" className="hover:text-amber-300 transition">
-              {t("contact")}
-            </Link>
+                {/* Ornamental expanding line: originates from center and extends left and right with amber bead accent */}
+                <span className="absolute bottom-0 left-0 right-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  {/* Left extending wing */}
+                  <span className="h-[2px] bg-gradient-to-l from-amber-400 to-amber-300/40 w-0 group-hover:w-1/2 transition-all duration-300 ease-out origin-right rounded-full" />
+                  
+                  {/* Center ornamental golden bead trio matching the reference */}
+                  <span className="flex items-center gap-[2px] px-1 scale-0 group-hover:scale-100 transition-transform duration-300 ease-out">
+                    <span className="w-1 h-1 rounded-full bg-amber-400/70 shrink-0" />
+                    <span className="w-2 h-2 rounded-full bg-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.9)] shrink-0" />
+                    <span className="w-1 h-1 rounded-full bg-amber-400/70 shrink-0" />
+                  </span>
+
+                  {/* Right extending wing */}
+                  <span className="h-[2px] bg-gradient-to-r from-amber-400 to-amber-300/40 w-0 group-hover:w-1/2 transition-all duration-300 ease-out origin-left rounded-full" />
+                </span>
+              </Link>
+            ))}
           </nav>
+
 
           {/* Action CTAs: Log in & Book a free trial (Right edge aligned) */}
           <div className="hidden lg:flex items-center gap-4 shrink-0">
