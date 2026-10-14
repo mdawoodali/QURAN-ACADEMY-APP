@@ -141,8 +141,9 @@ export default function PublicNavbar() {
           <div className="hidden lg:block w-[230px] xl:w-[250px] shrink-0 pointer-events-none" />
 
           
-          {/* Desktop Navigation Links (Centered horizontally in the main bar) */}
-          <nav className="hidden lg:flex items-center justify-center gap-4 xl:gap-6 text-emerald-100/90 font-medium text-sm whitespace-nowrap flex-1 px-2">
+          {/* Desktop Navigation Links (Centered horizontally in the main bar, font size increased to 16px) */}
+          <nav className="hidden lg:flex items-center justify-center gap-3.5 xl:gap-5 2xl:gap-6 text-emerald-100/90 font-medium text-base whitespace-nowrap flex-1 px-2">
+
             <Link href="/" className="hover:text-amber-300 transition">
               {t("home")}
             </Link>
