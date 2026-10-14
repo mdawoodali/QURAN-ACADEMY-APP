@@ -15,11 +15,15 @@ export default function PublicNavbar() {
   return (
     <header className="w-full sticky top-0 z-50 text-white shadow-xl">
       {/* 1. TOP BAR: Contact / WhatsApp Badges & Email & Socials */}
-      <div className="w-full bg-[#021811]/95 border-b border-white/10 text-xs text-emerald-100/90 py-2 px-4 sm:px-6 backdrop-blur-md">
-        <div className="max-w-[1280px] mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div className="w-full bg-[#021811]/95 border-b border-white/10 text-xs text-emerald-100/90 py-3.5 px-4 sm:px-6 backdrop-blur-md">
+        <div className="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-3">
           
+          {/* Left spacing placeholder to reserve room for the vertically spanning logo */}
+          <div className="hidden lg:block w-[230px] xl:w-[250px] shrink-0 pointer-events-none" />
+
           {/* Left: Contact & WhatsApp Badges */}
           <div className="flex flex-wrap items-center gap-3 sm:gap-5">
+
             <a
               href="https://wa.me/+13305975880"
               target="_blank"
@@ -113,19 +117,29 @@ export default function PublicNavbar() {
         </div>
       </div>
 
-      {/* 2. NAVIGATION BAR: Just Below Top Bar */}
-      <div className="w-full bg-[#052b20]/90 backdrop-blur-md border-b border-white/10">
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 h-20 flex items-center justify-between gap-4">
+      {/* 2. MAIN NAVIGATION BAR: Just Below Top Bar */}
+      <div className="w-full bg-[#052b20]/95 backdrop-blur-md border-b border-white/10 relative">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 h-22 sm:h-24 flex items-center justify-between gap-4">
           
-          {/* Brand Logo & Crest */}
-          <Link href="/" onClick={closeMenu} className="flex items-center gap-3 shrink-0">
-            <div className="bg-emerald-800/90 border border-amber-400/40 p-2 rounded-xl text-amber-300 shadow-sm">
-              <BookOpen size={22} />
+          {/* Brand Official Logo: Large, prominent, vertically spanning across both bars without extra text */}
+          <Link 
+            href="/" 
+            onClick={closeMenu} 
+            className="flex items-center shrink-0 lg:absolute lg:top-[-42px] lg:left-20 xl:left-24 z-30 group"
+            title="Quran Learn Academy"
+          >
+            <div className="relative w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 xl:w-36 xl:h-36 shrink-0 drop-shadow-[0_8px_16px_rgba(0,0,0,0.65)] transition-transform duration-200 group-hover:scale-105">
+              <img 
+                src="/logo_quran_learn_academy.png" 
+                alt="Quran Learn Academy Logo" 
+                className="w-full h-full object-contain"
+              />
             </div>
-            <span className="font-serif font-bold text-lg sm:text-xl text-white tracking-tight">
-              {t("brand")}
-            </span>
           </Link>
+          
+          {/* Desktop Left Spacer on large screens so navigation links clear the spanning logo */}
+          <div className="hidden lg:block w-[230px] xl:w-[250px] shrink-0 pointer-events-none" />
+
           
           {/* Desktop Navigation Links (Names from reference website) */}
           <nav className="hidden xl:flex items-center gap-5 2xl:gap-6 text-emerald-100/90 font-medium text-sm">
