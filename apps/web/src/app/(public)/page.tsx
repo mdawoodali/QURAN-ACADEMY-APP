@@ -6,6 +6,7 @@ import { CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/components/LanguageContext";
 import WelcomeSplash from "@/components/WelcomeSplash";
+import TestimonialsCarousel from "@/components/TestimonialsCarousel";
 
 export default function Home() {
   const { t, language } = useLanguage();
@@ -99,7 +100,7 @@ export default function Home() {
         </main>
 
         {/* Trust Cards */}
-        <section className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 pb-16 sm:pb-24 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 sm:gap-6">
+        <section className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 pb-8 sm:pb-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 sm:gap-6">
           <div className="glass-container rounded-2xl p-6 shadow-sm text-white pop-hover">
             <h4 className="font-bold text-amber-300 mb-2 text-base">
               {t("trust1Title")}
@@ -125,7 +126,11 @@ export default function Home() {
             </p>
           </div>
         </section>
+
+        {/* What Our Students Say About Us (Swipe Carousel) */}
+        <TestimonialsCarousel />
       </motion.div>
     </>
   );
 }
+
