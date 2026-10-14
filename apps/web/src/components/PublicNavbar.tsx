@@ -200,13 +200,15 @@ export default function PublicNavbar() {
               </span>
             </Link>
 
+            {/* Book a free trial: Yellow box turns green on hover and text turns white */}
             <Link 
               href="/trial" 
-              className="bg-amber-400 hover:bg-amber-300 text-emerald-950 text-sm font-bold px-5 py-2.5 rounded-full transition shadow-md whitespace-nowrap pop-hover"
+              className="bg-amber-400 hover:bg-emerald-700 text-emerald-950 hover:text-white border border-transparent hover:border-emerald-500/50 text-sm font-bold px-5 py-2.5 rounded-full transition-all duration-300 shadow-md whitespace-nowrap pop-hover"
             >
               {t("bookFreeTrial")}
             </Link>
           </div>
+
 
 
 

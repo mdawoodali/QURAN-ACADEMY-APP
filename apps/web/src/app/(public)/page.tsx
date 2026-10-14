@@ -42,13 +42,13 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-3.5 pt-3 w-full sm:w-auto">
               <Link 
                 href="/trial" 
-                className="bg-amber-400 hover:bg-amber-300 text-emerald-950 font-bold py-3.5 sm:py-4 px-8 rounded-full transition-all text-center shadow-lg hover:shadow-xl text-sm sm:text-base cursor-pointer"
+                className="group relative bg-amber-400 hover:bg-emerald-700 text-emerald-950 hover:text-white border border-transparent hover:border-emerald-500/50 font-bold py-3.5 sm:py-4 px-8 rounded-full transition-all duration-300 text-center shadow-lg hover:shadow-xl text-sm sm:text-base cursor-pointer pop-hover"
               >
                 {t("beginFreeTrial")}
               </Link>
               <Link 
                 href="/programmes" 
-                className="bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold py-3.5 sm:py-4 px-8 rounded-full transition-all text-center text-sm sm:text-base cursor-pointer"
+                className="group relative bg-white/10 hover:bg-white/20 text-white border border-white/20 hover:border-amber-400/50 font-bold py-3.5 sm:py-4 px-8 rounded-full transition-all text-center text-sm sm:text-base cursor-pointer pop-hover"
               >
                 {t("exploreProgrammes")}
               </Link>
@@ -91,7 +91,7 @@ export default function Home() {
 
               <Link 
                 href="/classroom/demo" 
-                className="block w-full bg-amber-400 hover:bg-amber-300 text-emerald-950 font-bold py-3.5 px-4 rounded-xl text-center text-xs sm:text-sm transition-all shadow-md cursor-pointer"
+                className="block w-full bg-amber-400 hover:bg-emerald-700 text-emerald-950 hover:text-white border border-transparent hover:border-emerald-500/50 font-bold py-3.5 px-4 rounded-xl text-center text-xs sm:text-sm transition-all duration-300 shadow-md cursor-pointer pop-hover"
               >
                 {t("enterClassroom")}
               </Link>
@@ -99,33 +99,41 @@ export default function Home() {
           </div>
         </main>
 
-        {/* Trust Cards */}
+        {/* Trust Cards with Ornamental Expanding Line Effect on Hover */}
         <section className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 pb-8 sm:pb-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 sm:gap-6">
-          <div className="glass-container rounded-2xl p-6 shadow-sm text-white pop-hover">
-            <h4 className="font-bold text-amber-300 mb-2 text-base">
-              {t("trust1Title")}
-            </h4>
-            <p className="text-xs sm:text-sm text-emerald-100/80">
-              {t("trust1Desc")}
-            </p>
-          </div>
-          <div className="glass-container rounded-2xl p-6 shadow-sm text-white pop-hover">
-            <h4 className="font-bold text-amber-300 mb-2 text-base">
-              {t("trust2Title")}
-            </h4>
-            <p className="text-xs sm:text-sm text-emerald-100/80">
-              {t("trust2Desc")}
-            </p>
-          </div>
-          <div className="glass-container rounded-2xl p-6 shadow-sm text-white sm:col-span-2 md:col-span-1 pop-hover">
-            <h4 className="font-bold text-amber-300 mb-2 text-base">
-              {t("trust3Title")}
-            </h4>
-            <p className="text-xs sm:text-sm text-emerald-100/80">
-              {t("trust3Desc")}
-            </p>
-          </div>
+          {[
+            { titleKey: "trust1Title", descKey: "trust1Desc", colSpan: "" },
+            { titleKey: "trust2Title", descKey: "trust2Desc", colSpan: "" },
+            { titleKey: "trust3Title", descKey: "trust3Desc", colSpan: "sm:col-span-2 md:col-span-1" },
+          ].map(({ titleKey, descKey, colSpan }, i) => (
+            <div 
+              key={i} 
+              className={`group glass-container rounded-2xl p-6 shadow-sm text-white pop-hover relative overflow-hidden flex flex-col justify-between border border-white/10 hover:border-amber-400/30 transition-all duration-300 ${colSpan}`}
+            >
+              <div>
+                <h4 className="font-bold text-amber-300 mb-2 text-base group-hover:text-amber-200 transition-colors">
+                  {t(titleKey as any)}
+                </h4>
+                <p className="text-xs sm:text-sm text-emerald-100/80 leading-relaxed">
+                  {t(descKey as any)}
+                </p>
+              </div>
+
+              {/* Ornamental expanding line at the bottom of the card on hover */}
+              <div className="pt-4 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <span className="h-[2px] bg-gradient-to-l from-amber-400 to-transparent w-0 group-hover:w-1/2 transition-all duration-300 ease-out origin-right rounded-full" />
+                <span className="flex items-center gap-[2px] px-1 scale-0 group-hover:scale-100 transition-transform duration-300 ease-out">
+                  <span className="w-1 h-1 rounded-full bg-amber-400/70 shrink-0" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.9)] shrink-0" />
+                  <span className="w-1 h-1 rounded-full bg-amber-400/70 shrink-0" />
+                </span>
+                <span className="h-[2px] bg-gradient-to-r from-amber-400 to-transparent w-0 group-hover:w-1/2 transition-all duration-300 ease-out origin-left rounded-full" />
+              </div>
+            </div>
+          ))}
         </section>
+
+
 
         {/* What Our Students Say About Us (Swipe Carousel) */}
         <TestimonialsCarousel />
