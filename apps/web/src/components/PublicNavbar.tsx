@@ -141,8 +141,8 @@ export default function PublicNavbar() {
           <div className="hidden lg:block w-[230px] xl:w-[250px] shrink-0 pointer-events-none" />
 
           
-          {/* Desktop Navigation Links (Names from reference website) */}
-          <nav className="hidden xl:flex items-center gap-5 2xl:gap-6 text-emerald-100/90 font-medium text-sm">
+          {/* Desktop Navigation Links (Centered horizontally in the main bar) */}
+          <nav className="hidden lg:flex items-center justify-center gap-4 xl:gap-6 text-emerald-100/90 font-medium text-sm whitespace-nowrap flex-1 px-2">
             <Link href="/" className="hover:text-amber-300 transition">
               {t("home")}
             </Link>
@@ -172,29 +172,19 @@ export default function PublicNavbar() {
             </Link>
           </nav>
 
-          {/* Desktop Compact Navigation for mid-screens (lg to xl) */}
-          <nav className="hidden lg:flex xl:hidden items-center gap-4 text-emerald-100/90 font-medium text-xs">
-            <Link href="/" className="hover:text-amber-300 transition">{t("home")}</Link>
-            <Link href="/about-us" className="hover:text-amber-300 transition">{t("aboutUs")}</Link>
-            <Link href="/programmes" className="hover:text-amber-300 transition">{t("ourServices")}</Link>
-            <Link href="/packages" className="hover:text-amber-300 transition">{t("packages")}</Link>
-            <Link href="/payments" className="hover:text-amber-300 transition">{t("payments")}</Link>
-            <Link href="/teach-with-us" className="hover:text-amber-300 transition">{t("careers")}</Link>
-            <Link href="/contact" className="hover:text-amber-300 transition">{t("contact")}</Link>
-          </nav>
-          
-          {/* Action CTAs */}
+          {/* Action CTAs: Log in & Book a free trial (Right edge aligned) */}
           <div className="hidden lg:flex items-center gap-4 shrink-0">
             <Link href="/login" className="text-sm font-bold text-amber-300 hover:text-amber-200 transition">
               {t("login")}
             </Link>
             <Link 
               href="/trial" 
-              className="bg-amber-400 hover:bg-amber-300 text-emerald-950 text-sm font-bold px-4 sm:px-5 py-2.5 rounded-full transition shadow-md whitespace-nowrap"
+              className="bg-amber-400 hover:bg-amber-300 text-emerald-950 text-sm font-bold px-5 py-2.5 rounded-full transition shadow-md whitespace-nowrap pop-hover"
             >
               {t("bookFreeTrial")}
             </Link>
           </div>
+
 
           {/* Mobile Actions: Hamburger Menu Toggle Button */}
           <div className="flex lg:hidden items-center gap-3">
