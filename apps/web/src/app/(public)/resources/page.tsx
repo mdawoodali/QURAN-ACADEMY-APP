@@ -1,17 +1,23 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Download, BookOpen, FileText, Search, ExternalLink, Sparkles, X, ChevronRight, Share2, Printer, Library, Bookmark, Heart } from "lucide-react";
+import { Download, BookOpen, FileText, Search, ExternalLink, Sparkles, X, ChevronRight, Share2, Printer, Library, Bookmark, Heart, Compass, CircleDot, BookMarked } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 import { QURAN_PARAS, ParaInfo } from "@/data/quranParas";
 import { DAILY_GUIDES_DATA, GuideResource } from "@/data/guidesData";
 import { SHIA_LIBRARY_BOOKS, ShiaBook, ShiaBookSection } from "@/data/shiaLibrary";
 import ShiaToolkit from "@/components/ShiaToolkit";
+import DigitalTasbeeh from "@/features/resources/components/DigitalTasbeeh";
+import PrayerTimesQibla from "@/features/resources/components/PrayerTimesQibla";
+import AsmaUlHusnaView from "@/features/resources/components/AsmaUlHusnaView";
+import SeeratView from "@/features/resources/components/SeeratView";
 import toast from "react-hot-toast";
 
 export default function ResourcesPage() {
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState<"quran" | "guides" | "shia-toolkit" | "shia-library">("quran");
+  const [activeTab, setActiveTab] = useState<
+    "quran" | "guides" | "shia-toolkit" | "shia-library" | "tasbeeh" | "prayer-times" | "asma-ul-husna" | "seerat"
+  >("quran");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
 
@@ -170,28 +176,28 @@ https://quranlearnacademy.com/resources
 
       {/* Tabs Navigation */}
       <div className="flex justify-center mb-10">
-        <div className="bg-black/50 border border-white/15 p-1.5 rounded-2xl flex flex-wrap gap-2 backdrop-blur-md shadow-xl justify-center">
+        <div className="bg-black/50 border border-white/15 p-1.5 rounded-2xl flex flex-wrap gap-2 backdrop-blur-md shadow-xl justify-center max-w-5xl">
           <button
             onClick={() => { setActiveTab("quran"); setSearchQuery(""); }}
-            className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm sm:text-base font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
               activeTab === "quran"
                 ? "bg-amber-400 text-emerald-950 shadow-md"
                 : "text-emerald-100/80 hover:text-white hover:bg-white/10"
             }`}
           >
-            <BookOpen size={18} />
-            <span>The Holy Quran (30 Paras)</span>
+            <BookOpen size={16} />
+            <span>Holy Quran (30 Paras)</span>
           </button>
           
           <button
             onClick={() => { setActiveTab("guides"); setSearchQuery(""); }}
-            className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm sm:text-base font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
               activeTab === "guides"
                 ? "bg-amber-400 text-emerald-950 shadow-md"
                 : "text-emerald-100/80 hover:text-white hover:bg-white/10"
             }`}
           >
-            <FileText size={18} />
+            <FileText size={16} />
             <span>Daily Guides & Duas</span>
           </button>
 
@@ -209,14 +215,62 @@ https://quranlearnacademy.com/resources
 
           <button
             onClick={() => { setActiveTab("shia-library"); setSearchQuery(""); }}
-            className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm sm:text-base font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
               activeTab === "shia-library"
                 ? "bg-amber-400 text-emerald-950 shadow-md"
                 : "text-emerald-100/80 hover:text-white hover:bg-white/10"
             }`}
           >
-            <Library size={18} />
+            <Library size={16} />
             <span>Shia Classical Library</span>
+          </button>
+
+          <button
+            onClick={() => { setActiveTab("tasbeeh"); setSearchQuery(""); }}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+              activeTab === "tasbeeh"
+                ? "bg-amber-400 text-emerald-950 shadow-md"
+                : "text-emerald-100/80 hover:text-white hover:bg-white/10"
+            }`}
+          >
+            <CircleDot size={16} />
+            <span>Digital Tasbeeh</span>
+          </button>
+
+          <button
+            onClick={() => { setActiveTab("prayer-times"); setSearchQuery(""); }}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+              activeTab === "prayer-times"
+                ? "bg-amber-400 text-emerald-950 shadow-md"
+                : "text-emerald-100/80 hover:text-white hover:bg-white/10"
+            }`}
+          >
+            <Compass size={16} />
+            <span>Prayer Times / Qibla</span>
+          </button>
+
+          <button
+            onClick={() => { setActiveTab("asma-ul-husna"); setSearchQuery(""); }}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+              activeTab === "asma-ul-husna"
+                ? "bg-amber-400 text-emerald-950 shadow-md"
+                : "text-emerald-100/80 hover:text-white hover:bg-white/10"
+            }`}
+          >
+            <Sparkles size={16} />
+            <span>99 Names of Allah</span>
+          </button>
+
+          <button
+            onClick={() => { setActiveTab("seerat"); setSearchQuery(""); }}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+              activeTab === "seerat"
+                ? "bg-amber-400 text-emerald-950 shadow-md"
+                : "text-emerald-100/80 hover:text-white hover:bg-white/10"
+            }`}
+          >
+            <BookMarked size={16} />
+            <span>Seerat un Nabi (S.A.W)</span>
           </button>
         </div>
       </div>
@@ -494,6 +548,34 @@ https://quranlearnacademy.com/resources
               <strong className="text-amber-300">Academy Catalog Note:</strong> The Shia Library is dynamically expandable by Academy Administrators through the Admin Portal, supporting digital transcription, translation cross-checks, and downloadable offline bundles where licensing permits.
             </p>
           </div>
+        </section>
+      )}
+
+      {/* TAB 4: DIGITAL TASBEEH */}
+      {activeTab === "tasbeeh" && (
+        <section className="mb-16">
+          <DigitalTasbeeh />
+        </section>
+      )}
+
+      {/* TAB 5: PRAYER TIMES & QIBLA DIRECTION */}
+      {activeTab === "prayer-times" && (
+        <section className="mb-16">
+          <PrayerTimesQibla />
+        </section>
+      )}
+
+      {/* TAB 6: 99 NAMES OF ALLAH (ASMA-UL-HUSNA) */}
+      {activeTab === "asma-ul-husna" && (
+        <section className="mb-16">
+          <AsmaUlHusnaView />
+        </section>
+      )}
+
+      {/* TAB 7: SEERAT UN NABI (S.A.W) */}
+      {activeTab === "seerat" && (
+        <section className="mb-16">
+          <SeeratView />
         </section>
       )}
 
