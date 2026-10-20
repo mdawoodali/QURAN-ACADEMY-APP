@@ -13,13 +13,14 @@ export default function PublicNavbar() {
   const closeMenu = () => setMobileMenuOpen(false);
 
   return (
-    <header className="w-full sticky top-0 z-50 text-white shadow-xl">
+    <header dir="ltr" className="w-full sticky top-0 z-50 text-white shadow-xl relative text-left">
       {/* 1. TOP BAR: Contact / WhatsApp Badges & Email & Socials */}
       <div className="w-full bg-[#021811]/95 border-b border-white/10 text-xs text-emerald-100/90 py-3.5 px-4 sm:px-6 backdrop-blur-md">
-        <div className="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-3">
+        <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-4">
           
           {/* Left spacing placeholder to reserve room for the vertically spanning logo */}
           <div className="hidden lg:block w-[230px] xl:w-[250px] shrink-0 pointer-events-none" />
+
 
           {/* Center: Contact & WhatsApp Badges & Email */}
           <div className="flex-1 flex flex-wrap items-center justify-start lg:justify-center gap-3 sm:gap-5 text-[11px] sm:text-xs">

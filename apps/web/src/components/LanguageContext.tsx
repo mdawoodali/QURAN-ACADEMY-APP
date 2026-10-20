@@ -332,32 +332,35 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     const saved = localStorage.getItem("qa_language") as Language;
     if (saved === "en" || saved === "ur") {
       setLanguageState(saved);
-      document.documentElement.dir = saved === "ur" ? "rtl" : "ltr";
       document.documentElement.lang = saved;
     }
+    // Always maintain ltr layout structure so navigation and button positions never invert
+    document.documentElement.dir = "ltr";
   }, []);
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
     localStorage.setItem("qa_language", lang);
-    document.documentElement.dir = lang === "ur" ? "rtl" : "ltr";
     document.documentElement.lang = lang;
+    document.documentElement.dir = "ltr";
   };
 
   const t = (key: keyof typeof translations.en): string => {
     return translations[language][key] || translations.en[key] || (key as string);
   };
 
-  const dir = language === "ur" ? "rtl" : "ltr";
+  // dir is always "ltr" to maintain consistent visual positioning of buttons and brand
+  const dir = "ltr";
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t, dir }}>
-      <div dir={dir} className={language === "ur" ? "font-urdu" : "font-sans"}>
+      <div dir="ltr" className={language === "ur" ? "font-urdu" : "font-sans"}>
         {children}
       </div>
     </LanguageContext.Provider>
   );
 }
+
 
 export function useLanguage() {
   return useContext(LanguageContext);
