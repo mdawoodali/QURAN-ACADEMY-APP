@@ -16,7 +16,8 @@ export const translations = {
     packages: "Packages",
     payments: "Payments",
     careers: "Careers",
-    downloads: "Downloads",
+    resources: "Resources",
+    downloads: "Resources",
     blog: "Blog",
     contact: "Contact",
     studentPortal: "Student Portal",
@@ -168,7 +169,8 @@ export const translations = {
     packages: "پیکجز",
     payments: "فیس و ادائیگی",
     careers: "ملازمتیں",
-    downloads: "ڈاؤن لوڈز",
+    resources: "وسائل",
+    downloads: "وسائل",
     blog: "بلاگ",
     contact: "رابطہ کریں",
     studentPortal: "طلباء پورٹل",
@@ -180,9 +182,9 @@ export const translations = {
     close: "بند کریں",
 
     // Top Bar & Contact Badges
-    topBarUsa: "امریکہ +1 330 597 5880",
-    topBarUk: "برطانیہ +44 203 289 9880",
-    topBarPk: "پاکستان +92 333 222 2525",
+    topBarUsa: "USA +1 330 597 5880",
+    topBarUk: "UK +44 203 289 9880",
+    topBarPk: "PK +92 333 222 2525",
     topBarEmail: "info@quranlearnacademy.com",
 
     // Footer

@@ -145,8 +145,8 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/downloads" className="hover:text-amber-300 transition flex items-center gap-1.5">
-                  <span className="text-amber-400 text-xs">▸</span> {t("downloads")}
+                <Link href="/resources" className="hover:text-amber-300 transition flex items-center gap-1.5">
+                  <span className="text-amber-400 text-xs">▸</span> {t("resources")}
                 </Link>
               </li>
               <li>

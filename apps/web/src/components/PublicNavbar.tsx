@@ -31,7 +31,7 @@ export default function PublicNavbar() {
               className="flex items-center gap-1.5 hover:text-amber-300 transition font-semibold whitespace-nowrap"
             >
               <WhatsAppTopIcon className="w-3.5 h-3.5 fill-amber-400 shrink-0" />
-              <span>{t("topBarUsa")}</span>
+              <span dir="ltr" className="font-sans">{t("topBarUsa")}</span>
             </a>
 
             <span className="text-white/20 hidden sm:inline">|</span>
@@ -43,7 +43,7 @@ export default function PublicNavbar() {
               className="flex items-center gap-1.5 hover:text-amber-300 transition font-semibold whitespace-nowrap"
             >
               <WhatsAppTopIcon className="w-3.5 h-3.5 fill-amber-400 shrink-0" />
-              <span>{t("topBarUk")}</span>
+              <span dir="ltr" className="font-sans">{t("topBarUk")}</span>
             </a>
 
             <span className="text-white/20 hidden md:inline">|</span>
@@ -53,7 +53,7 @@ export default function PublicNavbar() {
               className="hidden md:flex items-center gap-1.5 hover:text-amber-300 transition whitespace-nowrap"
             >
               <Mail size={13} className="text-amber-400 shrink-0" />
-              <span>{t("topBarEmail")}</span>
+              <span dir="ltr" className="font-sans">{t("topBarEmail")}</span>
             </a>
           </div>
 
@@ -151,7 +151,7 @@ export default function PublicNavbar() {
               { href: "/packages", key: "packages" },
               { href: "/payments", key: "payments" },
               { href: "/teach-with-us", key: "careers" },
-              { href: "/downloads", key: "downloads" },
+              { href: "/resources", key: "resources" },
               { href: "/blog", key: "blog" },
               { href: "/contact", key: "contact" },
             ].map(({ href, key }) => (
@@ -288,11 +288,11 @@ export default function PublicNavbar() {
                   {t("careers")}
                 </Link>
                 <Link 
-                  href="/downloads" 
+                  href="/resources" 
                   onClick={closeMenu}
                   className="py-2 px-3 rounded-xl hover:bg-white/10 hover:text-amber-300 transition"
                 >
-                  {t("downloads")}
+                  {t("resources")}
                 </Link>
                 <Link 
                   href="/blog" 
