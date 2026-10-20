@@ -22,6 +22,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@deepgram/sdk':
+        specifier: ^5.15.0
+        version: 5.15.0
       '@fontsource/amiri-quran':
         specifier: ^5.3.0
         version: 5.3.0
@@ -643,6 +646,16 @@ packages:
 
   /@cloudflare/workers-types@5.20261010.1:
     resolution: {integrity: sha512-Csvu2Wsd8JWnP8HNg/uAAEYzoGw+eKEvoftoHrbMWuFDoC0g6e5XSP8XO9vJsdjjVpPaURdFoL3g/xpZSdQr3Q==}
+
+  /@deepgram/sdk@5.15.0:
+    resolution: {integrity: sha512-LAmMdOHVfvyJ8hz+YI4aK+kPmfqdtmMl7O8Q63lDWVyuHx9vEyoyt+W9y3vxxaVxdOmn4zFmGYjntbNVh/KyqA==}
+    engines: {node: '>=18.0.0'}
+    dependencies:
+      ws: 8.22.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+    dev: false
 
   /@distilled.cloud/aws@1.0.0-rc.12(effect@4.0.0-rc.115):
     resolution: {integrity: sha512-L4TTEwMKB1ymXbYUqvYeoy5UWgmJtqQSzry2qWtAvD2ccwVGy0F7cFViEIYQk7boF4ZIP6SfhAls4+y1fVIi/g==}
