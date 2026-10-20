@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 // In-process cache replicating PostgreSQL rows when database is in demo/local setup
-let IN_MEMORY_SCHEDULES = [
+const IN_MEMORY_SCHEDULES = [
   {
     id: "s1000000-0000-0000-0000-000000000001",
     assignmentId: "a1000000-0000-0000-0000-000000000001",

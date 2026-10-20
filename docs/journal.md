@@ -201,3 +201,22 @@ This journal documents the engineering decisions, security defenses, UX design p
   - Filterable by era: **All**, **Makkah**, **Madinah**, and **Universal**.
   - In-app interactive reader modal with full historical narrative, turning points, and moral virtues.
   - One-click formatted `.txt` study guide download for offline reading.
+
+---
+
+## 7. CI/CD Pipeline Green-Light Verification & ESLint Rectification
+
+### 7.1 Issue Diagnosis
+- **Symptom**: GitHub Actions CI workflow runs (`.github/workflows/ci.yml`) failed at the `validate` job during the `pnpm lint` step with error code 1 (`✖ 106 problems (1 error, 105 warnings)`).
+- **Root Cause**:
+  - In `apps/web/src/app/api/scheduling/route.ts:5:5`:
+    `let IN_MEMORY_SCHEDULES = [...]` was flagged by ESLint rule `prefer-const` because the variable reference was never reassigned (mutations were made in-place via `.push()`).
+
+### 7.2 Resolution & Verification
+- **Code Fix**:
+  - Refactored `apps/web/src/app/api/scheduling/route.ts` to `const IN_MEMORY_SCHEDULES = [...]`.
+- **Pre-Flight Validation**:
+  - `pnpm lint`: Exited with code 0 (0 errors, 105 warnings).
+  - `pnpm build`: Exited with code 0; all 49 static and dynamic routes compiled and generated successfully with Turbopack.
+  - `pnpm audit --prod --audit-level critical`: 0 known vulnerabilities.
+  - Policy enforcement: `docs/journal.md` updated as required by repository pre-commit/pre-push hooks and the `enforce-journal` CI job.
