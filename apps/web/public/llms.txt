@@ -1,0 +1,31 @@
+# Quran Academy
+
+> Premier online Quran learning academy providing 1-on-1 live classes with certified male and female Qaris and Qariahs.
+
+## Overview
+Quran Academy is an international online educational platform dedicated to teaching Quran recitation, Tajweed, Memorisation (Hifz), Islamic Studies, and Arabic language to children and adults worldwide. Classes are conducted via a custom, low-latency live interactive classroom equipped with synchronized mushaf cursors, tajweed audio guides, and teacher video/audio.
+
+## Key Programmes
+- **Noorani & Madani Qaida Foundation**: Beginners level course for children and adults to master Arabic alphabet pronunciation and joining letters.
+- **Tajweed & Fluent Recitation**: Comprehensive rules of Tajweed (Makharij, Ghunnah, Ikhfa, Idgham, Qalqalah) with applied practice.
+- **Quran Memorisation (Hifz al-Quran)**: Structured revision and new lesson schedules (Sabaq, Sabaqi, Manzil) with personalized teacher pacing.
+- **Islamic Studies & Duas for Kids**: Daily prayers, Sunnah etiquettes, Islamic history, and moral character development.
+- **Quranic Arabic & Translation**: Understanding the vocabulary and grammar of the Holy Quran.
+
+## Key Features
+- **Live 1-on-1 Sessions**: 30-minute or 60-minute interactive classes tailored to the student's individual learning speed.
+- **Certified & Vetted Instructors**: Verified Ijaza holders, Qaris, and Alims/Alimahs fluent in English, Urdu, and Arabic.
+- **Interactive Web Classroom**: Sub-500ms real-time audio/video classroom with word-by-word Quran practice players, live highlight pointers, and recording archives.
+- **Parent & Student Portals**: Detailed lesson notes after every class, attendance logs, monthly performance reports, and downloadable PDF progress records.
+- **Flexible Scheduling**: Available 24/7 across US, UK, Canada, Australia, and European timezones.
+- **Free Trial**: 30-minute free evaluation class with zero payment obligation.
+
+## URLs & Resources
+- Website: https://quranacademyapp.vercel.app
+- Free Trial Registration: https://quranacademyapp.vercel.app/trial
+- Courses & Curriculum: https://quranacademyapp.vercel.app/programmes
+- Pricing Plans: https://quranacademyapp.vercel.app/packages
+- How It Works: https://quranacademyapp.vercel.app/how-it-works
+- Contact Support: info@quranlearnacademy.com
+- WhatsApp USA/Global: +1 330 597 5880
+- WhatsApp UK/Europe: +44 20 3289 9880
