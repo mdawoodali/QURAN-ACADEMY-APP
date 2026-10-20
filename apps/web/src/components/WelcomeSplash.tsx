@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, BookOpen, CheckCircle } from "lucide-react";
+import { BookOpen, CheckCircle } from "lucide-react";
 import { useLanguage } from "./LanguageContext";
 
 interface WelcomeSplashProps {
@@ -136,11 +136,10 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
                 selectedSect === "sunni" ? "is-active" : ""
               }`}
             >
-              <div className="flex items-center justify-center gap-2.5 z-10">
+              <div className="flex items-center justify-center z-10">
                 <span className={language === "ur" ? "font-urdu text-lg sm:text-xl" : "tracking-wide"}>
                   {language === "ur" ? "اہل سنت (Sunni)" : "Sunni"}
                 </span>
-                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:translate-x-1" />
               </div>
 
               {/* Ornamental expanding golden underline with amber bead trio */}
@@ -163,11 +162,10 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
                 selectedSect === "shia" ? "is-active" : ""
               }`}
             >
-              <div className="flex items-center justify-center gap-2.5 z-10">
+              <div className="flex items-center justify-center z-10">
                 <span className={language === "ur" ? "font-urdu text-lg sm:text-xl" : "tracking-wide"}>
                   {language === "ur" ? "اہل تشیع (Shia)" : "Shia"}
                 </span>
-                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:translate-x-1" />
               </div>
 
               {/* Ornamental expanding golden underline with amber bead trio */}
