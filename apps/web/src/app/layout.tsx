@@ -22,6 +22,15 @@ const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://quranacademyapp.verc
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
+  icons: {
+    icon: [
+      { url: "/icon.png", type: "image/png" },
+      { url: "/logo_quran_learn_academy.png", type: "image/png" },
+      { url: "/favicon.ico" },
+    ],
+    shortcut: "/icon.png",
+    apple: "/apple-icon.png",
+  },
   title: {
     template: "%s | Quran Academy",
     default: "Quran Academy — One-on-One Live Quran & Tajweed Learning",
@@ -145,6 +154,9 @@ export default function RootLayout({
   return (
     <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
+        <link rel="icon" href="/logo_quran_learn_academy.png" type="image/png" />
+        <link rel="shortcut icon" href="/logo_quran_learn_academy.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/logo_quran_learn_academy.png" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

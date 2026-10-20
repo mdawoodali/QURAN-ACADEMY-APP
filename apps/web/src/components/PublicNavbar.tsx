@@ -18,9 +18,6 @@ export default function PublicNavbar() {
       <div className="w-full bg-[#021811]/95 border-b border-white/10 text-xs text-emerald-100/90 py-3.5 px-4 sm:px-6 backdrop-blur-md">
         <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-4">
           
-          {/* Left spacing placeholder to reserve room for the vertically spanning logo */}
-          <div className="hidden lg:block w-[230px] xl:w-[250px] shrink-0 pointer-events-none" />
-
 
           {/* Center: Contact & WhatsApp Badges & Email */}
           <div className="flex-1 flex flex-wrap items-center justify-start lg:justify-center gap-3 sm:gap-5 text-[11px] sm:text-xs">
@@ -120,16 +117,16 @@ export default function PublicNavbar() {
 
       {/* 2. MAIN NAVIGATION BAR: Just Below Top Bar */}
       <div className="w-full bg-[#052b20]/95 backdrop-blur-md border-b border-white/10 relative">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 h-22 sm:h-24 flex items-center justify-between gap-4">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 h-20 sm:h-22 flex items-center justify-between gap-4">
           
-          {/* Brand Official Logo: Large, prominent, vertically spanning across both bars without extra text */}
+          {/* Brand Official Logo: Elegantly proportioned and aligned within navbar */}
           <Link 
             href="/" 
             onClick={closeMenu} 
-            className="flex items-center shrink-0 lg:absolute lg:top-[-42px] lg:left-20 xl:left-24 z-30 group"
+            className="flex items-center shrink-0 group py-1"
             title="Quran Learn Academy"
           >
-            <div className="relative w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 xl:w-36 xl:h-36 shrink-0 drop-shadow-[0_8px_16px_rgba(0,0,0,0.65)] transition-transform duration-200 group-hover:scale-105">
+            <div className="relative w-13 h-13 sm:w-14 sm:h-14 lg:w-16 lg:h-16 shrink-0 drop-shadow-[0_4px_12px_rgba(0,0,0,0.45)] transition-transform duration-200 group-hover:scale-105">
               <img 
                 src="/logo_quran_learn_academy.png" 
                 alt="Quran Learn Academy Logo" 
@@ -137,9 +134,6 @@ export default function PublicNavbar() {
               />
             </div>
           </Link>
-          
-          {/* Desktop Left Spacer on large screens so navigation links clear the spanning logo */}
-          <div className="hidden lg:block w-[230px] xl:w-[250px] shrink-0 pointer-events-none" />
 
           
           {/* Desktop Navigation Links (Centered horizontally in the main bar, font size 16px with ornamental expanding line hover effect) */}

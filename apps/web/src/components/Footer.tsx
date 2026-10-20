@@ -89,11 +89,15 @@ export default function Footer() {
           
           {/* Column 1: Organization & Head Office */}
           <div className="space-y-4">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="bg-emerald-800/90 border border-amber-400/40 p-2.5 rounded-xl text-amber-300 shadow-sm">
-                <BookOpen size={24} />
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="relative w-11 h-11 shrink-0 drop-shadow-md transition-transform duration-200 group-hover:scale-105">
+                <img 
+                  src="/logo_quran_learn_academy.png" 
+                  alt="Quran Learn Academy Logo" 
+                  className="w-full h-full object-contain"
+                />
               </div>
-              <span className="font-serif font-bold text-xl text-white tracking-tight">
+              <span className="font-serif font-bold text-xl text-white tracking-tight group-hover:text-amber-300 transition-colors">
                 {t("brand")}
               </span>
             </Link>

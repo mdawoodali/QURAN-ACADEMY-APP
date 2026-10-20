@@ -145,6 +145,22 @@ This journal documents the engineering decisions, security defenses, UX design p
      - Added explicit, top-priority governance instructions in `AGENTS.md`, `CLAUDE.md`, `.cursorrules`, `.github/copilot-instructions.md`, and `CONTRIBUTING.md`.
 
 
+### 5.4 Brand Consistency: Proportional Navbar Logo & Browser Tab Favicon
+- **Problems Identified**:
+  1. The navbar brand crest was previously rendered with negative absolute positioning (`lg:absolute lg:top-[-42px]`) and scaled to `144px × 144px`, causing it to protrude awkwardly into both the top contact bar and the green hero section, accompanied by artificial 250px dead spacer divs.
+  2. The browser tab rendered the default Next.js black-and-white "N" icon because `metadata.icons` was unconfigured and `src/app/favicon.ico` was a leftover starter asset.
+- **Implementation & Fixes**:
+  - **Proportional Navbar Logo**: Refactored `apps/web/src/components/PublicNavbar.tsx`:
+    - Removed `lg:absolute lg:top-[-42px]` and all artificial 250px dead spacer divs.
+    - Sized the brand crest proportionally to `w-13 h-13 sm:w-14 sm:h-14 lg:w-16 lg:h-16` (56px–64px), seated naturally within a balanced `h-20 sm:h-22` navigation bar.
+    - Restored natural flex alignment so contact badges, navigation links, and login/trial action buttons are centered and balanced without visual crowding.
+  - **Browser Tab Favicon & PWA Icons**:
+    - Replaced `apps/web/src/app/favicon.ico` and `apps/web/public/favicon.ico` with authentic Quran Learn Academy icons built from `/logo_quran_learn_academy.png`.
+    - Generated `apps/web/src/app/icon.png`, `apps/web/src/app/apple-icon.png`, and `apps/web/public/icon.png`.
+    - Explicitly defined `icons` metadata in `apps/web/src/app/layout.tsx` alongside direct `<link rel="icon">` and `<link rel="apple-touch-icon">` tags in `<head>`.
+    - Updated `apps/web/public/manifest.json` with multi-resolution PWA icons (512x512, 192x192, 48x48).
+  - **Footer Branding**: Updated `apps/web/src/components/Footer.tsx` column 1 to display the golden official crest alongside the brand title.
+
 ---
 
 ## 6. Resources Expansion: Digital Tasbeeh, Prayer Times, Qibla, 99 Names, and Seerat un Nabi
