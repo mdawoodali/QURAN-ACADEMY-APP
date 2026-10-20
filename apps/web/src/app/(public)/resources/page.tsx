@@ -1,18 +1,40 @@
 "use client";
 
-import { useState } from "react";
-import { Download, BookOpen, FileText, Search, ExternalLink, Sparkles, X, ChevronRight, Share2, Printer, Library, Bookmark } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Download, BookOpen, FileText, Search, ExternalLink, Sparkles, X, ChevronRight, Share2, Printer, Library, Bookmark, Heart } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 import { QURAN_PARAS, ParaInfo } from "@/data/quranParas";
 import { DAILY_GUIDES_DATA, GuideResource } from "@/data/guidesData";
 import { SHIA_LIBRARY_BOOKS, ShiaBook, ShiaBookSection } from "@/data/shiaLibrary";
+import ShiaToolkit from "@/components/ShiaToolkit";
 import toast from "react-hot-toast";
 
 export default function ResourcesPage() {
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState<"quran" | "guides" | "shia-library">("quran");
+  const [activeTab, setActiveTab] = useState<"quran" | "guides" | "shia-toolkit" | "shia-library">("quran");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const savedSect = localStorage.getItem("user_sect");
+        const urlParams = new URLSearchParams(window.location.search);
+        const tabParam = urlParams.get("tab");
+        if (tabParam === "shia-toolkit" || tabParam === "toolkit" || tabParam === "shia") {
+          setActiveTab("shia-toolkit");
+        } else if (tabParam === "shia-library") {
+          setActiveTab("shia-library");
+        } else if (tabParam === "guides") {
+          setActiveTab("guides");
+        } else if (savedSect === "shia" && !tabParam) {
+          setActiveTab("shia-toolkit");
+        }
+      } catch (e) {
+        // safe fallback
+      }
+    }
+  }, []);
 
   // In-App Reader Modal states
   const [selectedGuide, setSelectedGuide] = useState<GuideResource | null>(null);
@@ -174,6 +196,18 @@ https://quranlearnacademy.com/resources
           </button>
 
           <button
+            onClick={() => { setActiveTab("shia-toolkit"); setSearchQuery(""); }}
+            className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm sm:text-base font-bold transition-all cursor-pointer ${
+              activeTab === "shia-toolkit"
+                ? "bg-amber-400 text-emerald-950 shadow-md"
+                : "text-emerald-100/80 hover:text-white hover:bg-white/10"
+            }`}
+          >
+            <Heart size={18} className={activeTab === "shia-toolkit" ? "text-emerald-950 fill-emerald-950" : "text-amber-400 fill-amber-400"} />
+            <span>Shia Tool Kit</span>
+          </button>
+
+          <button
             onClick={() => { setActiveTab("shia-library"); setSearchQuery(""); }}
             className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm sm:text-base font-bold transition-all cursor-pointer ${
               activeTab === "shia-library"
@@ -182,7 +216,7 @@ https://quranlearnacademy.com/resources
             }`}
           >
             <Library size={18} />
-            <span>Shia Library</span>
+            <span>Shia Classical Library</span>
           </button>
         </div>
       </div>
@@ -327,7 +361,25 @@ https://quranlearnacademy.com/resources
         </section>
       )}
 
-      {/* TAB 3: SHIA LIBRARY */}
+      {/* TAB 3: SHIA TOOL KIT */}
+      {activeTab === "shia-toolkit" && (
+        <section className="mb-16">
+          <div className="text-center max-w-3xl mx-auto mb-10">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-300 text-xs font-semibold mb-3">
+              <Heart size={14} className="fill-amber-400" />
+              <span>Dedicated Spiritual & Jurisprudential Companion</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white mb-3">Shia Islamic Tool Kit</h2>
+            <p className="text-sm sm:text-base text-emerald-100/80 max-w-2xl mx-auto">
+              Comprehensive spiritual tools for students and families: Digital Tasbeeh of Fatima Zahra (SA), Core Ziyarat & Duas with line-by-line translation, Ja'fari prayer times, and step-by-step Wudhu & Salat Ahkam.
+            </p>
+          </div>
+
+          <ShiaToolkit />
+        </section>
+      )}
+
+      {/* TAB 4: SHIA CLASSICAL LIBRARY */}
       {activeTab === "shia-library" && (
         <section className="mb-16">
           <div className="text-center max-w-3xl mx-auto mb-8">

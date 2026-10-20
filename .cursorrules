@@ -1,0 +1,6 @@
+# Quran Academy — Cursor AI Rules
+
+# MANDATORY REPOSITORY GOVERNANCE
+1. Whenever modifying code or generating commits, ALWAYS update `docs/journal.md` with your architectural rationale and feature summary.
+2. The repository has git hooks in `.githooks/` and CI in `.github/workflows/ci.yml` that will immediately reject any commit or push that fails to touch `docs/journal.md`.
+3. Isbah and all AI agents must strictly follow this policy.

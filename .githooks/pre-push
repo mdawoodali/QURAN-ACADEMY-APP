@@ -1,0 +1,41 @@
+#!/bin/sh
+# ==============================================================================
+# Quran Academy — Mandatory Journaling Pre-Push Hook
+# Double-checks outgoing commits to guarantee docs/journal.md is updated
+# ==============================================================================
+
+echo "🚀 Verifying docs/journal.md before pushing to remote..."
+
+REMOTE_BRANCH="$1"
+REMOTE_URL="$2"
+
+# Identify outgoing commits
+COMMITS=$(git log @{u}..HEAD --oneline 2>/dev/null || git log -1 --oneline)
+
+if [ -z "$COMMITS" ]; then
+  # No outgoing commits
+  exit 0
+fi
+
+# Check if docs/journal.md is modified across outgoing commits
+if git diff --name-only @{u}..HEAD 2>/dev/null | grep -qx "docs/journal.md" || git log -1 --name-only | grep -qx "docs/journal.md"; then
+  echo "✅ docs/journal.md update confirmed in outgoing commits. Proceeding with push."
+  exit 0
+else
+  echo ""
+  echo "================================================================================"
+  echo "❌ [POLICY VIOLATION] PUSH REJECTED: docs/journal.md WAS NOT UPDATED!"
+  echo "--------------------------------------------------------------------------------"
+  echo "MANDATORY REPOSITORY GOVERNANCE FOR ISBAH & ALL AI AGENTS:"
+  echo "Your outgoing commits do NOT contain updates to \`docs/journal.md\`."
+  echo "Every push to GitHub MUST record architectural decisions and learning notes."
+  echo ""
+  echo "To resolve this:"
+  echo "1. Update \`docs/journal.md\` with notes on your changes"
+  echo "2. Run: git add docs/journal.md"
+  echo "3. Run: git commit -m \"docs(journal): document latest engineering decisions\""
+  echo "4. Re-run git push"
+  echo "================================================================================"
+  echo ""
+  exit 1
+fi

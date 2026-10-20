@@ -95,3 +95,51 @@ This journal documents the engineering decisions, security defenses, UX design p
   - Implemented `/api/livekit/token/route.ts` using official `livekit-server-sdk`. Generates cryptographically signed JWT `AccessToken` tokens granting room join, media publish/subscribe, and data channel permissions for digital mushaf synchronization.
   - Integrated zero-config dual-mode pairing: If cloud credentials (`LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`) are provided in `.env.local`, connects to LiveKit Cloud WebRTC servers. If in development/sandbox mode, synchronizes teacher and student browser windows simultaneously via `BroadcastChannel` and WebSocket data channels.
   - Updated `LiveClassroom.tsx` to automatically query the token API upon room entry and render a real-time LiveKit server pairing indicator.
+
+
+---
+
+## 5. Phase 14 Extensions: Privileged Admin Client, Dedicated Shia Tool Kit & Mandatory Journal Enforcement
+
+### 5.1 Environment Security & Privileged Admin Supabase Client
+- **Problem**: Privileged backend procedures (student-teacher pairings, automated attendance verification, class scheduling overrides) require bypassing user-level PostgreSQL Row-Level Security (RLS) from secure server contexts without exposing private keys.
+- **Implementation**:
+  - Populated `SUPABASE_SERVICE_ROLE_KEY` in `apps/web/.env.local` and root `.env` securely.
+  - Hardened `.gitignore` to strictly exclude `.env`, `.env*.local`, and `.env.*` to guarantee private service role keys are never committed to version control.
+  - Built `apps/web/src/utils/supabase/admin.ts` exposing `createAdminClient()`. The function instantiates a dedicated Supabase client using `@supabase/supabase-js` with `persistSession: false` and `autoRefreshToken: false`.
+  - Added architectural safeguards and docstring warnings prohibiting invocation from client components (`"use client"`), restricting execution strictly to Server Actions and API Route Handlers.
+
+### 5.2 Dedicated Shia Islamic Tool Kit Suite
+- **Problem**: While classical texts were introduced in the Shia Library in Phase 13, everyday Shia students, teachers, and families lacked interactive spiritual utilities for daily worship, prayer timings, and jurisprudential guidance.
+- **Data Source Architecture**: Created `apps/web/src/data/shiaToolkitData.ts` providing structured data across five spiritual domains:
+  - **Tasbih of Sayyida Fatima al-Zahra (SA)**: Complete 34-33-33 sequence with prophetic hadiths and custom dhikr presets (Salawat, Istighfar, Tasbihat al-Arba'ah, Dhikr Yunus).
+  - **Core Shia Duas & Ziyarat**: Comprehensive Arabic diacritics, transliteration, English translation, and context for *Ziyarat Ashura*, *Ziyarat Waritha*, *Dua Kumayl*, *Dua Tawassul*, *Dua Ahad*, *Hadith al-Kisa*, and *Dua al-Faraj*.
+  - **Ja'fari Prayer Timing Standards**: Astronomical twilight calibrations according to the Leva Institute / University of Tehran method (Maghrib at the departure of eastern redness ~4° below horizon; Midnight halfway between sunset and dawn), coupled with canonical evidence from Sahih Muslim and Al-Kafi on the Sunnah of combining Dhuhr/Asr and Maghrib/Isha.
+  - **Ahkam & Daily Fiqh**: Step-by-step guidance on Ja'fari Wudhu (wiping of head and feet from toes to ankle without water tap washing; washing arms from elbow downwards) and the obligation of prostrating on pure earth / Turbah Karbala.
+  - **The 14 Infallibles (Chahardah Masoomeen AS) Timeline**: Key biographical dates, shrines, and commemorations across the Hijri calendar.
+- **Interactive Component**: Implemented `apps/web/src/components/ShiaToolkit.tsx`:
+  - **Digital Tasbeeh Widget**: Interactive tap counter with Web Audio synthesizer click feedback, haptic vibration (`navigator.vibrate`), circular progress indicator, phase transitions (Allahu Akbar 34 -> Alhamdulillah 33 -> SubhanAllah 33), lap counter, and reset.
+  - **Duas In-App Modal Reader**: Responsive modal viewer with line-by-line Arabic, transliteration, English translation, one-click clipboard copy, and instant offline `.txt` export.
+  - **Ja'fari City Prayer Calculator**: Multi-city switcher (Karachi, Islamabad, Lahore, Najaf, Karbala, London, New York, Toronto, Dubai) with live prayer cards.
+  - **Ahkam Guide Cards**: Card-based breakdown of Wudhu, Sajdah upon Turbah, and prayer postures.
+- **Portal & Resources Integration**:
+  - Added the **"Shia Tool Kit"** tab to `/resources` (`apps/web/src/app/(public)/resources/page.tsx`).
+  - Integrated automatic tab selection: When a user selects *"Shia Curriculum"* on the `WelcomeSplash` screen (`user_sect === "shia"`), the resources page automatically activates the Shia Tool Kit tab by default.
+
+### 5.3 Automated Multi-Tier `docs/journal.md` Enforcement System
+- **Requirement**: Guarantee that developer **Isbah** and any AI model (Claude, Antigravity, Cursor, Devin, Copilot, etc.) reading code from GitHub and attempting to commit or push is strictly forced to update `docs/journal.md`.
+- **Enforcement Architecture**:
+  1. **Git Pre-Commit Hook (`.githooks/pre-commit`)**:
+     - Automatically inspects `git diff --cached --name-only`.
+     - If `docs/journal.md` is absent from staged changes, the commit command aborts immediately with an actionable error.
+  2. **Git Pre-Push Hook (`.githooks/pre-push`)**:
+     - Inspects outgoing commits (`@{u}..HEAD`).
+     - If `docs/journal.md` was not updated across the commits being pushed to remote, the push is blocked.
+  3. **Repository Initialization Script (`package.json`)**:
+     - Configured `"prepare": "git config core.hooksPath .githooks"` in root `package.json` so every `pnpm install` automatically binds the hooks.
+  4. **GitHub Actions CI Job (`.github/workflows/ci.yml`)**:
+     - Added an independent, blocking job `enforce-journal` that executes on every push to any branch and every Pull Request.
+     - Runs `git diff --name-only` against `origin/main` (for PRs) or `HEAD~1` (for pushes).
+     - Fails the CI pipeline with a GitHub annotation if `docs/journal.md` was not modified, preventing merging of non-compliant code.
+  5. **Cross-AI Rules & Directives**:
+     - Added explicit, top-priority governance instructions in `AGENTS.md`, `CLAUDE.md`, `.cursorrules`, `.github/copilot-instructions.md`, and `CONTRIBUTING.md`.

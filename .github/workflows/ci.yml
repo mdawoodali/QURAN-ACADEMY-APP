@@ -2,12 +2,51 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, "**" ]
   pull_request:
     branches: [ main ]
 
 jobs:
+  enforce-journal:
+    name: Enforce docs/journal.md Update
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code with History
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Verify docs/journal.md Was Updated
+        run: |
+          echo "================================================================================"
+          echo "🔍 Checking whether docs/journal.md was updated in this push/PR..."
+          echo "================================================================================"
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch origin ${{ github.base_ref }} --depth=1 || true
+            CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }} HEAD)
+          else
+            CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || git log -1 --name-only --pretty="" HEAD)
+          fi
+
+          echo "Files modified in this commit range / PR:"
+          echo "$CHANGED_FILES"
+          echo "--------------------------------------------------------------------------------"
+
+          if echo "$CHANGED_FILES" | grep -qx "docs/journal.md"; then
+            echo "✅ SUCCESS: docs/journal.md has been documented and updated."
+          else
+            echo "::error file=docs/journal.md::[POLICY VIOLATION] docs/journal.md MUST be updated in every commit/PR pushed to GitHub! Isbah and all AI agents must record their engineering rationale."
+            echo ""
+            echo "❌ [POLICY VIOLATION] CI BUILD FAILED: docs/journal.md WAS NOT MODIFIED!"
+            echo "Developers (Isbah) and all AI agents must document all architectural,"
+            echo "security, and feature decisions in docs/journal.md before merging or pushing."
+            echo "================================================================================"
+            exit 1
+          fi
+
   validate:
+    name: Lint, Build & Security Audit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

@@ -1,0 +1,30 @@
+#!/bin/sh
+# ==============================================================================
+# Quran Academy — Mandatory Journaling Pre-Commit Hook
+# Enforces that Isbah and any AI assistant documents changes in docs/journal.md
+# ==============================================================================
+
+echo "🔍 Verifying docs/journal.md update..."
+
+# Check if docs/journal.md is in the staged files
+if git diff --cached --name-only | grep -qx "docs/journal.md"; then
+  echo "✅ docs/journal.md update detected in staged changes."
+  exit 0
+else
+  echo ""
+  echo "================================================================================"
+  echo "❌ [POLICY VIOLATION] COMMIT REJECTED: docs/journal.md WAS NOT UPDATED!"
+  echo "--------------------------------------------------------------------------------"
+  echo "MANDATORY RULE FOR DEVELOPERS (ISBAH) & ALL AI AGENTS:"
+  echo "You MUST document your engineering decisions, feature additions, or bug fixes"
+  echo "in \`docs/journal.md\` before committing to this repository."
+  echo ""
+  echo "To resolve this:"
+  echo "1. Open \`docs/journal.md\`"
+  echo "2. Append or update the section documenting your current work"
+  echo "3. Run: git add docs/journal.md"
+  echo "4. Re-run your git commit command"
+  echo "================================================================================"
+  echo ""
+  exit 1
+fi

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "prepare": "git config core.hooksPath .githooks",
     "dev": "pnpm --filter frontend dev",
     "dev:ws": "pnpm --filter @quran/ws dev",
     "dev:all": "pnpm -r --parallel dev",
