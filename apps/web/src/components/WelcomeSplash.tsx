@@ -42,7 +42,7 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
       }}
       className="fixed inset-0 z-[100] w-full min-h-screen flex flex-col justify-between items-center text-center overflow-hidden select-none bg-[#052b20] bg-cover bg-no-repeat bg-center"
       style={{
-        backgroundImage: "url('/images/emerald_bismillah_bg.jpg')",
+        backgroundImage: "url('/images/emerald_bg.jpg')",
         backgroundSize: "cover",
         backgroundRepeat: "no-repeat",
         backgroundPosition: "center",
@@ -58,7 +58,7 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
             <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </div>
           <span className="text-white font-serif font-bold text-xs sm:text-base tracking-wide">
-            Quran Academy
+            Quran Learn Academy
           </span>
         </div>
 
@@ -87,14 +87,30 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
         </div>
       </header>
 
-      {/* Center Section: Hadith and 2 Options (Sunni / Shia) with underline and golden pop */}
-      <main className="relative z-20 w-full max-w-4xl mx-auto px-4 sm:px-6 py-4 mt-[calc(2.5rem+1in)] sm:mt-[calc(5rem+1in)] md:mt-[calc(7rem+1in)] mb-auto flex flex-col items-center justify-center text-center">
+      {/* Center Section: Quran Learn Academy Logo, Hadith, and 2 Options (Sunni / Shia) */}
+      <main className="relative z-20 w-full max-w-4xl mx-auto px-4 sm:px-6 py-6 my-auto flex flex-col items-center justify-center text-center">
+        {/* Quran Learn Academy Logo replacing the previous Bismillah */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.85, y: -12 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          className="mb-5 sm:mb-7 flex items-center justify-center"
+        >
+          <div className="relative w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 drop-shadow-[0_12px_28px_rgba(0,0,0,0.75)] hover:scale-105 transition-transform duration-300">
+            <img
+              src="/logo_quran_learn_academy.png"
+              alt="Quran Learn Academy Logo"
+              className="w-full h-full object-contain filter drop-shadow-[0_4px_20px_rgba(251,191,36,0.3)]"
+            />
+          </div>
+        </motion.div>
+
         {/* Main Heading: Hadith */}
         <motion.h1
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.15 }}
-          className="text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] max-w-4xl mb-4 text-center"
+          className="text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] max-w-4xl mb-3 sm:mb-4 text-center"
         >
           {language === "ur" ? (
             <span className="block font-urdu text-2xl sm:text-4xl md:text-5xl leading-relaxed font-bold italic">
@@ -113,7 +129,7 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.25 }}
-          className="text-[11px] sm:text-sm md:text-base text-emerald-200/90 font-sans font-medium tracking-widest uppercase drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] mb-6 sm:mb-10"
+          className="text-[11px] sm:text-sm md:text-base text-emerald-200/90 font-sans font-medium tracking-widest uppercase drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] mb-6 sm:mb-8"
         >
           {language === "ur"
             ? "— صحیح بخاری، حدیث ۵۰۲۷"
