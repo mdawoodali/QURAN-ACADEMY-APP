@@ -6,20 +6,27 @@ import { ArrowRight, BookOpen, CheckCircle } from "lucide-react";
 import { useLanguage } from "./LanguageContext";
 
 interface WelcomeSplashProps {
-  onGetStarted: () => void;
+  onGetStarted: (sect?: "sunni" | "shia") => void;
 }
 
 export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
   const { language, setLanguage } = useLanguage();
   const [isExiting, setIsExiting] = useState(false);
-  const [isClicked, setIsClicked] = useState(false);
+  const [selectedSect, setSelectedSect] = useState<"sunni" | "shia" | null>(null);
 
-  const handleStart = () => {
-    setIsClicked(true);
+  const handleSelect = (sect: "sunni" | "shia") => {
+    setSelectedSect(sect);
     setIsExiting(true);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("user_sect", sect);
+      } catch (e) {
+        // safe fallback
+      }
+    }
     // Smooth delay before triggering parent unmount to let animation play
     setTimeout(() => {
-      onGetStarted();
+      onGetStarted(sect);
     }, 600);
   };
 
@@ -80,7 +87,7 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
         </div>
       </header>
 
-      {/* Center Section: Hadith and CTA moved 1 inch down below calligraphy */}
+      {/* Center Section: Hadith and 2 Options (Sunni / Shia) */}
       <main className="relative z-20 w-full max-w-4xl mx-auto px-4 sm:px-6 py-4 mt-[calc(2.5rem+1in)] sm:mt-[calc(5rem+1in)] md:mt-[calc(7rem+1in)] mb-auto flex flex-col items-center justify-center text-center">
         {/* Main Heading: Hadith */}
         <motion.h1
@@ -113,25 +120,42 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
             : "— Sahih Bukhari Hadith 5027"}
         </motion.p>
 
-        {/* "Get Started" CTA Button (Not golden by default; golden ONLY active on click) */}
+        {/* Two Options: "Sunni" and "Shia" */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 0.35 }}
           className="w-full flex flex-col items-center"
         >
-          <button
-            onClick={handleStart}
-            disabled={isExiting}
-            className={`welcome-cta-btn w-full max-w-xs sm:max-w-sm py-3.5 sm:py-4 px-6 sm:px-8 rounded-full font-bold text-base sm:text-lg flex items-center justify-center gap-3 transition-all ${
-              isClicked ? "is-active" : ""
-            }`}
-          >
-            <span className={language === "ur" ? "font-urdu text-lg sm:text-xl" : "tracking-wide"}>
-              {language === "ur" ? "شروع کریں" : "Get Started"}
-            </span>
-            <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 transition-transform" />
-          </button>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-md px-4">
+            {/* Sunni Option */}
+            <button
+              onClick={() => handleSelect("sunni")}
+              disabled={isExiting}
+              className={`welcome-cta-btn w-full sm:w-1/2 py-3.5 sm:py-4 px-6 rounded-full font-bold text-base sm:text-lg flex items-center justify-center gap-2 transition-all ${
+                selectedSect === "sunni" ? "is-active" : ""
+              }`}
+            >
+              <span className={language === "ur" ? "font-urdu text-lg sm:text-xl" : "tracking-wide"}>
+                {language === "ur" ? "اہل سنت (Sunni)" : "Sunni"}
+              </span>
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 transition-transform" />
+            </button>
+
+            {/* Shia Option */}
+            <button
+              onClick={() => handleSelect("shia")}
+              disabled={isExiting}
+              className={`welcome-cta-btn w-full sm:w-1/2 py-3.5 sm:py-4 px-6 rounded-full font-bold text-base sm:text-lg flex items-center justify-center gap-2 transition-all ${
+                selectedSect === "shia" ? "is-active" : ""
+              }`}
+            >
+              <span className={language === "ur" ? "font-urdu text-lg sm:text-xl" : "tracking-wide"}>
+                {language === "ur" ? "اہل تشیع (Shia)" : "Shia"}
+              </span>
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 transition-transform" />
+            </button>
+          </div>
         </motion.div>
       </main>
 
