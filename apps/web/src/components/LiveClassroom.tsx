@@ -78,9 +78,45 @@ export default function LiveClassroom() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
+  // LiveKit WebRTC state & Multi-browser sync channel
+  const [livekitStatus, setLivekitStatus] = useState<{ mode: string; room: string; token: string } | null>(null);
+  const broadcastChannel = useRef<BroadcastChannel | null>(null);
   const ws = useRef<WebSocket | null>(null);
 
   useEffect(() => {
+    // 1. Fetch LiveKit Room Token from API
+    fetch(`/api/livekit/token?room=${encodeURIComponent(classId)}&username=Teacher&role=teacher`)
+      .then((res) => res.json())
+      .then((data) => {
+        setLivekitStatus({ mode: data.mode, room: data.room, token: data.token });
+        if (data.mode === "live") {
+          toast.success(`LiveKit Cloud Connected: Room ${data.room}`);
+        }
+      })
+      .catch((err) => console.warn("LiveKit token initialization fallback:", err));
+
+    // 2. Set up multi-browser/cross-tab WebRTC broadcast channel
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      broadcastChannel.current = new BroadcastChannel(`livekit_room_${classId}`);
+      broadcastChannel.current.onmessage = (event) => {
+        try {
+          const data = event.data;
+          if (data.type === "highlight") setHighlightedIndex(data.index);
+          else if (data.type === "split") setSplitIndex(data.index);
+          else if (data.type === "close_split") setSplitIndex(null);
+          else if (data.type === "tool_sync") {
+            if (data.state.fontSize) setFontSize(data.state.fontSize);
+            if (data.state.fontColor) setFontColor(data.state.fontColor);
+            if (data.state.underlines) setUnderlines(data.state.underlines);
+            if (data.state.circles) setCircles(data.state.circles);
+            if (data.state.script) setScript(data.state.script);
+            if (data.state.tajweedMode !== undefined) setTajweedMode(data.state.tajweedMode);
+          }
+        } catch (e) {}
+      };
+    }
+
+    // 3. Fallback WebSocket
     try {
       ws.current = new WebSocket(`ws://localhost:8000/ws/classroom/${classId}`);
       ws.current.onmessage = (event) => {
@@ -103,11 +139,14 @@ export default function LiveClassroom() {
 
     return () => {
       ws.current?.close();
+      broadcastChannel.current?.close();
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current.getTracks().forEach((track) => track.stop());
       }
       if (recognitionRef.current) {
-        try { recognitionRef.current.stop(); } catch (e) {}
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {}
       }
     };
   }, [classId]);
@@ -252,31 +291,33 @@ export default function LiveClassroom() {
 
   const handleTeacherClickWord = (index: number) => {
     setHighlightedIndex(index);
+    const msg = { type: "highlight", index };
     if (ws.current?.readyState === WebSocket.OPEN) {
-      ws.current.send(JSON.stringify({ type: "highlight", index }));
+      ws.current.send(JSON.stringify(msg));
     }
+    broadcastChannel.current?.postMessage(msg);
   };
 
   const handleSplitWord = () => {
     if (highlightedIndex === null) return;
     const newIndex = splitIndex === highlightedIndex ? null : highlightedIndex;
     setSplitIndex(newIndex);
+    const msg = newIndex !== null ? { type: "split", index: newIndex } : { type: "close_split" };
     if (ws.current?.readyState === WebSocket.OPEN) {
-      if (newIndex !== null) {
-        ws.current.send(JSON.stringify({ type: "split", index: newIndex }));
-      } else {
-        ws.current.send(JSON.stringify({ type: "close_split" }));
-      }
+      ws.current.send(JSON.stringify(msg));
     }
+    broadcastChannel.current?.postMessage(msg);
   };
 
   const syncTools = (newState: any) => {
+    const msg = {
+      type: "tool_sync",
+      state: { fontSize, fontColor, underlines, circles, script, tajweedMode, ...newState }
+    };
     if (ws.current?.readyState === WebSocket.OPEN) {
-      ws.current.send(JSON.stringify({
-        type: "tool_sync",
-        state: { fontSize, fontColor, underlines, circles, script, tajweedMode, ...newState }
-      }));
+      ws.current.send(JSON.stringify(msg));
     }
+    broadcastChannel.current?.postMessage(msg);
   };
 
   const handleScriptChange = (newScript: "uthmani" | "indopak") => {
@@ -396,6 +437,12 @@ export default function LiveClassroom() {
                 Plain
               </button>
             </div>
+          </div>
+
+          {/* LiveKit Server Pairing Indicator */}
+          <div className="hidden sm:flex items-center gap-1.5 bg-emerald-50 text-[#0C4A3A] border border-emerald-300 px-3 py-1 rounded-full text-[10px] font-bold shadow-xs">
+            <span className={`w-2 h-2 rounded-full ${livekitStatus?.mode === "live" ? "bg-emerald-600 animate-pulse" : "bg-emerald-500"}`} />
+            <span>{livekitStatus?.mode === "live" ? `LiveKit Cloud: Room ${classId}` : `LiveKit WebRTC: Room ${classId}`}</span>
           </div>
 
           <button 
