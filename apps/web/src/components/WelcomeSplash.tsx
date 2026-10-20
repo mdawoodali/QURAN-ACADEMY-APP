@@ -87,7 +87,7 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
         </div>
       </header>
 
-      {/* Center Section: Hadith and 2 Options (Sunni / Shia) */}
+      {/* Center Section: Hadith and 2 Options (Sunni / Shia) with underline and golden pop */}
       <main className="relative z-20 w-full max-w-4xl mx-auto px-4 sm:px-6 py-4 mt-[calc(2.5rem+1in)] sm:mt-[calc(5rem+1in)] md:mt-[calc(7rem+1in)] mb-auto flex flex-col items-center justify-center text-center">
         {/* Main Heading: Hadith */}
         <motion.h1
@@ -120,40 +120,66 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
             : "— Sahih Bukhari Hadith 5027"}
         </motion.p>
 
-        {/* Two Options: "Sunni" and "Shia" */}
+        {/* Two Options: "Sunni" and "Shia" with golden pop effect and ornamental underline */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 0.35 }}
           className="w-full flex flex-col items-center"
         >
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-md px-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-5 sm:gap-6 w-full max-w-lg px-4">
             {/* Sunni Option */}
             <button
               onClick={() => handleSelect("sunni")}
               disabled={isExiting}
-              className={`welcome-cta-btn w-full sm:w-1/2 py-3.5 sm:py-4 px-6 rounded-full font-bold text-base sm:text-lg flex items-center justify-center gap-2 transition-all ${
+              className={`welcome-cta-btn group relative pop-hover overflow-hidden w-full sm:w-56 py-4 px-6 rounded-full font-bold text-base sm:text-lg flex flex-col items-center justify-center transition-all ${
                 selectedSect === "sunni" ? "is-active" : ""
               }`}
             >
-              <span className={language === "ur" ? "font-urdu text-lg sm:text-xl" : "tracking-wide"}>
-                {language === "ur" ? "اہل سنت (Sunni)" : "Sunni"}
+              <div className="flex items-center justify-center gap-2.5 z-10">
+                <span className={language === "ur" ? "font-urdu text-lg sm:text-xl" : "tracking-wide"}>
+                  {language === "ur" ? "اہل سنت (Sunni)" : "Sunni"}
+                </span>
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:translate-x-1" />
+              </div>
+
+              {/* Ornamental expanding golden underline with amber bead trio */}
+              <span className="absolute bottom-1.5 left-4 right-4 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <span className="h-[2px] bg-gradient-to-l from-amber-400 to-transparent w-0 group-hover:w-1/2 transition-all duration-300 ease-out origin-right rounded-full" />
+                <span className="flex items-center gap-[2px] px-1 scale-0 group-hover:scale-100 transition-transform duration-300 ease-out">
+                  <span className="w-1 h-1 rounded-full bg-amber-400/80 shrink-0" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.9)] shrink-0" />
+                  <span className="w-1 h-1 rounded-full bg-amber-400/80 shrink-0" />
+                </span>
+                <span className="h-[2px] bg-gradient-to-r from-amber-400 to-transparent w-0 group-hover:w-1/2 transition-all duration-300 ease-out origin-left rounded-full" />
               </span>
-              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 transition-transform" />
             </button>
 
             {/* Shia Option */}
             <button
               onClick={() => handleSelect("shia")}
               disabled={isExiting}
-              className={`welcome-cta-btn w-full sm:w-1/2 py-3.5 sm:py-4 px-6 rounded-full font-bold text-base sm:text-lg flex items-center justify-center gap-2 transition-all ${
+              className={`welcome-cta-btn group relative pop-hover overflow-hidden w-full sm:w-56 py-4 px-6 rounded-full font-bold text-base sm:text-lg flex flex-col items-center justify-center transition-all ${
                 selectedSect === "shia" ? "is-active" : ""
               }`}
             >
-              <span className={language === "ur" ? "font-urdu text-lg sm:text-xl" : "tracking-wide"}>
-                {language === "ur" ? "اہل تشیع (Shia)" : "Shia"}
+              <div className="flex items-center justify-center gap-2.5 z-10">
+                <span className={language === "ur" ? "font-urdu text-lg sm:text-xl" : "tracking-wide"}>
+                  {language === "ur" ? "اہل تشیع (Shia)" : "Shia"}
+                </span>
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:translate-x-1" />
+              </div>
+
+              {/* Ornamental expanding golden underline with amber bead trio */}
+              <span className="absolute bottom-1.5 left-4 right-4 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <span className="h-[2px] bg-gradient-to-l from-amber-400 to-transparent w-0 group-hover:w-1/2 transition-all duration-300 ease-out origin-right rounded-full" />
+                <span className="flex items-center gap-[2px] px-1 scale-0 group-hover:scale-100 transition-transform duration-300 ease-out">
+                  <span className="w-1 h-1 rounded-full bg-amber-400/80 shrink-0" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.9)] shrink-0" />
+                  <span className="w-1 h-1 rounded-full bg-amber-400/80 shrink-0" />
+                </span>
+                <span className="h-[2px] bg-gradient-to-r from-amber-400 to-transparent w-0 group-hover:w-1/2 transition-all duration-300 ease-out origin-left rounded-full" />
               </span>
-              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 transition-transform" />
             </button>
           </div>
         </motion.div>
