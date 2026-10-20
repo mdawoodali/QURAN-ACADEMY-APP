@@ -8,7 +8,7 @@ This file tracks all completed changes and upcoming planned roadmap tasks for **
 
 | Commit ID | Timestamp (PKT) | Author | Summary of Changes |
 | :--- | :--- | :--- | :--- |
-| `[pending]` | 2026-10-21 00:46:00 | **Isbah** | Added Digital Tasbeeh, Prayer Times & Qibla Direction, 99 Names of Allah (Asma-ul-Husna), and Seerat-un-Nabi (S.A.W) to Resources. |
+| `dd1edee` | 2026-10-21 00:47:44 | **Isbah** | Added Digital Tasbeeh, Prayer Times & Qibla Direction, 99 Names of Allah (Asma-ul-Husna), and Seerat-un-Nabi (S.A.W) to Resources. |
 | `4697b23` | 2026-10-21 00:23:55 | **Isbah** | Enlarged opening logo, elevated position, and added luminous golden ambient backlight halo. |
 | `671b407` | 2026-10-21 00:20:03 | **Isbah** | Replaced background Bismillah with Quran Learn Academy logo emblem and clean emerald textured pattern. |
 | `3e17da6` | 2026-10-21 00:18:10 | **Isbah** | Removed arrow icons from Sunni and Shia buttons for centered, clean typography. |

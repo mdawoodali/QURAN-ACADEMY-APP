@@ -143,3 +143,45 @@ This journal documents the engineering decisions, security defenses, UX design p
      - Fails the CI pipeline with a GitHub annotation if `docs/journal.md` was not modified, preventing merging of non-compliant code.
   5. **Cross-AI Rules & Directives**:
      - Added explicit, top-priority governance instructions in `AGENTS.md`, `CLAUDE.md`, `.cursorrules`, `.github/copilot-instructions.md`, and `CONTRIBUTING.md`.
+
+
+---
+
+## 6. Resources Expansion: Digital Tasbeeh, Prayer Times, Qibla, 99 Names, and Seerat un Nabi
+
+### 6.1 Digital Tasbeeh (Misbaha)
+- **Component**: `apps/web/src/features/resources/components/DigitalTasbeeh.tsx`
+- **Capabilities**:
+  - Tactile electronic counter with big glowing emerald button and circular progress gauge.
+  - Preset Adhkar: *SubhanAllah* (33x), *Alhamdulillah* (33x), *Allahu Akbar* (34x), *Astaghfirullah* (100x), *La ilaha illallah* (100x), *Durood Sharif* (100x), and *Hawqala* (100x).
+  - Target goals: 33, 99, 100, or Unlimited (Free count).
+  - Web Audio API synthesizer generating subtle physical click sounds on tap without external MP3 asset dependency.
+  - Hardware haptic vibration support (`navigator.vibrate(30)` on tap and `[60, 50, 100]` on lap completion).
+  - Real-time completed laps and daily session counters.
+
+### 6.2 Prayer Times & Qibla Direction
+- **Component**: `apps/web/src/features/resources/components/PrayerTimesQibla.tsx`
+- **Capabilities**:
+  - Solar astronomical prayer calculation algorithms for Fajr, Sunrise, Dhuhr, Asr, Maghrib, and Isha.
+  - Asr juristic toggle between **Hanafi** (double shadow length) and **Shafi'i / Standard** (single shadow length).
+  - Multi-city presets (Karachi, Lahore, Islamabad, London, New York, Mecca, Medina, Dubai, Toronto, Sydney) plus HTML5 Geolocation API auto-detection.
+  - Great-circle mathematical Qibla angle calculation relative to true North pointing towards the Holy Kaaba (`21.4225° N, 39.8262° E`).
+  - Interactive visual compass ring with rotating Kaaba indicator needle and live device orientation support on mobile devices (`DeviceOrientationEvent`).
+
+### 6.3 Asma-ul-Husna (99 Names of Allah)
+- **Data Source**: `apps/web/src/data/asmaUlHusna.ts`
+- **Component**: `apps/web/src/features/resources/components/AsmaUlHusnaView.tsx`
+- **Capabilities**:
+  - Complete, authentic digitization of all 99 Divine Names in Arabic calligraphy with numbered badges (1–99).
+  - English and Urdu translations along with spiritual virtues and contemplative explanations.
+  - Real-time multilingual keyword search across names, transliterations, numbers, and meanings.
+  - One-click formatted clipboard export with toast notification.
+
+### 6.4 Seerat-un-Nabi (S.A.W)
+- **Data Source**: `apps/web/src/data/seeratData.ts`
+- **Component**: `apps/web/src/features/resources/components/SeeratView.tsx`
+- **Capabilities**:
+  - Chronological 9-chapter timeline from blessed birth (570 CE) to the Farewell Pilgrimage (Hajjat-ul-Wida) and passing (11 AH).
+  - Filterable by era: **All**, **Makkah**, **Madinah**, and **Universal**.
+  - In-app interactive reader modal with full historical narrative, turning points, and moral virtues.
+  - One-click formatted `.txt` study guide download for offline reading.
