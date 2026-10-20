@@ -88,19 +88,23 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
       </header>
 
       {/* Center Section: Quran Learn Academy Logo, Hadith, and 2 Options (Sunni / Shia) */}
-      <main className="relative z-20 w-full max-w-4xl mx-auto px-4 sm:px-6 py-6 my-auto flex flex-col items-center justify-center text-center">
-        {/* Quran Learn Academy Logo replacing the previous Bismillah */}
+      <main className="relative z-20 w-full max-w-4xl mx-auto px-4 sm:px-6 py-4 -mt-2 sm:-mt-6 md:-mt-8 mb-auto flex flex-col items-center justify-center text-center">
+        {/* Prominent Quran Learn Academy Logo with Golden Ambient Halo */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.85, y: -12 }}
+          initial={{ opacity: 0, scale: 0.85, y: -16 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="mb-5 sm:mb-7 flex items-center justify-center"
+          transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
+          className="mb-4 sm:mb-6 relative flex items-center justify-center"
         >
-          <div className="relative w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 drop-shadow-[0_12px_28px_rgba(0,0,0,0.75)] hover:scale-105 transition-transform duration-300">
+          {/* Luminous Golden Ambient Backlight Halo */}
+          <div className="absolute w-44 h-44 sm:w-60 sm:h-60 md:w-72 md:h-72 rounded-full bg-gradient-to-tr from-amber-500/20 via-amber-300/25 to-emerald-400/10 blur-3xl -z-10 pointer-events-none" />
+
+          {/* Logo container with enlarged scale */}
+          <div className="relative w-36 h-36 sm:w-48 sm:h-48 md:w-56 md:h-56 lg:w-64 lg:h-64 drop-shadow-[0_20px_40px_rgba(0,0,0,0.85)] hover:scale-105 transition-transform duration-300">
             <img
               src="/logo_quran_learn_academy.png"
               alt="Quran Learn Academy Logo"
-              className="w-full h-full object-contain filter drop-shadow-[0_4px_20px_rgba(251,191,36,0.3)]"
+              className="w-full h-full object-contain filter drop-shadow-[0_0_28px_rgba(251,191,36,0.42)] drop-shadow-[0_6px_20px_rgba(0,0,0,0.9)]"
             />
           </div>
         </motion.div>
