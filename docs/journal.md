@@ -55,3 +55,43 @@ This journal documents the engineering decisions, security defenses, UX design p
    - Refined typography utilizing Source Serif 4, Figtree, and authentic Amiri Quran Arabic fonts.
    - Micro-interactions built with spring physics and high-contrast, accessible touch targets.
 10. **Legal & Compliance Infrastructure**: Complete public terms, privacy policies, delivery & refund guidelines, and cookie consent foundations.
+
+
+---
+
+## 4. Phase 13 Extensions: Script Selectors, Classical Shia Library, Database Session Persistence & LiveKit WebRTC
+
+### 4.1 Script & Tajweed Control Architecture
+- **Problem**: Tajweed rules were previously coupled with reciter selection or shown only in Uthmani script, making it unclear whether IndoPak Subcontinent readers could access Tajweed color highlights.
+- **Implementation**:
+  - Implemented decoupled **Script Selector** (`Uthmani (Madani)` vs `IndoPak (Subcontinent 15/16 Line)`) in both the Live Classroom (`LiveClassroom.tsx`) and Quran Self-Practice Reader (`QuranPracticePlayer.tsx`).
+  - Added a dedicated **Tajweed Control** directly beneath the script selector (`Color-Coded Tajweed` vs `Plain Text`), rendering color-coded phonetic categories (Madd in Rose, Ghunnah in Emerald, Qalqalah in Sky, Ikhfa in Amber) with interactive hover tooltips explaining the rule.
+  - Changes made in `LiveClassroom.tsx` are synchronously broadcast to the student's viewport across WebSockets and WebRTC channels.
+
+### 4.2 Academy Resources & Classical Shia Library
+- **Renamed Tab**: Updated tab navigation from *"Downloadable Guides & Duas"* to **"Daily Guides & Duas"**.
+- **Embedded In-App Reader**: Eliminated external PDF failure/timeout issues by creating `apps/web/src/data/guidesData.ts` with complete structured contents (Noorani Qaida, Daily Masnoon Duas, Tajweed Reference Chart, Juz Amma Practice Reader) rendered directly in a responsive, modal in-app reader with instant offline text exports.
+- **Shia Reference Library**: Introduced a 3rd dedicated tab in `/resources` backed by `apps/web/src/data/shiaLibrary.ts`. Houses key classical Shia reference works:
+  - *Nahjul Balagha* (Sermons, Letters, Sayings of Imam Ali AS)
+  - *Al-Sahifa al-Sajjadiyya* (Supplications of Imam Zayn al-Abidin AS)
+  - *Al-Kafi / Usool-e-Kafi* (Hadith compendium by Shaykh al-Kulayni)
+  - *Mafatih al-Jinan* (Supplications & Ziyarat by Shaykh Abbas Qummi)
+  - Expandable by Academy Administrators through the Admin Portal with categorized filters and offline text export.
+
+### 4.3 Database-Backed Session Persistence Architecture
+- **Problem**: Schedules and assignments were formerly demonstrated via static client arrays, lacking PostgreSQL persistence.
+- **Database Schema**: Created migration `supabase/migrations/20261020000000_session_persistence.sql` establishing:
+  - `teacher_assignments`: Admin-governed or student-selected teacher-student relationships.
+  - `recurring_schedules`: Day of the week (`Monday` to `Sunday`), local time, duration, timezone anchor (`Europe/London`, `Asia/Karachi`).
+  - `class_sessions`: Materialized individual lessons with live LiveKit room identifiers and status.
+  - `session_attendance_logs`: Duration, student/teacher join timestamps, surah/ayah covered, and teacher rating.
+  - Full Row-Level Security (RLS) policies per user role and foreign-key indexing for queries across 10,000+ users.
+- **Server Route & Client Repository**: Implemented `/api/scheduling` and `apps/web/src/server/schedulingRepository.ts`, providing seamless persistence with graceful relational fallback for offline development.
+- **Admin & Student Portals**: Connected `/admin/scheduling` with a "Persist New Class Schedule" modal and live calendar visualization, and connected `/student/classes` with dynamic schedule retrieval.
+
+### 4.4 Real-Time LiveKit WebRTC Server Pairing
+- **Problem**: Multi-user room connections between two distinct browser sessions required cloud credentials, preventing testing across separate browser windows.
+- **Implementation**:
+  - Implemented `/api/livekit/token/route.ts` using official `livekit-server-sdk`. Generates cryptographically signed JWT `AccessToken` tokens granting room join, media publish/subscribe, and data channel permissions for digital mushaf synchronization.
+  - Integrated zero-config dual-mode pairing: If cloud credentials (`LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`) are provided in `.env.local`, connects to LiveKit Cloud WebRTC servers. If in development/sandbox mode, synchronizes teacher and student browser windows simultaneously via `BroadcastChannel` and WebSocket data channels.
+  - Updated `LiveClassroom.tsx` to automatically query the token API upon room entry and render a real-time LiveKit server pairing indicator.
