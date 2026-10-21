@@ -7,6 +7,7 @@ import { DAILY_GUIDES_DATA, GuideResource } from "@/data/guidesData";
 import ShiaToolkit from "@/components/ShiaToolkit";
 import DigitalTasbeeh from "@/features/resources/components/DigitalTasbeeh";
 import PrayerTimesQibla from "@/features/resources/components/PrayerTimesQibla";
+import JafariPrayerSchedule from "@/features/resources/components/JafariPrayerSchedule";
 import AsmaUlHusnaView from "@/features/resources/components/AsmaUlHusnaView";
 import SeeratView from "@/features/resources/components/SeeratView";
 import { useSect } from "@/components/SectContext";
@@ -25,7 +26,7 @@ export default function ResourcesPage() {
   const { sect, isSunni, isShia } = useSect();
   const [activeTab, setActiveTab] = useState<ResourceTab>("quran");
   const [shiaInitialTab, setShiaInitialTab] = useState<
-    "texts" | "tasbeeh" | "duas" | "prayer-times" | "ahkam" | "calendar"
+    "texts" | "tasbeeh" | "duas" | "ahkam" | "calendar"
   >("texts");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -44,7 +45,6 @@ export default function ResourcesPage() {
         subParam === "texts" ||
         subParam === "tasbeeh" ||
         subParam === "duas" ||
-        subParam === "prayer-times" ||
         subParam === "ahkam" ||
         subParam === "calendar"
       ) {
@@ -249,7 +249,7 @@ https://quranlearnacademy.com/resources
             }`}
           >
             <Compass size={16} />
-            <span>Prayer Times / Qibla</span>
+            <span>{isShia ? "Ja'fari Prayer Schedule" : "Prayer Times / Qibla"}</span>
           </button>
 
           <button
@@ -454,10 +454,10 @@ https://quranlearnacademy.com/resources
         </section>
       )}
 
-      {/* TAB 5: PRAYER TIMES & QIBLA DIRECTION */}
+      {/* TAB 5: PRAYER TIMES / QIBLA (OR JA'FARI PRAYER SCHEDULE FOR SHIA) */}
       {activeTab === "prayer-times" && (
         <section className="mb-16">
-          <PrayerTimesQibla />
+          {isShia ? <JafariPrayerSchedule /> : <PrayerTimesQibla />}
         </section>
       )}
 

@@ -26,11 +26,11 @@ import {
 } from "@/lib/prayerMath";
 
 interface ShiaToolkitProps {
-  initialTab?: "texts" | "tasbeeh" | "duas" | "prayer-times" | "ahkam" | "calendar";
+  initialTab?: "texts" | "tasbeeh" | "duas" | "ahkam" | "calendar";
 }
 
 export default function ShiaToolkit({ initialTab = "texts" }: ShiaToolkitProps) {
-  const [activeSubTab, setActiveSubTab] = useState<"texts" | "tasbeeh" | "duas" | "prayer-times" | "ahkam" | "calendar">(initialTab);
+  const [activeSubTab, setActiveSubTab] = useState<"texts" | "tasbeeh" | "duas" | "ahkam" | "calendar">(initialTab);
   // -------------------------------------------------------------
   // 0. CLASSICAL REFERENCE TEXTS STATE
   // -------------------------------------------------------------
@@ -476,26 +476,27 @@ https://quranlearnacademy.com/resources
 
   return (
     <div className="w-full">
-      {/* UNIFIED 6-ITEM SUB-NAVBAR (All Together Under Shia Classical Library) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mb-8 bg-black/40 border border-white/10 p-2 rounded-2xl backdrop-blur-md max-w-6xl mx-auto shadow-xl">
+      {/* UNIFIED 5-ITEM SUB-NAVBAR */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mb-8 bg-black/40 border border-white/10 p-2 rounded-2xl backdrop-blur-md max-w-5xl mx-auto shadow-xl">
         {[
           { key: "texts", label: "Classical Reference Texts", icon: Library },
           { key: "tasbeeh", label: "Digital Tasbeeh Zahra (SA)", icon: Heart },
           { key: "duas", label: "Duas & Ziyarat", icon: BookOpen },
-          { key: "prayer-times", label: "Ja'fari Prayer Schedule", icon: Clock },
           { key: "ahkam", label: "Wudhu & Salat Ahkam", icon: Shield },
           { key: "calendar", label: "14 Infallibles Calendar", icon: Calendar },
-        ].map(({ key, label, icon: Icon }) => (
+        ].map(({ key, label, icon: Icon }, idx) => (
           <button
             key={key}
             onClick={() => setActiveSubTab(key as typeof activeSubTab)}
-            className={`flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer text-center ${
+            className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer text-center ${
+              idx === 4 ? "col-span-2 sm:col-span-1" : ""
+            } ${
               activeSubTab === key
                 ? "bg-amber-400 text-emerald-950 shadow-md scale-[1.02]"
                 : "text-emerald-100/80 hover:text-white hover:bg-white/10"
             }`}
           >
-            <Icon size={15} className="shrink-0" />
+            <Icon size={16} className="shrink-0" />
             <span className="truncate">{label}</span>
           </button>
         ))}
@@ -805,238 +806,6 @@ https://quranlearnacademy.com/resources
                 </div>
               </motion.div>
             ))}
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================= */}
-      {/* 3. ASTRONOMICAL SHIA JA'FARI PRAYER TIMES & LIVE CLOCK    */}
-      {/* ========================================================= */}
-      {activeSubTab === "prayer-times" && (
-        <div className="max-w-5xl mx-auto space-y-6">
-          {/* Top Live Dashboard: Current Location, Live Clock, Hijri Date, Geolocation & Adhan */}
-          <div className="bg-gradient-to-r from-[#032219] via-[#021811] to-[#01100b] border border-amber-400/30 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden backdrop-blur-xl">
-            <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-amber-400/10 blur-3xl pointer-events-none" />
-
-            <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-              <div>
-                <div className="flex flex-wrap items-center gap-2 mb-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-amber-300 bg-amber-400/10 border border-amber-400/30 px-3 py-1 rounded-full flex items-center gap-1.5">
-                    <MapPin size={13} className="text-amber-400" />
-                    {activeLocation.name}, {activeLocation.country}
-                  </span>
-                  <span className="text-xs text-emerald-200/70 font-mono">
-                    {activeLocation.timezoneName}
-                  </span>
-                </div>
-
-                <div className="flex items-baseline gap-3">
-                  <h3 className="text-4xl sm:text-5xl font-mono font-black text-white tracking-tight drop-shadow-md">
-                    {countdownData.timeFormatted}
-                  </h3>
-                  <span className="text-xs font-semibold text-emerald-300 uppercase tracking-widest">
-                    Live Clock
-                  </span>
-                </div>
-
-                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-emerald-100/80">
-                  <span className="font-arabic text-amber-300 font-bold text-sm">
-                    {hijriDate.arabic}
-                  </span>
-                  <span>•</span>
-                  <span>{hijriDate.english}</span>
-                </div>
-              </div>
-
-              {/* Action Buttons: Geolocation, Adhan Chime & Date */}
-              <div className="flex flex-wrap items-center gap-2.5">
-                <button
-                  onClick={handleDetectLocation}
-                  disabled={detectingLocation}
-                  className="bg-amber-400 hover:bg-amber-300 disabled:opacity-60 text-emerald-950 px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 shadow-md transition-all cursor-pointer"
-                >
-                  <Crosshair size={15} className={detectingLocation ? "animate-spin" : ""} />
-                  <span>{detectingLocation ? "Calibrating..." : "Detect My Location"}</span>
-                </button>
-
-                <button
-                  onClick={playAdhanChime}
-                  disabled={isPlayingAdhan}
-                  className="bg-white/10 hover:bg-white/20 text-white px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 border border-white/15 transition-all cursor-pointer"
-                  title="Test Shia Adhan Melody"
-                >
-                  <Bell size={15} className={isPlayingAdhan ? "animate-bounce text-amber-400" : "text-amber-400"} />
-                  <span>{isPlayingAdhan ? "Playing..." : "Test Adhan"}</span>
-                </button>
-
-                <div className="flex items-center gap-1.5 bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
-                  <Calendar size={14} className="text-amber-400 shrink-0" />
-                  <input
-                    type="date"
-                    value={selectedDateStr}
-                    onChange={(e) => setSelectedDateStr(e.target.value)}
-                    className="bg-transparent text-white text-xs focus:outline-none cursor-pointer"
-                  />
-                  {selectedDateStr && (
-                    <button
-                      onClick={() => setSelectedDateStr("")}
-                      className="text-xs text-amber-300 hover:text-white ml-1 font-bold"
-                      title="Reset to Today"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Next Prayer Glowing Countdown Strip & Qibla Compass */}
-            <div className="relative z-10 mt-6 pt-6 border-t border-white/10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div className="bg-black/40 border border-amber-400/40 rounded-2xl p-4 flex items-center justify-between">
-                <div>
-                  <div className="text-[11px] uppercase font-bold tracking-wider text-amber-300 mb-0.5">
-                    Next Prayer Call
-                  </div>
-                  <div className="text-lg font-bold text-white flex items-center gap-2">
-                    <span>{countdownData.nextPrayer.name}</span>
-                    <span className="font-arabic text-amber-300 font-normal">({countdownData.nextPrayer.arabic})</span>
-                  </div>
-                  <div className="text-xs text-emerald-200/60 font-mono mt-0.5">
-                    Scheduled at {countdownData.nextPrayer.time}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-mono font-black text-amber-400 drop-shadow-sm">
-                    {countdownData.countdown}
-                  </div>
-                  <div className="text-[10px] text-emerald-200/60 uppercase tracking-widest font-bold">
-                    Remaining
-                  </div>
-                </div>
-              </div>
-
-              {/* Qibla Direction Card */}
-              <div className="bg-black/40 border border-white/10 rounded-2xl p-4 flex items-center justify-between">
-                <div>
-                  <div className="text-[11px] uppercase font-bold tracking-wider text-emerald-200/70 mb-0.5 flex items-center gap-1">
-                    <Compass size={13} className="text-amber-400" />
-                    <span>Qibla Heading</span>
-                  </div>
-                  <div className="text-lg font-bold text-white flex items-center gap-2">
-                    <span>{qiblaInfo.angle}° {qiblaInfo.compassDir}</span>
-                  </div>
-                  <div className="text-xs text-emerald-200/60 mt-0.5">
-                    {qiblaInfo.distanceKm.toLocaleString()} km to Holy Kaaba
-                  </div>
-                </div>
-                <div className="w-12 h-12 rounded-full border-2 border-amber-400/40 bg-white/5 flex items-center justify-center relative">
-                  <Navigation
-                    size={22}
-                    className="text-amber-400 transition-transform duration-500"
-                    style={{ transform: `rotate(${qiblaInfo.angle}deg)` }}
-                  />
-                </div>
-              </div>
-
-              {/* Shia Sunnah of Jam' al-Salatayn Reminder */}
-              <div className="bg-black/40 border border-white/10 rounded-2xl p-4 flex items-center justify-between sm:col-span-2 lg:col-span-1">
-                <div>
-                  <div className="text-[11px] uppercase font-bold tracking-wider text-amber-300 mb-0.5">
-                    Sunnah of Combining
-                  </div>
-                  <div className="text-xs text-emerald-100/90 leading-snug">
-                    Dhuhr & Asr in afternoon, Maghrib & Isha at nightfall may be joined sequentially without distress.
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* City Selection Pills */}
-          <div className="bg-[#032219]/70 border border-white/10 rounded-2xl p-4">
-            <div className="flex items-center gap-2 text-xs font-bold text-amber-300 uppercase tracking-wider mb-3">
-              <MapPin size={14} />
-              <span>Calibrated Holy Shrines & Global Metropolises:</span>
-            </div>
-            <div className="flex flex-wrap gap-1.5 sm:gap-2">
-              {customCity && (
-                <button
-                  onClick={() => setCustomCity(customCity)}
-                  className="text-xs px-3.5 py-1.5 rounded-full font-bold transition-all bg-amber-400 text-emerald-950 shadow-md flex items-center gap-1.5"
-                >
-                  <Crosshair size={13} />
-                  <span>GPS: {customCity.name}</span>
-                </button>
-              )}
-              {Object.keys(SHIA_CITIES_DATABASE).map((key) => {
-                const c = SHIA_CITIES_DATABASE[key];
-                const isActive = !customCity && selectedCityKey === key;
-                return (
-                  <button
-                    key={key}
-                    onClick={() => {
-                      setCustomCity(null);
-                      setSelectedCityKey(key);
-                    }}
-                    className={`text-xs px-3 py-1.5 rounded-full font-bold transition-all ${
-                      isActive
-                        ? "bg-amber-400 text-emerald-950 shadow-md scale-105"
-                        : "bg-black/40 text-emerald-200/80 hover:bg-white/10 hover:text-white border border-white/10"
-                    }`}
-                  >
-                    {c.name}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* 8 Prayer Time Cards Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {countdownData.prayers.map((p, idx) => {
-              const isNext = countdownData.nextPrayer.key === p.key;
-              return (
-                <div
-                  key={idx}
-                  className={`p-5 rounded-2xl border text-center transition-all relative overflow-hidden ${
-                    isNext
-                      ? "bg-gradient-to-b from-amber-500/25 via-[#0c4030] to-emerald-950/90 border-amber-400 shadow-[0_0_30px_rgba(251,191,36,0.3)] ring-2 ring-amber-400/60 scale-[1.02]"
-                      : p.highlight
-                      ? "bg-gradient-to-b from-amber-500/15 to-amber-500/5 border-amber-400/40 shadow-lg"
-                      : "bg-black/40 border-white/10 hover:border-white/20"
-                  }`}
-                >
-                  {isNext && (
-                    <span className="absolute top-2 right-2 flex h-2.5 w-2.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
-                    </span>
-                  )}
-                  <div className="text-xs font-bold text-amber-300 font-arabic mb-1">{p.arabic}</div>
-                  <div className="text-xs uppercase font-bold text-white/90 mb-1 flex items-center justify-center gap-1">
-                    <span>{p.name}</span>
-                    {isNext && <span className="text-[10px] text-amber-300 font-mono font-bold">(Next)</span>}
-                  </div>
-                  <div className="text-3xl sm:text-4xl font-mono font-black text-amber-300 mb-1 drop-shadow-sm">{p.time}</div>
-                  <div className="text-[10px] text-emerald-200/70 leading-tight font-medium">{p.desc}</div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Jurisprudence Explanation Notice */}
-          <div className="bg-[#032219]/90 border border-white/15 rounded-3xl p-6 sm:p-8 text-left text-xs sm:text-sm text-emerald-100/90 leading-relaxed shadow-xl">
-            <h4 className="text-base font-bold text-amber-300 flex items-center gap-2 mb-3">
-              <Info size={18} />
-              <span>Ja'fari Method & The Sunnah of Joining Prayers (Jam' al-Salatayn)</span>
-            </h4>
-            <p className="mb-4">
-              {SHIA_PRAYER_METHOD_INFO.description}
-            </p>
-            <div className="bg-black/40 p-4 rounded-2xl border border-white/10 text-xs text-emerald-100/80 leading-relaxed">
-              <strong className="text-amber-400 block mb-1 text-sm font-semibold">Canonical Documentation & Hadith:</strong>
-              {SHIA_PRAYER_METHOD_INFO.combiningNotice}
-            </div>
           </div>
         </div>
       )}

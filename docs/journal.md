@@ -682,3 +682,28 @@ eceipt_uploaded, and payment_verified.
 
 2. **Clean Resources Page Architecture (`apps/web/src/app/(public)/resources/page.tsx`)**:
    - Streamlined the "Shia Classical Library" tab to render the unified all-in-one component directly, eliminating duplicate outer view switchers and modal boilerplate.
+
+---
+
+## 9.27 Shia Top-Level Ja'fari Prayer Schedule Promotion & Shia Classical Library Decoupling
+
+### 9.27.1 Context & Objectives
+- **Requirement**: In the Shia section, replace the standard "Prayer Times / Qibla" top-level tab with a dedicated **Ja'fari Prayer Schedule** tab. Simultaneously, decouple and remove the Ja'fari Prayer Schedule from inside the *Shia Classical Library* sub-navbar.
+
+### 9.27.2 Architectural Implementation
+1. **Dedicated Modular Component (`apps/web/src/features/resources/components/JafariPrayerSchedule.tsx`)**:
+   - Extracted astronomical Ja'fari prayer calculations, Leva Institute twilight angles, holy shrine city presets, Web Audio Shia Adhan cadence, live digital clock, and Hijri date into a standalone reusable component.
+
+2. **Top-Level Tab Dynamic Swapping (`apps/web/src/app/(public)/resources/page.tsx`)**:
+   - Conditioned the prayer tab label:
+     - Shia Mode: Displays **"Ja'fari Prayer Schedule"** and mounts `<JafariPrayerSchedule />`.
+     - Sunni Mode: Displays **"Prayer Times / Qibla"** and mounts `<PrayerTimesQibla />`.
+
+3. **Streamlined Shia Classical Library Sub-Navbar (`apps/web/src/components/ShiaToolkit.tsx`)**:
+   - Removed Ja'fari prayer timings from the sub-navbar and internal view state.
+   - Refactored sub-navbar to a clean 5-item layout:
+     1. Classical Reference Texts
+     2. Digital Tasbeeh Zahra (SA)
+     3. Duas & Ziyarat
+     4. Wudhu & Salat Ahkam
+     5. 14 Infallibles Calendar
