@@ -51,11 +51,35 @@ const INITIAL_RECEIPTS: PendingReceipt[] = [
 export default function AdminFinance() {
   const [receipts, setReceipts] = useState<PendingReceipt[]>(INITIAL_RECEIPTS);
 
-  const handleVerifyReceipt = (id: string, ref: string) => {
-    toast.success(`Payment verified for Ref: ${ref}. Subscription activated.`);
-    setReceipts((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status: "verified" } : r))
-    );
+  const handleVerifyReceipt = async (id: string, ref: string, r: PendingReceipt) => {
+    toast.loading(`Clearing payment for Ref: ${ref}...`, { id: "clear" });
+    
+    try {
+      // Fire automated transactional email via Resend endpoint
+      await fetch("/api/email/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "receipt_confirmation",
+          to: "admissions@quranlearnacademy.com",
+          recipientName: r.familyName,
+          invoiceId: `INV-2026-${id.toUpperCase()}`,
+          amount: r.amount.replace(/[^0-9.,]/g, ""),
+          currency: r.currency,
+          transactionRef: ref,
+          planName: "Family Tuition Plan (3 Days/Week)",
+          downloadUrl: `https://quranacademyapp.vercel.app/api/invoices/INV-2026-${id.toUpperCase()}/download?amount=${r.amount}&currency=${r.currency}&parent=${encodeURIComponent(r.familyName)}&ref=${ref}`,
+        }),
+      }).catch((e) => console.log("Email dispatch notify:", e));
+
+      setReceipts((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, status: "verified" } : item))
+      );
+
+      toast.success(`Payment verified for Ref: ${ref}. Confirmation email dispatched & schedule unlocked.`, { id: "clear" });
+    } catch {
+      toast.success(`Payment verified for Ref: ${ref}. Subscription activated.`, { id: "clear" });
+    }
   };
 
   const handleExport = (reportName: string) => {
@@ -175,16 +199,27 @@ export default function AdminFinance() {
                   <td className="py-4 text-right">
                     {r.status === "pending_verification" ? (
                       <button
-                        onClick={() => handleVerifyReceipt(r.id, r.transactionRef)}
+                        onClick={() => handleVerifyReceipt(r.id, r.transactionRef, r)}
                         className="bg-amber-400 hover:bg-amber-300 text-emerald-950 px-4 py-1.5 rounded-lg font-bold text-xs transition shadow-sm cursor-pointer"
                       >
                         Approve & Clear
                       </button>
                     ) : (
-                      <span className="text-xs text-emerald-400 font-bold inline-flex items-center gap-1">
-                        <CheckCircle2 size={13} />
-                        Cleared
-                      </span>
+                      <div className="flex items-center justify-end gap-2">
+                        <span className="text-xs text-emerald-400 font-bold inline-flex items-center gap-1">
+                          <CheckCircle2 size={13} />
+                          Cleared
+                        </span>
+                        <a
+                          href={`/api/invoices/INV-2026-${r.id.toUpperCase()}/download?amount=${r.amount}&currency=${r.currency}&parent=${encodeURIComponent(r.familyName)}&ref=${r.transactionRef}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs bg-white/10 hover:bg-white/20 text-white p-1.5 rounded-lg transition"
+                          title="Download Stamped Tax Receipt"
+                        >
+                          <ArrowDownToLine size={13} />
+                        </a>
+                      </div>
                     )}
                   </td>
                 </tr>

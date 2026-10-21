@@ -5,7 +5,9 @@ import {
   ClassStatusSchema,
   ProfileSchema,
   StudentDetailsSchema,
-  TeacherDetailsSchema
+  TeacherDetailsSchema,
+  TransactionalEmailSchema,
+  InvoiceRecordSchema
 } from "./index";
 
 describe("Domain Contracts & Runtime Validation Schemas", () => {
@@ -71,5 +73,78 @@ describe("Domain Contracts & Runtime Validation Schemas", () => {
     const parsed = TeacherDetailsSchema.parse(validTeacher);
     expect(parsed.gender).toBe("female");
     expect(parsed.status).toBe("pending");
+  });
+
+  it("validates Phase 3 transactional email payloads (Resend)", () => {
+    // 1. Welcome Email
+    const welcome = TransactionalEmailSchema.parse({
+      type: "welcome",
+      to: "parent@example.com",
+      studentName: "Yusuf Khan",
+      portalUrl: "https://quranacademyapp.vercel.app/student",
+    });
+    expect(welcome.type).toBe("welcome");
+
+    // 2. Class Reminder
+    const reminder = TransactionalEmailSchema.parse({
+      type: "class_reminder",
+      to: "parent@example.com",
+      studentName: "Hana Khan",
+      subject: "Noorani Qaida - Lesson 4",
+      teacherName: "Ustadha Fatima",
+      startTime: "2026-10-22T16:00:00Z",
+      classroomUrl: "https://quranacademyapp.vercel.app/classroom/demo",
+      reminderWindow: "30m",
+    });
+    expect(reminder.type).toBe("class_reminder");
+
+    // 3. Receipt Confirmation
+    const receipt = TransactionalEmailSchema.parse({
+      type: "receipt_confirmation",
+      to: "parent@example.com",
+      recipientName: "Ahmed Khan",
+      invoiceId: "INV-2026-1001",
+      amount: "65.00",
+      currency: "GBP",
+      transactionRef: "BARC-FPS-8921",
+      planName: "3 Days/Week Standard Plan",
+    });
+    expect(receipt.type).toBe("receipt_confirmation");
+
+    // 4. Invalid email should throw
+    expect(() =>
+      TransactionalEmailSchema.parse({
+        type: "welcome",
+        to: "not-an-email",
+        studentName: "Test",
+      })
+    ).toThrow();
+  });
+
+  it("validates Phase 3 multi-currency invoice records", () => {
+    const validInvoice = {
+      id: "inv_pkr_01",
+      studentId: "student_123",
+      studentName: "Yusuf Khan",
+      parentName: "Ahmed Khan",
+      packageId: "standard_3days",
+      packageName: "Standard Plan (3 Days/Week)",
+      amount: 18000,
+      currency: "PKR" as const,
+      status: "paid" as const,
+      paymentMethod: "raast" as const,
+      transactionRef: "RAAST-90218491",
+      createdAt: "2026-10-21T10:00:00Z",
+    };
+
+    const parsed = InvoiceRecordSchema.parse(validInvoice);
+    expect(parsed.currency).toBe("PKR");
+    expect(parsed.paymentMethod).toBe("raast");
+    expect(parsed.status).toBe("paid");
+
+    // Negative amount should throw
+    expect(() =>
+      InvoiceRecordSchema.parse({ ...validInvoice, amount: -100 })
+    ).toThrow();
   });
 });

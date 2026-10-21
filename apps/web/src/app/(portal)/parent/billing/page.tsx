@@ -346,13 +346,15 @@ export default function ParentBilling() {
                   </span>
                 </td>
                 <td className="py-4 text-right">
-                  <button
-                    onClick={() => toast("Downloading invoice PDF...", { icon: "📄" })}
-                    className="text-emerald-100/70 hover:text-amber-300 p-2 transition"
-                    title="Download"
+                  <a
+                    href="/api/invoices/QA-2026-10/download?amount=18000&currency=PKR&student=Yusuf+and+Hana&parent=Ahmed+Khan&ref=RAAST-89213890"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-emerald-100/70 hover:text-amber-300 p-2 transition inline-block"
+                    title="Download PDF"
                   >
                     <ArrowDownToLine size={16} />
-                  </button>
+                  </a>
                 </td>
               </tr>
 
@@ -368,13 +370,15 @@ export default function ParentBilling() {
                   </span>
                 </td>
                 <td className="py-4 text-right">
-                  <button
-                    onClick={() => toast("Downloading invoice PDF...", { icon: "📄" })}
-                    className="text-emerald-100/70 hover:text-amber-300 p-2 transition"
-                    title="Download"
+                  <a
+                    href="/api/invoices/QA-2026-09/download?amount=18000&currency=PKR&student=Yusuf+and+Hana&parent=Ahmed+Khan&ref=RAAST-77401928"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-emerald-100/70 hover:text-amber-300 p-2 transition inline-block"
+                    title="Download PDF"
                   >
                     <ArrowDownToLine size={16} />
-                  </button>
+                  </a>
                 </td>
               </tr>
             </tbody>

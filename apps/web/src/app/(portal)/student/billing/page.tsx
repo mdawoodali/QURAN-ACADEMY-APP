@@ -1,100 +1,207 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import toast from "react-hot-toast";
-import { CreditCard, X, Check, ArrowDownToLine } from "lucide-react";
+import { 
+  Building2, 
+  X, 
+  Check, 
+  ArrowDownToLine, 
+  ShieldCheck, 
+  CheckCircle2,
+  ExternalLink,
+  Receipt
+} from "lucide-react";
+
+interface StudentInvoice {
+  id: string;
+  date: string;
+  amount: string;
+  currency: string;
+  status: "Paid" | "Pending";
+  ref: string;
+  plan: string;
+}
+
+const STUDENT_INVOICES: StudentInvoice[] = [
+  { 
+    id: "INV-2026-1001", 
+    date: "1 Oct 2026", 
+    amount: "65.00", 
+    currency: "GBP", 
+    status: "Paid", 
+    ref: "BARC-FPS-8921",
+    plan: "Standard Plan (3 Days/Week)"
+  },
+  { 
+    id: "INV-2026-0901", 
+    date: "1 Sep 2026", 
+    amount: "65.00", 
+    currency: "GBP", 
+    status: "Paid", 
+    ref: "BARC-FPS-7140",
+    plan: "Standard Plan (3 Days/Week)"
+  },
+  { 
+    id: "INV-2026-0801", 
+    date: "1 Aug 2026", 
+    amount: "65.00", 
+    currency: "GBP", 
+    status: "Paid", 
+    ref: "BARC-FPS-6209",
+    plan: "Standard Plan (3 Days/Week)"
+  }
+];
 
 export default function StudentBilling() {
   const [showPlanModal, setShowPlanModal] = useState(false);
-  const [showCardModal, setShowCardModal] = useState(false);
-  const [currentPlan, setCurrentPlan] = useState("Standard • $50/mo");
+  const [currentPlan, setCurrentPlan] = useState("Standard Plan • £65/mo (3 Days/Wk)");
 
   const handleUpdatePlan = (newPlan: string) => {
     setCurrentPlan(newPlan);
     setShowPlanModal(false);
-    toast.success("Subscription plan updated!");
+    toast.success("Subscription plan updated! Your tuition ledger reflects the change.");
   };
 
-  const handleUpdateCard = (e: React.FormEvent) => {
-    e.preventDefault();
-    setShowCardModal(false);
-    toast.success("Payment method updated successfully!");
+  const handleDownloadInvoice = (inv: StudentInvoice) => {
+    toast.loading(`Generating official PDF receipt for ${inv.id}...`, { id: "download" });
+    const url = `/api/invoices/${inv.id}/download?amount=${inv.amount}&currency=${inv.currency}&student=Yusuf+Khan&parent=Ahmed+Khan&ref=${inv.ref}&plan=${encodeURIComponent(inv.plan)}`;
+    
+    setTimeout(() => {
+      window.open(url, "_blank");
+      toast.success(`Invoice ${inv.id} downloaded!`, { id: "download" });
+    }, 600);
   };
 
   return (
     <div className="p-4 md:p-8 max-w-5xl mx-auto w-full relative text-white">
+      {/* 1. Header */}
       <div className="mb-8">
-        <h1 className="text-3xl md:text-4xl font-serif text-white mb-2">Billing & Subscription</h1>
-        <p className="text-emerald-100/80 text-sm">Manage your academy plan, card on file, and download invoices.</p>
+        <div className="flex items-center gap-2 mb-1">
+          <h1 className="text-3xl md:text-4xl font-serif text-white">Billing &amp; Tuition Ledger</h1>
+          <span className="flex items-center gap-1 text-[11px] font-bold bg-emerald-950/80 text-amber-300 border border-amber-400/30 px-2.5 py-0.5 rounded-full">
+            <ShieldCheck size={12} />
+            <span>Direct Settlement Rail</span>
+          </span>
+        </div>
+        <p className="text-emerald-100/80 text-sm">
+          Manage your enrolled package, inspect cleared bank transfers, and download official stamped tax invoices.
+        </p>
       </div>
       
+      {/* 2. Top Summary Cards */}
       <div className="grid md:grid-cols-2 gap-6 mb-8">
-        {/* Current Plan Card */}
+        {/* Active Plan Card */}
         <div className="glass-container rounded-3xl p-6 md:p-8 text-white shadow-2xl relative overflow-hidden flex flex-col justify-between border border-amber-400/30">
           <div className="absolute top-0 right-0 w-48 h-48 bg-amber-400/10 rounded-full blur-3xl pointer-events-none"></div>
           <div>
             <div className="bg-amber-400/20 text-amber-300 font-bold text-[10px] tracking-widest uppercase px-3 py-1.5 rounded-full inline-block mb-4 border border-amber-400/30">
-              Current Plan
+              Active Enrolment
             </div>
-            <div className="text-3xl font-serif text-white mb-4">{currentPlan}</div>
-            <div className="text-sm text-emerald-100/80 mb-8">Next billing date: 1st Nov 2026</div>
+            <div className="text-2xl sm:text-3xl font-serif text-white mb-2">{currentPlan}</div>
+            <div className="text-xs text-emerald-200/80 mb-6">
+              Assigned Tutor: <strong className="text-white">Ustadha Fatima</strong> &bull; 12 Classes / Month
+            </div>
+            <div className="text-xs text-emerald-100/70 mb-6">
+              Next scheduled billing cycle: <strong className="text-amber-300">1st Nov 2026</strong>
+            </div>
           </div>
           <button 
             onClick={() => setShowPlanModal(true)} 
             className="bg-amber-400 text-emerald-950 px-6 py-3 rounded-full font-bold text-sm hover:bg-amber-300 transition w-full sm:w-auto self-start shadow-md cursor-pointer"
           >
-            Change Package
+            Switch Package
           </button>
         </div>
 
-        {/* Payment Method Card */}
+        {/* Payment Rail Status Card */}
         <div className="glass-container rounded-3xl p-6 md:p-8 border border-white/15 shadow-xl flex flex-col justify-between text-white">
           <div>
-            <h2 className="text-lg font-bold font-serif text-white mb-4">Payment Method</h2>
-            <div className="flex items-center gap-4 p-4 border border-white/10 rounded-2xl bg-black/30 backdrop-blur-md mb-4">
-              <div className="w-12 h-8 bg-emerald-900/80 border border-amber-400/40 rounded flex items-center justify-center text-xs font-bold text-amber-300">
-                VISA
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold font-serif text-white">Clearing Channel</h2>
+              <span className="flex items-center gap-1 text-[10px] font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                <CheckCircle2 size={11} />
+                <span>ACTIVE &bull; VERIFIED</span>
+              </span>
+            </div>
+            
+            <div className="p-4 border border-white/10 rounded-2xl bg-black/30 backdrop-blur-md mb-4">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-9 h-9 rounded-xl bg-emerald-800/80 border border-amber-400/30 flex items-center justify-center text-amber-300">
+                  <Building2 size={18} />
+                </div>
+                <div>
+                  <div className="font-bold text-white text-sm">Barclays UK Faster Payments (FPS)</div>
+                  <div className="text-xs text-emerald-100/70">Meezan Raast / Multi-Currency Hub</div>
+                </div>
               </div>
-              <div>
-                <div className="font-bold text-white">•••• •••• •••• 4242</div>
-                <div className="text-xs text-emerald-100/70">Expires 12/28</div>
+              <div className="text-xs text-emerald-100/80 font-mono mt-2 pt-2 border-t border-white/10 flex justify-between">
+                <span>Last Cleared Reference:</span>
+                <span className="text-amber-300 font-bold">BARC-FPS-8921</span>
               </div>
             </div>
           </div>
-          <button 
-            onClick={() => setShowCardModal(true)} 
-            className="text-sm font-bold text-amber-300 hover:text-amber-200 transition self-start cursor-pointer flex items-center gap-1.5"
+
+          <Link 
+            href="/payments"
+            className="text-xs font-bold text-amber-300 hover:text-amber-200 transition self-start flex items-center gap-1.5"
           >
-            <CreditCard className="w-4 h-4" />
-            <span>Update Card Details</span>
-          </button>
+            <span>View All Academy Bank Details &amp; Rails</span>
+            <ExternalLink size={13} />
+          </Link>
         </div>
       </div>
 
-      {/* Invoices */}
-      <div className="glass-container rounded-3xl p-6 md:p-8 border border-white/15 shadow-xl text-white">
-        <h2 className="text-xl font-bold font-serif text-white mb-6">Recent Invoices</h2>
+      {/* 3. Official Stamped Tax Invoices Table */}
+      <div className="glass-container rounded-3xl p-6 md:p-8 border border-white/15 shadow-xl text-white mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6">
+          <div>
+            <h2 className="text-xl font-bold font-serif text-white">Official Tax Invoices &amp; Receipts</h2>
+            <p className="text-xs text-emerald-100/70">
+              Tax-exempt educational services receipts generated via the Academy Accounts Directorate.
+            </p>
+          </div>
+          <span className="text-[11px] font-mono text-emerald-300 bg-black/40 px-3 py-1 rounded-full border border-white/10">
+            VAT/GST 0% Exempt (Sec 13-1)
+          </span>
+        </div>
+
         <div className="space-y-3">
-          {[
-            { date: "Oct 1, 2026", amount: "$50.00", status: "Paid" },
-            { date: "Sep 1, 2026", amount: "$50.00", status: "Paid" },
-            { date: "Aug 1, 2026", amount: "$50.00", status: "Paid" }
-          ].map((inv, i) => (
-            <div key={i} className="flex justify-between items-center p-4 bg-black/25 rounded-2xl border border-white/10 hover:border-white/20 transition">
-              <div>
-                <div className="font-bold text-white text-sm">{inv.date}</div>
-                <div className="text-[10px] text-emerald-300 font-bold bg-emerald-950/60 border border-emerald-500/30 inline-block px-2.5 py-0.5 rounded-full mt-1">
-                  {inv.status}
+          {STUDENT_INVOICES.map((inv) => (
+            <div 
+              key={inv.id} 
+              className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-black/25 rounded-2xl border border-white/10 hover:border-amber-400/30 transition gap-4"
+            >
+              <div className="flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-emerald-950/80 border border-white/15 flex items-center justify-center text-amber-300 shrink-0">
+                  <Receipt size={18} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-white text-sm font-mono">{inv.id}</span>
+                    <span className="text-[10px] text-emerald-300 font-bold bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                      {inv.status}
+                    </span>
+                  </div>
+                  <div className="text-xs text-emerald-100/70 mt-0.5">
+                    {inv.date} &bull; Ref: <span className="font-mono text-white/80">{inv.ref}</span>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-4">
-                <div className="font-bold text-amber-300">{inv.amount}</div>
+
+              <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
+                <div className="text-right">
+                  <span className="font-bold text-amber-300 text-base">{inv.currency} {inv.amount}</span>
+                  <span className="text-[10px] text-emerald-200/70 block">Cleared</span>
+                </div>
                 <button 
-                  onClick={() => toast('Downloading invoice PDF...', { icon: '⬇️' })} 
-                  className="text-emerald-100/70 hover:text-amber-300 transition p-2 rounded-lg hover:bg-white/10"
-                  title="Download PDF"
+                  onClick={() => handleDownloadInvoice(inv)} 
+                  className="bg-white/10 hover:bg-amber-400 hover:text-emerald-950 text-white p-2.5 rounded-xl transition cursor-pointer flex items-center gap-1.5 text-xs font-bold shadow"
+                  title="Download Stamped PDF Invoice"
                 >
-                  <ArrowDownToLine className="w-4 h-4" />
+                  <ArrowDownToLine size={15} />
+                  <span className="hidden sm:inline">PDF</span>
                 </button>
               </div>
             </div>
@@ -102,104 +209,60 @@ export default function StudentBilling() {
         </div>
       </div>
 
-      {/* Subscription Modal */}
+      {/* 4. Package Selection Modal */}
       {showPlanModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
-          <div className="bg-[#052b20] border border-white/20 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4 animate-in zoom-in-95">
+          <div className="bg-[#052b20] border border-white/20 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl text-white">
             <div className="p-6 border-b border-white/15 flex justify-between items-center">
-              <h2 className="text-2xl font-serif text-white">Choose a Package</h2>
-              <button onClick={() => setShowPlanModal(false)} className="text-white/70 hover:text-white transition">
-                <X size={24}/>
-              </button>
-            </div>
-            <div className="p-6 grid md:grid-cols-2 gap-4">
-              <div 
-                onClick={() => handleUpdatePlan("Basic • $30/mo")} 
-                className="border border-white/15 hover:border-amber-400 rounded-2xl p-6 cursor-pointer transition flex flex-col bg-black/30 hover:bg-black/50"
-              >
-                <h3 className="font-bold text-lg mb-1 text-white">Basic</h3>
-                <div className="text-2xl font-serif text-amber-300 mb-4">$30<span className="text-sm text-emerald-100/70 font-sans">/mo</span></div>
-                <ul className="text-sm text-emerald-100/80 space-y-2 mb-6 flex-1">
-                  <li className="flex gap-2 items-center"><Check size={14} className="text-amber-300"/> 2 Classes a week</li>
-                  <li className="flex gap-2 items-center"><Check size={14} className="text-amber-300"/> 30 mins each</li>
-                </ul>
-                <button className="w-full py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold text-sm transition">
-                  Select Plan
-                </button>
-              </div>
-              <div 
-                onClick={() => handleUpdatePlan("Standard • $50/mo")} 
-                className="border-2 border-amber-400/60 rounded-2xl p-6 cursor-pointer transition flex flex-col bg-black/40 relative"
-              >
-                <div className="absolute top-0 right-0 bg-amber-400 text-emerald-950 text-[10px] font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl uppercase tracking-wider">
-                  Popular
-                </div>
-                <h3 className="font-bold text-lg mb-1 text-white">Standard</h3>
-                <div className="text-2xl font-serif text-amber-300 mb-4">$50<span className="text-sm text-emerald-100/70 font-sans">/mo</span></div>
-                <ul className="text-sm text-emerald-100/80 space-y-2 mb-6 flex-1">
-                  <li className="flex gap-2 items-center"><Check size={14} className="text-amber-300"/> 3 Classes a week</li>
-                  <li className="flex gap-2 items-center"><Check size={14} className="text-amber-300"/> 45 mins each</li>
-                  <li className="flex gap-2 items-center"><Check size={14} className="text-amber-300"/> Monthly progress report</li>
-                </ul>
-                <button className="w-full py-2.5 bg-amber-400 text-emerald-950 rounded-xl font-bold text-sm hover:bg-amber-300 transition">
-                  Select Plan
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Card Modal */}
-      {showCardModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
-          <div className="bg-[#052b20] border border-white/20 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 text-white">
-            <div className="p-6 border-b border-white/15 flex justify-between items-center">
-              <h2 className="text-xl font-bold font-serif text-white">Update Payment Method</h2>
-              <button onClick={() => setShowCardModal(false)} className="text-white/70 hover:text-white transition">
-                <X size={20}/>
-              </button>
-            </div>
-            <form onSubmit={handleUpdateCard} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-emerald-100 mb-1">Card Number</label>
-                <div className="relative">
-                  <CreditCard className="absolute left-3.5 top-3.5 text-emerald-300/70" size={18} />
-                  <input 
-                    type="text" 
-                    required 
-                    placeholder="0000 0000 0000 0000" 
-                    className="w-full pl-10 pr-4 py-3 bg-black/40 border border-white/20 rounded-xl text-white placeholder:text-emerald-200/40 focus:outline-none focus:border-amber-400 transition text-sm" 
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-emerald-100 mb-1">Expiry</label>
-                  <input 
-                    type="text" 
-                    required 
-                    placeholder="MM/YY" 
-                    className="w-full px-4 py-3 bg-black/40 border border-white/20 rounded-xl text-white placeholder:text-emerald-200/40 focus:outline-none focus:border-amber-400 transition text-sm" 
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-emerald-100 mb-1">CVC</label>
-                  <input 
-                    type="text" 
-                    required 
-                    placeholder="123" 
-                    className="w-full px-4 py-3 bg-black/40 border border-white/20 rounded-xl text-white placeholder:text-emerald-200/40 focus:outline-none focus:border-amber-400 transition text-sm" 
-                  />
-                </div>
+                <h2 className="text-2xl font-serif text-white">Select Academy Package</h2>
+                <p className="text-xs text-emerald-100/70">Changes take effect on your next 1st of the month cycle.</p>
               </div>
               <button 
-                type="submit" 
-                className="w-full py-3.5 bg-amber-400 hover:bg-amber-300 text-emerald-950 rounded-xl font-bold mt-4 transition shadow-lg cursor-pointer text-sm"
+                onClick={() => setShowPlanModal(false)} 
+                className="text-white/70 hover:text-white transition p-1"
               >
-                Save Card Details
+                <X size={22}/>
               </button>
-            </form>
+            </div>
+            
+            <div className="p-6 grid md:grid-cols-2 gap-4">
+              <div 
+                onClick={() => handleUpdatePlan("Basic Plan • £45/mo (2 Days/Wk)")} 
+                className="border border-white/15 hover:border-amber-400 rounded-2xl p-6 cursor-pointer transition flex flex-col bg-black/30 hover:bg-black/50"
+              >
+                <h3 className="font-bold text-lg mb-1 text-white">Basic Plan</h3>
+                <div className="text-2xl font-serif text-amber-300 mb-4">£45<span className="text-sm text-emerald-100/70 font-sans">/mo</span></div>
+                <ul className="text-xs text-emerald-100/80 space-y-2 mb-6 flex-1">
+                  <li className="flex gap-2 items-center"><Check size={14} className="text-amber-300"/> 2 Classes a week (8 / month)</li>
+                  <li className="flex gap-2 items-center"><Check size={14} className="text-amber-300"/> 30 mins 1-on-1 session</li>
+                  <li className="flex gap-2 items-center"><Check size={14} className="text-amber-300"/> Tajweed &amp; Qaida basics</li>
+                </ul>
+                <button className="w-full py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold text-xs transition">
+                  Select Basic
+                </button>
+              </div>
+
+              <div 
+                onClick={() => handleUpdatePlan("Standard Plan • £65/mo (3 Days/Wk)")} 
+                className="border-2 border-amber-400/60 rounded-2xl p-6 cursor-pointer transition flex flex-col bg-black/40 relative shadow-lg"
+              >
+                <div className="absolute top-0 right-0 bg-amber-400 text-emerald-950 text-[10px] font-extrabold px-3 py-1 rounded-bl-xl uppercase tracking-wider">
+                  Recommended
+                </div>
+                <h3 className="font-bold text-lg mb-1 text-white">Standard Plan</h3>
+                <div className="text-2xl font-serif text-amber-300 mb-4">£65<span className="text-sm text-emerald-100/70 font-sans">/mo</span></div>
+                <ul className="text-xs text-emerald-100/80 space-y-2 mb-6 flex-1">
+                  <li className="flex gap-2 items-center"><Check size={14} className="text-amber-300"/> 3 Classes a week (12 / month)</li>
+                  <li className="flex gap-2 items-center"><Check size={14} className="text-amber-300"/> 30 mins personalized session</li>
+                  <li className="flex gap-2 items-center"><Check size={14} className="text-amber-300"/> Complete Tajweed, Hifz &amp; Qaida</li>
+                  <li className="flex gap-2 items-center"><Check size={14} className="text-amber-300"/> Monthly AI recitation assessment</li>
+                </ul>
+                <button className="w-full py-2.5 bg-amber-400 text-emerald-950 rounded-xl font-bold text-xs hover:bg-amber-300 transition">
+                  Select Standard
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

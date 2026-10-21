@@ -19,7 +19,10 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@quran/contracts": ["../../packages/contracts/src/index.ts"],
+      "@quran/adapters": ["../../packages/adapters/src/index.ts"],
+      "@quran/domain": ["../../packages/domain/src/index.ts"]
     }
   },
   "include": [
