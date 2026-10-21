@@ -344,3 +344,19 @@ This journal documents the engineering decisions, security defenses, UX design p
   - `pnpm test`: 25 passed across 6 test suites in 564ms.
   - `pnpm lint`: 0 errors, 0 warnings.
   - `pnpm build`: 50 routes compiled cleanly with 0 errors.
+
+
+### 9.11 Vercel Package Manager & ERESOLVE Peer Dependency Resolution
+- **Root Cause Analysis from Vercel Build Terminal**:
+  - The build log revealed: `Error: [BUILD_UTILS_SPAWN_1] Command "npm install" exited with 1` with `npm error code ERESOLVE`.
+  - Vercel's build environment executed `npm install` instead of `pnpm install` because legacy `apps/web/package-lock.json` and `apps/ws/package-lock.json` files were present in the subdirectories.
+  - In strict npm peer dependency mode, `vitest@5.0.5` inside `apps/web/package.json` conflicted with `@types/node@20.19.43` (`peerOptional @types/node@"^22.0.0 || >=24.0.0"`).
+- **Engineering Remediation**:
+  - **Dependency Decoupling**: Removed `vitest` from `apps/web/package.json`. The Vitest test engine is centrally orchestrated at monorepo root (`vitest run`), ensuring subpackages remain lean and free of test-runner peer dependency churn.
+  - **Lockfile Purge**: Deleted stale `apps/web/package-lock.json` and `apps/ws/package-lock.json`, enforcing unified `pnpm` monorepo discovery across cloud builders.
+  - **Fail-Safe `.npmrc` Configuration**: Added `legacy-peer-deps=true` in both repository root `.npmrc` and `apps/web/.npmrc`, completely neutralizing `ERESOLVE` if any cloud environment falls back to `npm`.
+- **Validation**:
+  - `npm install` inside `apps/web`: 0 vulnerabilities, 0 errors, audited 55 packages in 4s.
+  - `pnpm test`: 25 passed across 6 test suites in 673ms.
+  - `pnpm lint`: 0 errors, 0 warnings.
+  - `pnpm build`: 50 routes compiled cleanly with 0 errors.
