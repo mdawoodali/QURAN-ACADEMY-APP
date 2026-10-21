@@ -707,3 +707,15 @@ eceipt_uploaded, and payment_verified.
      3. Duas & Ziyarat
      4. Wudhu & Salat Ahkam
      5. 14 Infallibles Calendar
+
+
+---
+
+## 9.28 Deepgram Speech Recognition Token Verification & Integration
+- **Objective**: Configure and verify Deepgram Nova-2 Arabic speech recognition API credentials for real-time classroom voice following.
+- **Implementation**:
+  - Populated `DEEPGRAM_API_KEY` in local development environment (`apps/web/.env.local`).
+  - Added Deepgram speech token endpoint verification test in `tests/health.test.ts` asserting 200 OK, `configured: true`, model `nova-2`, and language `ar`.
+  - Live API validation executed against Deepgram's projects endpoint: confirmed active project link.
+- **Validation**:
+  - `pnpm test`: 53/53 tests passed across 11 test suites.
