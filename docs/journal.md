@@ -659,3 +659,26 @@ eceipt_uploaded, and payment_verified.
    - **8 Prayer Time Cards Grid**: Complete cards for Fajr, Sunrise, Dhuhr, Asr, Sunset, Maghrib, Isha, and Midnight (Tahajjud), with animated ping badge and golden highlight on the active next prayer.
    - **360° Rotating Qibla Compass Visualizer**: Cardinal points dial, rotating Kaaba needle, direct distance in km, and mobile `deviceorientation` sensor synchronization.
    - **Juristic & Astronomical Reference Guide**: Contextual explanations of Asr shadow factors and Qiyam al-Layl timings.
+
+---
+
+## 9.26 Shia Classical Library All-in-One Sub-Navigation Architecture
+
+### 9.26.1 Context & Objectives
+- **Requirement**: Unify all 6 Shia spiritual and classical resources together in a single, co-located sub-navigation bar under **Shia Classical Library**:
+  1. Classical Reference Texts
+  2. Digital Tasbeeh Zahra (SA)
+  3. Duas & Ziyarat
+  4. Ja'fari Prayer Schedule
+  5. Wudhu & Salat Ahkam
+  6. 14 Infallibles Calendar
+- **UI Directive**: Eliminate any outer separate tab or binary switcher for Classical Reference Texts; it must live directly alongside the spiritual tools in one unified sub-navbar.
+
+### 9.26.2 Architectural Implementation
+1. **Component-Level Unification (`apps/web/src/components/ShiaToolkit.tsx`)**:
+   - Expanded sub-tab keys to include `texts`: `"texts" | "tasbeeh" | "duas" | "prayer-times" | "ahkam" | "calendar"`.
+   - Engineered a 6-item symmetrical sub-navbar utilizing CSS grid `grid-cols-2 sm:grid-cols-3 lg:grid-cols-6`, creating balanced alignment across mobile (2x3), tablet (3x2), and desktop (6x1).
+   - Embedded classical manuscript cards (*Nahj al-Balagha*, *Al-Kafi*, *Al-Sahifa al-Sajjadiyya*, *Mafatih al-Jinan*, *Kitab al-Irshad*) with category filter pills, keyword search, in-app bilingual modal reader, and text exports.
+
+2. **Clean Resources Page Architecture (`apps/web/src/app/(public)/resources/page.tsx`)**:
+   - Streamlined the "Shia Classical Library" tab to render the unified all-in-one component directly, eliminating duplicate outer view switchers and modal boilerplate.
