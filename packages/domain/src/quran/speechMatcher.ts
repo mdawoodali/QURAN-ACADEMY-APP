@@ -66,3 +66,62 @@ export function matchSpokenTextToVerse(
 
   return null;
 }
+
+function tokenMatchesArabic(t1: string, t2: string): boolean {
+  if (t1 === t2) return true;
+  // Tolerate dagger-alif / defective alif spelling (e.g. الرحمن vs الرحمان)
+  if (t1.replace(/ا/g, "") === t2.replace(/ا/g, "")) return true;
+  if (t1.length >= 3 && (t2.includes(t1) || t1.includes(t2))) return true;
+
+  // Single character insertion/deletion/substitution tolerance
+  if (Math.abs(t1.length - t2.length) <= 1) {
+    let diff = 0;
+    let i = 0;
+    let j = 0;
+    while (i < t1.length && j < t2.length) {
+      if (t1[i] !== t2[j]) {
+        diff++;
+        if (diff > 1) break;
+        if (t1.length > t2.length) i++;
+        else if (t2.length > t1.length) j++;
+        else { i++; j++; }
+      } else {
+        i++;
+        j++;
+      }
+    }
+    diff += (t1.length - i) + (t2.length - j);
+    if (diff <= 1) return true;
+  }
+  return false;
+}
+
+export function compareRecitation(
+  spoken: string,
+  reference: string
+): { isMatch: boolean; similarity: number } {
+  const normSpoken = normalizeArabic(spoken);
+  const normRef = normalizeArabic(reference);
+  if (!normSpoken || !normRef) {
+    return { isMatch: false, similarity: 0 };
+  }
+  if (normSpoken === normRef) {
+    return { isMatch: true, similarity: 1.0 };
+  }
+
+  const spokenTokens = normSpoken.split(/\s+/).filter(Boolean);
+  const refTokens = normRef.split(/\s+/).filter(Boolean);
+
+  let matches = 0;
+  for (const token of spokenTokens) {
+    if (refTokens.some((r) => tokenMatchesArabic(token, r))) {
+      matches++;
+    }
+  }
+
+  const similarity = matches / Math.max(spokenTokens.length, refTokens.length);
+  return {
+    isMatch: similarity >= 0.7,
+    similarity: Math.round(similarity * 100) / 100,
+  };
+}

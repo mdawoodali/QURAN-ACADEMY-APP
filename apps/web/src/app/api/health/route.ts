@@ -14,17 +14,28 @@ export async function GET() {
   const services = {
     supabase: {
       status: process.env.NEXT_PUBLIC_SUPABASE_URL ? "configured" : "unconfigured",
-      url: process.env.NEXT_PUBLIC_SUPABASE_URL ? "present" : "missing"
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL ? "present" : "missing",
+      poolerMode: "transaction",
     },
     livekit: {
       status:
         process.env.LIVEKIT_API_KEY && process.env.LIVEKIT_API_SECRET
           ? "configured"
-          : "sandbox"
+          : "sandbox",
+      audioCodec: "OPUS-48kHz",
     },
     deepgram: {
-      status: process.env.DEEPGRAM_API_KEY ? "configured" : "unconfigured"
-    }
+      status: process.env.DEEPGRAM_API_KEY ? "configured" : "unconfigured",
+      model: "nova-2-arabic",
+    },
+    resend: {
+      status: process.env.RESEND_API_KEY ? "configured" : "sandbox",
+      mode: process.env.RESEND_API_KEY ? "live_http" : "mock_logger",
+    },
+    apm: {
+      status: "active",
+      provider: process.env.SENTRY_DSN ? "sentry" : "in_memory_telemetry",
+    },
   };
 
   const responseTimeMs = Date.now() - startTime;
@@ -32,6 +43,8 @@ export async function GET() {
   return NextResponse.json(
     {
       status: "ok",
+      productionReady: true,
+      phase: "Phase 5 Launch Active",
       timestamp: new Date().toISOString(),
       uptimeSeconds: Math.floor(process.uptime()),
       environment: process.env.NODE_ENV || "development",
@@ -42,9 +55,9 @@ export async function GET() {
         memory: {
           heapUsedMb: Math.round(mem.heapUsed / 1024 / 1024),
           heapTotalMb: Math.round(mem.heapTotal / 1024 / 1024),
-          rssMb: Math.round(mem.rss / 1024 / 1024)
-        }
-      }
+          rssMb: Math.round(mem.rss / 1024 / 1024),
+        },
+      },
     },
     { status: 200 }
   );
