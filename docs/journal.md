@@ -437,3 +437,35 @@ This journal documents the engineering decisions, security defenses, UX design p
   - `pnpm test`: 25 passed across 6 test suites.
   - `pnpm lint`: 0 errors, 0 warnings.
   - `pnpm typecheck`: 0 type errors.
+
+
+### 9.17 Phase 1 Complete: Full Portal Harmonization, Missing Routes Built, Zero-Stripe Direct Wire & Raast Billing Engine, and Dark Islamic Glassmorphism
+- **Context & Defect Analysis**:
+  - **Missing 404 Routes**: In `Sidebar.tsx`, Parent and Teacher portals linked to routes that previously did not exist on disk, resulting in 404s:
+    - `/parent/classes`: Missing parent class overview and silent observer mode entry.
+    - `/parent/progress`: Missing multi-child academic progress and syllabus tracking.
+    - `/teacher/schedule`: Missing weekly teacher slot availability grid and booking toggles.
+  - **Theme Clashing**: Legacy portal pages (`/parent`, `/parent/billing`, `/teacher`, `/teacher/students`, `/teacher/earnings`, `/admin`, `/admin/enrolments`, `/admin/finance`, `/admin/scheduling`, `/admin/teachers`, `/companion`) rendered light-gray boxes (`bg-white text-gray-900 border-gray-100 bg-[#D1EBE1]`), clashing severely with the dark emerald backdrop of `PortalLayoutClient`.
+  - **Stripe Residue in Billing**: Legacy billing views attempted simulated card charges without reflecting the zero-Stripe multi-currency direct wire & Raast invoice settlement model.
+- **Engineering Remediation**:
+  - **Created Missing Pages**:
+    - Created `apps/web/src/app/(portal)/parent/classes/page.tsx`: Full family schedule view (Yusuf & Hana), child filter tabs, live lesson topic display, and "Join as Silent Observer" mode with anonymous safeguarding badges.
+    - Created `apps/web/src/app/(portal)/parent/progress/page.tsx`: Child switcher tabs, circular mastery gauges, Sabaq/Sabqi/Manzil triad breakdown, teacher notes history, and PDF report export.
+    - Created `apps/web/src/app/(portal)/teacher/schedule/page.tsx`: 6-day interactive time grid (16:00 to 18:00 PKT), visual distinctions for booked vs available vs blocked slots, one-click availability toggle with toast feedback, and weekly teaching volume statistics.
+  - **Harmonized Portals to Dark Islamic Glassmorphism**:
+    - `parent/page.tsx`: Updated family hub cards to `glass-container`, `border-white/15`, `text-white`, `text-amber-300`, and added direct links to the new classes and progress hubs.
+    - `parent/billing/page.tsx`: Engineered multi-currency direct wire & Raast settlement center (PKR Meezan/Raast, GBP Barclays FPS, USD Chase ACH, EUR Wise SEPA), one-click copy to clipboard, digital receipt screenshot upload with UTR validation, and invoice ledger.
+    - `teacher/page.tsx`: Upgraded to dark emerald hero cards with next class countdown, Qaida lesson topic display, start classroom action, and symmetrical sub-navigation bar.
+    - `teacher/students/page.tsx`: Built interactive two-column student roster and lesson notes timeline with searchable filter and modal for logging new lesson feedback and assigned homework.
+    - `teacher/earnings/page.tsx`: Built transparent compensation ledger calculated per 30-min completed class (PKR 500/class), monthly payout status tracking, and verified bank account credentials.
+    - `admin/page.tsx`: Upgraded executive operational cockpit with live student/teacher/class volume KPIs, weekly distribution bar chart, and urgent action queue.
+    - `admin/enrolments/page.tsx`: Upgraded trial and placement pipeline with teacher-matching actions and status progression badges.
+    - `admin/finance/page.tsx`: Built Direct Wire & Raast receipt verification queue enabling administrators to verify UTR references and approve student subscriptions, alongside exportable financial audit reports.
+    - `admin/scheduling/page.tsx`: Modernized master academy calendar to dark glassmorphism while preserving database persistence and RLS verification.
+    - `admin/teachers/page.tsx`: Modernized teacher vetting desk and audit register with server action approval workflow.
+    - `companion/page.tsx`: Replaced static placeholder with the full astronomical `ShiaToolkit` suite (Ja'fari prayer engine, Qibla compass, Digital Tasbeeh, Duas/Ziyarat).
+- **Validation**:
+  - `pnpm test`: 25 passed across 6 test suites in 409ms.
+  - `pnpm typecheck`: 0 type errors.
+  - `pnpm lint`: 0 errors, 0 warnings.
+  - `pnpm build`: Next.js 16.4.0 (Turbopack) successfully compiled and prerendered all 53 routes in 10.8s.
