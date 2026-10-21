@@ -308,3 +308,11 @@ This journal documents the engineering decisions, security defenses, UX design p
 - **Branded Suspense Skeleton**: Added `apps/web/src/app/classroom/[id]/loading.tsx` ensuring zero layout shift while the Mushaf board initializes.
 - **Double-Booking Database Exclusion**: Added unique partial index `idx_prevent_teacher_double_booking` on `class_sessions (teacher_id, start_time) WHERE status IN ('scheduled', 'live')`, preventing race conditions and overlapping booking collisions at the database level.
 - **Comprehensive Edge Case Testing**: Added test cases in `apps/web/src/features/classroom/classroom.test.ts` for empty strings, nullish inputs, non-Arabic punctuation, and complex diacritics. Suite now runs 25 automated tests with 100% green pass rate.
+
+
+### 9.8 Production Cloud Build Alignment (Vercel Build Gate Rectification)
+- **Elimination of App-Directory Test Pollution**: Relocated test files out of `apps/web/src/app/api/health/` and `apps/web/src/features/classroom/` into dedicated root `tests/` directory (`tests/classroom.test.ts`, `tests/health.test.ts`), preventing Next.js App Router route discovery collisions during cloud production bundling.
+- **Client Boundary Enforcement**: Injected `"use client";` into `apps/web/src/features/classroom/index.ts` barrel export to prevent SSR/CSR boundary chunking regressions.
+- **Standardized Prisma Schema Index Syntax**: Replaced non-standard `(sort: Desc)` modifier with universal standard `@@index([actorId, createdAt])` and `@@index([action, createdAt])` in `apps/web/prisma/schema.prisma` to eliminate schema engine parse errors across diverse cloud environments.
+- **Next.js TypeScript Isolation**: Configured `apps/web/tsconfig.json` to explicitly exclude all test files (`**/*.test.ts`, `**/*.spec.ts`, `tests`) from Next.js bundle generation while maintaining full test coverage in Vitest. Added `vitest` dependency in `apps/web/package.json` for isolated subproject builds.
+- **Verification**: 25 tests passing in Vitest, 0 ESLint warnings, 0 errors, and clean Next.js 50-route production build.

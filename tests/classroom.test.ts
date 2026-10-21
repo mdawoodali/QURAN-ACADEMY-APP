@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { splitArabicWord, normalizeArabic, SCRIPT_DATA } from "./constants";
+import { splitArabicWord, normalizeArabic, SCRIPT_DATA } from "@/features/classroom/constants";
 
 describe("Classroom Arabic Parsing & Normalization Engine", () => {
   it("correctly decomposes Arabic words with harakat into distinct letter graphemes", () => {

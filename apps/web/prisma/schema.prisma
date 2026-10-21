@@ -126,8 +126,8 @@ model AuditLog {
   createdAt  DateTime @default(now()) @map("created_at")
 
   @@index([entityType, entityId])
-  @@index([actorId, createdAt(sort: Desc)])
-  @@index([action, createdAt(sort: Desc)])
+  @@index([actorId, createdAt])
+  @@index([action, createdAt])
   @@map("audit_logs")
 }
 

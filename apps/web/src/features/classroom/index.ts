@@ -1,3 +1,5 @@
+"use client";
+
 export * from "./types";
 export * from "./constants";
 export { default as ClassroomHeader } from "./components/ClassroomHeader";
