@@ -736,3 +736,11 @@ eceipt_uploaded, and payment_verified.
 - Built responsive category filter pills (`All Resources`, `Tajweed & Guides`, `Daily Masnoon Duas`, `Duas & Ziyarat`).
 - Implemented real-time search filtering simultaneously across both educational guides and sacred supplications.
 - Built interactive in-app recitation reader modal with verse-by-verse typography, English transliteration, translation, one-click clipboard copying, and offline `.txt` download.
+
+### 9.28.4 Shia Classical Library Sub-Navbar Decoupling
+- Decoupled `duas` from `ShiaToolkit`'s sub-navbar and internal view state.
+- Formatted the remaining sub-navbar into a balanced 4-item grid (`grid-cols-2 lg:grid-cols-4`):
+  1. Classical Reference Texts
+  2. Digital Tasbeeh Zahra (SA)
+  3. Wudhu & Salat Ahkam
+  4. 14 Infallibles Calendar

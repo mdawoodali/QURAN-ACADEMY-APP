@@ -11,7 +11,6 @@ import {
 import toast from "react-hot-toast";
 import { SHIA_LIBRARY_BOOKS, ShiaBook, ShiaBookSection } from "@/data/shiaLibrary";
 import { 
-  SHIA_DUAS_ZIYARAT, ShiaDua, 
   SHIA_AHKAM_GUIDES,
   MASOOMEEN_CALENDAR,
   SHIA_PRAYER_METHOD_INFO
@@ -26,11 +25,13 @@ import {
 } from "@/lib/prayerMath";
 
 interface ShiaToolkitProps {
-  initialTab?: "texts" | "tasbeeh" | "duas" | "ahkam" | "calendar";
+  initialTab?: "texts" | "tasbeeh" | "ahkam" | "calendar";
 }
 
 export default function ShiaToolkit({ initialTab = "texts" }: ShiaToolkitProps) {
-  const [activeSubTab, setActiveSubTab] = useState<"texts" | "tasbeeh" | "duas" | "ahkam" | "calendar">(initialTab);
+  const [activeSubTab, setActiveSubTab] = useState<"texts" | "tasbeeh" | "ahkam" | "calendar">(
+    initialTab === ("duas" as unknown) ? "texts" : initialTab
+  );
   // -------------------------------------------------------------
   // 0. CLASSICAL REFERENCE TEXTS STATE
   // -------------------------------------------------------------
@@ -250,73 +251,7 @@ https://quranlearnacademy.com/resources
     setFatimaPhase(0);
   };
 
-  // -------------------------------------------------------------
-  // 2. DUAS & ZIYARAT READER MODAL STATE
-  // -------------------------------------------------------------
-  const [selectedDua, setSelectedDua] = useState<ShiaDua | null>(null);
-  const [duaSearch, setDuaSearch] = useState("");
 
-  const filteredDuas = useMemo(() => {
-    const q = duaSearch.toLowerCase();
-    return SHIA_DUAS_ZIYARAT.filter(d => 
-      d.title.toLowerCase().includes(q) ||
-      d.arabicTitle.includes(q) ||
-      d.shortDesc.toLowerCase().includes(q) ||
-      d.occasion.toLowerCase().includes(q)
-    );
-  }, [duaSearch]);
-
-  const handleCopyDua = (dua: ShiaDua) => {
-    const text = `${dua.title} (${dua.arabicTitle})\nSource: ${dua.source}\n\n` +
-      dua.paragraphs.map((p, i) => `[${i+1}]\nArabic: ${p.arabic}\nTransliteration: ${p.transliteration}\nTranslation: ${p.translation}`).join("\n\n");
-    navigator.clipboard.writeText(text);
-    setCopiedId(dua.id);
-    setTimeout(() => setCopiedId(null), 2500);
-    toast.success("Copied to clipboard!");
-  };
-
-  const handleDownloadDua = (dua: ShiaDua) => {
-    const content = `======================================================
-QURAN LEARN ACADEMY — SHIA TOOLKIT
-${dua.title.toUpperCase()} (${dua.arabicTitle})
-Source: ${dua.source}
-Occasion: ${dua.occasion}
-======================================================
-
-${dua.fullDesc}
-
-======================================================
-RECITATION (ARABIC, TRANSLITERATION & TRANSLATION):
-======================================================
-
-${dua.paragraphs.map((p, i) => `
-[${i + 1}]
-ARABIC:
-${p.arabic}
-
-TRANSLITERATION:
-${p.transliteration}
-
-TRANSLATION:
-${p.translation}
-------------------------------------------------------`).join("\n")}
-
-======================================================
-Downloaded from Quran Learn Academy Shia Toolkit
-https://quranlearnacademy.com/resources
-======================================================`;
-
-    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${dua.slug}-shia-toolkit.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast.success(`Downloaded ${dua.title}`);
-  };
 
   // -------------------------------------------------------------
   // 3. ASTRONOMICAL SHIA JA'FARI PRAYER TIMES ENGINE
@@ -476,21 +411,18 @@ https://quranlearnacademy.com/resources
 
   return (
     <div className="w-full">
-      {/* UNIFIED 5-ITEM SUB-NAVBAR */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mb-8 bg-black/40 border border-white/10 p-2 rounded-2xl backdrop-blur-md max-w-5xl mx-auto shadow-xl">
+      {/* UNIFIED 4-ITEM SUB-NAVBAR (Duas & Ziyarat integrated into Daily guides and Duas) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-8 bg-black/40 border border-white/10 p-2 rounded-2xl backdrop-blur-md max-w-5xl mx-auto shadow-xl">
         {[
           { key: "texts", label: "Classical Reference Texts", icon: Library },
           { key: "tasbeeh", label: "Digital Tasbeeh Zahra (SA)", icon: Heart },
-          { key: "duas", label: "Duas & Ziyarat", icon: BookOpen },
           { key: "ahkam", label: "Wudhu & Salat Ahkam", icon: Shield },
           { key: "calendar", label: "14 Infallibles Calendar", icon: Calendar },
-        ].map(({ key, label, icon: Icon }, idx) => (
+        ].map(({ key, label, icon: Icon }) => (
           <button
             key={key}
             onClick={() => setActiveSubTab(key as typeof activeSubTab)}
             className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer text-center ${
-              idx === 4 ? "col-span-2 sm:col-span-1" : ""
-            } ${
               activeSubTab === key
                 ? "bg-amber-400 text-emerald-950 shadow-md scale-[1.02]"
                 : "text-emerald-100/80 hover:text-white hover:bg-white/10"
@@ -752,63 +684,6 @@ https://quranlearnacademy.com/resources
         </div>
       )}
 
-      {/* ========================================================= */}
-      {/* 2. DUAS & ZIYARAT TAB                                     */}
-      {/* ========================================================= */}
-      {activeSubTab === "duas" && (
-        <div>
-          {/* Search Bar */}
-          <div className="max-w-xl mx-auto mb-8 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-200/50" size={18} />
-            <input
-              type="text"
-              value={duaSearch}
-              onChange={(e) => setDuaSearch(e.target.value)}
-              placeholder="Search Ziyarat Ashura, Dua Kumayl, Tawassul, Ahad..."
-              className="w-full bg-black/40 border border-white/20 rounded-2xl pl-12 pr-4 py-3 text-sm text-white placeholder:text-emerald-200/40 focus:outline-none focus:border-amber-400 backdrop-blur-md"
-            />
-          </div>
-
-          {/* Duas Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredDuas.map((dua) => (
-              <motion.div
-                key={dua.id}
-                whileHover={{ y: -4 }}
-                className="bg-gradient-to-b from-[#032219]/90 to-[#021811]/90 border border-white/10 rounded-2xl p-6 flex flex-col justify-between hover:border-amber-400/40 transition-all shadow-xl"
-              >
-                <div>
-                  <div className="flex items-center justify-between text-xs text-amber-300 font-bold mb-3">
-                    <span className="bg-amber-400/10 px-2.5 py-1 rounded-md border border-amber-400/20">{dua.occasion}</span>
-                    <span className="font-arabic text-lg">{dua.arabicTitle}</span>
-                  </div>
-
-                  <h3 className="text-xl font-serif font-bold text-white mb-1.5">{dua.title}</h3>
-                  <p className="text-xs text-emerald-200/60 mb-3">{dua.source}</p>
-                  <p className="text-xs text-emerald-100/80 leading-relaxed mb-6 font-light">{dua.shortDesc}</p>
-                </div>
-
-                <div className="pt-4 border-t border-white/10 flex items-center justify-between gap-2">
-                  <button
-                    onClick={() => setSelectedDua(dua)}
-                    className="flex-1 bg-amber-400 hover:bg-amber-300 text-emerald-950 px-4 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all"
-                  >
-                    <BookOpen size={14} />
-                    <span>Read Recitation</span>
-                  </button>
-                  <button
-                    onClick={() => handleDownloadDua(dua)}
-                    className="bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-xl transition-all"
-                    title="Download Offline Text"
-                  >
-                    <Download size={14} />
-                  </button>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* ========================================================= */}
       {/* 4. SHIA AHKAM COMPANION TAB                               */}
@@ -904,94 +779,6 @@ https://quranlearnacademy.com/resources
         </div>
       )}
 
-      {/* ========================================================= */}
-      {/* IN-APP DUA RECITATION MODAL                               */}
-      {/* ========================================================= */}
-      <AnimatePresence>
-        {selectedDua && (
-          <div className="fixed inset-0 z-[120] bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              className="bg-[#021811] border border-amber-400/40 rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden"
-            >
-              {/* Modal Header */}
-              <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between bg-black/40">
-                <div>
-                  <div className="flex items-center gap-2 text-xs font-bold text-amber-300 uppercase tracking-wider mb-1">
-                    <span>{selectedDua.occasion}</span>
-                    <span>•</span>
-                    <span>{selectedDua.source}</span>
-                  </div>
-                  <h3 className="text-2xl font-serif font-bold text-white flex items-center gap-3">
-                    <span>{selectedDua.title}</span>
-                    <span className="font-arabic text-amber-300 text-xl font-normal">({selectedDua.arabicTitle})</span>
-                  </h3>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleCopyDua(selectedDua)}
-                    className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all"
-                    title="Copy Text"
-                  >
-                    {copiedId === selectedDua.id ? <Check size={16} className="text-emerald-400" /> : <Copy size={16} />}
-                  </button>
-                  <button
-                    onClick={() => handleDownloadDua(selectedDua)}
-                    className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all"
-                    title="Download Offline Text"
-                  >
-                    <Download size={16} />
-                  </button>
-                  <button
-                    onClick={() => setSelectedDua(null)}
-                    className="p-2.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-200 transition-all cursor-pointer"
-                  >
-                    <X size={18} />
-                  </button>
-                </div>
-              </div>
-
-              {/* Modal Body */}
-              <div className="p-6 overflow-y-auto space-y-8 flex-1 text-left">
-                {/* Introduction */}
-                <div className="bg-black/30 border border-white/10 rounded-2xl p-4 text-xs text-emerald-100/90 leading-relaxed">
-                  <strong className="text-amber-300 block mb-1">Spiritual Merits & Background:</strong>
-                  {selectedDua.fullDesc}
-                </div>
-
-                {/* Paragraphs */}
-                {selectedDua.paragraphs.map((p, idx) => (
-                  <div key={idx} className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
-                    <div className="flex items-center justify-between text-xs text-amber-400/70 border-b border-white/5 pb-2">
-                      <span className="font-mono">Verse {idx + 1} of {selectedDua.paragraphs.length}</span>
-                    </div>
-
-                    {/* Arabic Text */}
-                    <div className="text-right font-arabic text-2xl sm:text-3xl text-amber-300 leading-[2.2] font-semibold" dir="rtl">
-                      {p.arabic}
-                    </div>
-
-                    {/* Transliteration */}
-                    <div className="text-xs sm:text-sm text-sky-200/90 italic font-sans leading-relaxed border-t border-white/5 pt-2">
-                      <strong className="text-white/60 not-italic block text-[11px] uppercase mb-0.5">Transliteration:</strong>
-                      {p.transliteration}
-                    </div>
-
-                    {/* Translation */}
-                    <div className="text-xs sm:text-sm text-emerald-100/90 leading-relaxed font-sans border-t border-white/5 pt-2">
-                      <strong className="text-amber-300 block text-[11px] uppercase mb-0.5">English Translation:</strong>
-                      {p.translation}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
       {/* ========================================================= */}
       {/* IN-APP READER MODAL FOR SHIA REFERENCE BOOKS              */}
