@@ -245,6 +245,7 @@ export default function BlogPage() {
             <div>
               {/* Featured Image */}
               <div className="relative w-full h-52 overflow-hidden bg-emerald-950/80">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={post.image}
                   alt={post.title}
@@ -321,6 +322,7 @@ export default function BlogPage() {
             </button>
 
             <div className="w-full h-64 rounded-2xl overflow-hidden mb-6 bg-emerald-950">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={activeArticle.image}
                 alt={activeArticle.title}

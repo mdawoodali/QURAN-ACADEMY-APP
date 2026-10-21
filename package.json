@@ -9,13 +9,15 @@
     "dev:all": "pnpm -r --parallel dev",
     "build": "pnpm --filter frontend build",
     "lint": "pnpm --filter frontend lint",
+    "test": "vitest run",
     "typecheck": "pnpm --filter frontend exec tsc --noEmit",
     "gen:feature": "node scripts/gen-feature.js",
     "check:arch": "echo 'Architecture validated'"
   },
   "devDependencies": {
     "dependency-cruiser": "^15.5.0",
-    "eslint-plugin-security": "^3.0.0"
+    "eslint-plugin-security": "^3.0.0",
+    "vitest": "^5.0.5"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

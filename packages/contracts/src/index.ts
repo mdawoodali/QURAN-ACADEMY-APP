@@ -73,3 +73,31 @@ export const LessonNoteSchema = z.object({
   created_at: z.string().datetime().optional(),
 });
 export type LessonNote = z.infer<typeof LessonNoteSchema>;
+
+/**
+ * Real-Time Synchronized Classroom Event Contracts
+ */
+export const ClassroomEventSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("highlight"),
+    index: z.number().nullable(),
+  }),
+  z.object({
+    type: z.literal("split"),
+    index: z.number(),
+  }),
+  z.object({
+    type: z.literal("close_split"),
+  }),
+  z.object({
+    type: z.literal("tool_sync"),
+    state: z.record(z.string(), z.unknown()),
+  }),
+  z.object({
+    type: z.literal("ping"),
+  }),
+  z.object({
+    type: z.literal("pong"),
+  }),
+]);
+export type ClassroomEvent = z.infer<typeof ClassroomEventSchema>;

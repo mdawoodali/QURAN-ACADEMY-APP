@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, Phone, Mail, MapPin, Send } from "lucide-react";
+import Image from "next/image";
+import { Phone, Mail, MapPin, Send } from "lucide-react";
 import { useLanguage } from "./LanguageContext";
 
 export default function Footer() {
@@ -91,9 +92,11 @@ export default function Footer() {
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-3 group">
               <div className="relative w-11 h-11 shrink-0 drop-shadow-md transition-transform duration-200 group-hover:scale-105">
-                <img 
+                <Image 
                   src="/logo_quran_learn_academy.png" 
                   alt="Quran Learn Academy Logo" 
+                  width={44}
+                  height={44}
                   className="w-full h-full object-contain"
                 />
               </div>

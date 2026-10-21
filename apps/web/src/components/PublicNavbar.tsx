@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { BookOpen, Menu, X, Mail } from "lucide-react";
-import { useLanguage } from "./LanguageContext";
+import Image from "next/image";
+import { Menu, X, Mail } from "lucide-react";
+import { useLanguage, TranslationKey } from "./LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function PublicNavbar() {
@@ -127,10 +128,13 @@ export default function PublicNavbar() {
             title="Quran Learn Academy"
           >
             <div className="relative w-13 h-13 sm:w-14 sm:h-14 lg:w-16 lg:h-16 shrink-0 drop-shadow-[0_4px_12px_rgba(0,0,0,0.45)] transition-transform duration-200 group-hover:scale-105">
-              <img 
+              <Image 
                 src="/logo_quran_learn_academy.png" 
                 alt="Quran Learn Academy Logo" 
+                width={64}
+                height={64}
                 className="w-full h-full object-contain"
+                priority
               />
             </div>
           </Link>
@@ -154,7 +158,7 @@ export default function PublicNavbar() {
                 href={href}
                 className="group relative py-2 hover:text-amber-300 transition-colors duration-200 flex flex-col items-center"
               >
-                <span>{t(key as any)}</span>
+                <span>{t(key as TranslationKey)}</span>
 
                 {/* Ornamental expanding line: originates from center and extends left and right with amber bead accent */}
                 <span className="absolute bottom-0 left-0 right-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200">

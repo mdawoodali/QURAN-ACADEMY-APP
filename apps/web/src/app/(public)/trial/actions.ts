@@ -18,7 +18,7 @@ const TrialSchema = z.object({
   address: z.string().min(1)
 });
 
-export async function submitTrialRegistration(rawData: Record<string, any>) {
+export async function submitTrialRegistration(rawData: Record<string, unknown>) {
   const supabase = await createClient()
 
   try {

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useLanguage } from "@/components/LanguageContext";
+import { useLanguage, TranslationKey } from "@/components/LanguageContext";
 import WelcomeSplash from "@/components/WelcomeSplash";
 import TestimonialsCarousel from "@/components/TestimonialsCarousel";
 
@@ -102,9 +102,9 @@ export default function Home() {
         {/* Trust Cards with Ornamental Expanding Line Effect on Hover */}
         <section className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 pb-8 sm:pb-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 sm:gap-6">
           {[
-            { titleKey: "trust1Title", descKey: "trust1Desc", colSpan: "" },
-            { titleKey: "trust2Title", descKey: "trust2Desc", colSpan: "" },
-            { titleKey: "trust3Title", descKey: "trust3Desc", colSpan: "sm:col-span-2 md:col-span-1" },
+            { titleKey: "trust1Title" as TranslationKey, descKey: "trust1Desc" as TranslationKey, colSpan: "" },
+            { titleKey: "trust2Title" as TranslationKey, descKey: "trust2Desc" as TranslationKey, colSpan: "" },
+            { titleKey: "trust3Title" as TranslationKey, descKey: "trust3Desc" as TranslationKey, colSpan: "sm:col-span-2 md:col-span-1" },
           ].map(({ titleKey, descKey, colSpan }, i) => (
             <div 
               key={i} 
@@ -112,10 +112,10 @@ export default function Home() {
             >
               <div>
                 <h4 className="font-bold text-amber-300 mb-2 text-base group-hover:text-amber-200 transition-colors">
-                  {t(titleKey as any)}
+                  {t(titleKey)}
                 </h4>
                 <p className="text-xs sm:text-sm text-emerald-100/80 leading-relaxed">
-                  {t(descKey as any)}
+                  {t(descKey)}
                 </p>
               </div>
 

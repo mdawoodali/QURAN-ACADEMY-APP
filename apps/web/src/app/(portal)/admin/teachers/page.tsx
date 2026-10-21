@@ -1,5 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
-import { approveTeacher, rejectTeacher } from './actions'
+import { approveTeacher } from './actions'
 import { connection } from 'next/server'
 
 export default async function AdminTeachers() {
@@ -7,7 +7,7 @@ export default async function AdminTeachers() {
   const supabase = await createClient()
 
   // Fetch all teachers with their profiles
-  const { data: teachers, error } = await supabase
+  const { data: teachers } = await supabase
     .from('teacher_details')
     .select(`
       *,

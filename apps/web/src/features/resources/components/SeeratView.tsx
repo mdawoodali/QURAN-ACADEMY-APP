@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { BookOpen, Calendar, Clock, ChevronRight, X, Printer, Download, Sparkles, Share2 } from "lucide-react";
+import { BookOpen, Clock, ChevronRight, X, Download, Sparkles } from "lucide-react";
 import { SEERAT_CHAPTERS, SeeratChapter } from "@/data/seeratData";
 import toast from "react-hot-toast";
 
@@ -28,7 +28,7 @@ KEY HISTORICAL EVENTS:
 ${ch.keyEvents.map((e, i) => `  [${i + 1}] ${e}`).join("\n")}
 
 SPIRITUAL & MORAL LESSONS:
-${ch.lessons.map((l, i) => `  * ${l}`).join("\n")}
+${ch.lessons.map((l) => `  * ${l}`).join("\n")}
 
 COMPLETE HISTORICAL NARRATIVE:
 ${ch.fullNarrative}

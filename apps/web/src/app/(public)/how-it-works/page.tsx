@@ -5,7 +5,7 @@ import { ArrowRight, Calendar, CreditCard, Laptop } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 
 export default function HowItWorksPage() {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
 
   return (
     <main className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 py-8 md:py-12 min-h-[calc(100vh-5rem)] flex flex-col justify-center">

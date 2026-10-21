@@ -21,7 +21,7 @@ async function handleTokenRequest(req: NextRequest) {
       if (body.room) room = body.room;
       if (body.username) username = body.username;
       if (body.role) role = body.role;
-    } catch (e) {}
+    } catch {}
   }
 
   const apiKey = process.env.LIVEKIT_API_KEY;
@@ -70,10 +70,11 @@ async function handleTokenRequest(req: NextRequest) {
       mode: "live",
       message: "LiveKit token generated successfully for multi-user WebRTC room."
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("LiveKit token generation error:", error);
+    const message = error instanceof Error ? error.message : "LiveKit error";
     return NextResponse.json(
-      { error: "Failed to generate LiveKit room token", details: error.message },
+      { error: "Failed to generate LiveKit room token", details: message },
       { status: 500 }
     );
   }

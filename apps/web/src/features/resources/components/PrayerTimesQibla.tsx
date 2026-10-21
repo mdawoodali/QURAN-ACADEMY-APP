@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Compass, MapPin, Clock, Calendar, Navigation, RefreshCw, Sun, Moon, Sunrise, Sunset } from "lucide-react";
+import { Compass, MapPin, Clock, Navigation, Sun, Moon, Sunrise, Sunset } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface CityLocation {
@@ -177,7 +177,7 @@ export default function PrayerTimesQibla() {
         });
         toast.success("Location updated successfully!");
       },
-      (err) => {
+      () => {
         setIsDetectingLocation(false);
         toast.error("Could not obtain location. Please select a city.");
       },

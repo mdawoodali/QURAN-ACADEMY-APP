@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { BookOpen, CheckCircle } from "lucide-react";
 import { useLanguage } from "./LanguageContext";
@@ -20,7 +21,7 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
     if (typeof window !== "undefined") {
       try {
         localStorage.setItem("user_sect", sect);
-      } catch (e) {
+      } catch {
         // safe fallback
       }
     }
@@ -101,10 +102,13 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
 
           {/* Logo container with enlarged scale */}
           <div className="relative w-36 h-36 sm:w-48 sm:h-48 md:w-56 md:h-56 lg:w-64 lg:h-64 drop-shadow-[0_20px_40px_rgba(0,0,0,0.85)] hover:scale-105 transition-transform duration-300">
-            <img
+            <Image
               src="/logo_quran_learn_academy.png"
               alt="Quran Learn Academy Logo"
+              width={256}
+              height={256}
               className="w-full h-full object-contain filter drop-shadow-[0_0_28px_rgba(251,191,36,0.42)] drop-shadow-[0_6px_20px_rgba(0,0,0,0.9)]"
+              priority
             />
           </div>
         </motion.div>

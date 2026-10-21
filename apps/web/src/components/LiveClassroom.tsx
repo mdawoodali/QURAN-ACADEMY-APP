@@ -29,6 +29,27 @@ const PHONETIC_MAP: Record<number, string[]> = {
   3: ["alameen", "alalamin", "al-alameen", "aalamin", "alamin", "al-ʿālamīn", "العالمين", "عالمين"]
 };
 
+function LetterPracticeTray({ wordIndex, words }: { wordIndex: number | null; words: string[] }) {
+  if (wordIndex === null || !words[wordIndex]) return null;
+  const word = words[wordIndex]!;
+  const letters = splitArabicWord(word);
+  return (
+    <div className="mt-4 bg-emerald-50 rounded-2xl p-3 md:p-4 border border-emerald-100 animate-in fade-in shadow-inner w-full max-w-lg mx-auto">
+      <div className="flex justify-between items-center mb-2">
+        <div className="text-[10px] md:text-xs font-bold text-emerald-800 tracking-widest uppercase">Letter Practice (Huroof Breakdown)</div>
+        <div className="text-emerald-700 text-sm font-bold">{word}</div>
+      </div>
+      <div className="flex justify-center gap-2 md:gap-3 flex-row-reverse flex-wrap" dir="rtl">
+        {letters.map((letter, i) => (
+          <div key={i} className="bg-white border-2 border-emerald-200 rounded-xl w-10 h-12 md:w-12 md:h-14 flex items-center justify-center text-xl md:text-2xl font-quran text-[#0C4A3A] shadow-xs hover:scale-110 transition cursor-pointer">
+            {letter}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const SCRIPT_DATA = {
   uthmani: [
     { word: "ٱلْحَمْدُ", tajweed: "Izhar Qamari", type: "none" },
@@ -51,7 +72,7 @@ export default function LiveClassroom() {
   
   const [script, setScript] = useState<"uthmani" | "indopak">("uthmani");
   const [tajweedMode, setTajweedMode] = useState<boolean>(true);
-  const [surahName, setSurahName] = useState("Al-Fatihah");
+  const [surahName] = useState("Al-Fatihah");
   
   const currentWords = SCRIPT_DATA[script].map(item => item.word);
   
@@ -68,7 +89,7 @@ export default function LiveClassroom() {
   const isVoiceFollowOnRef = useRef(false);
   const [lastSpokenText, setLastSpokenText] = useState("");
   const [voiceError, setVoiceError] = useState<string | null>(null);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<{ start: () => void; stop: () => void } | null>(null);
 
   // Camera state
   const [isMicOn, setIsMicOn] = useState(false);
@@ -118,7 +139,7 @@ export default function LiveClassroom() {
             if (data.state.script) setScript(data.state.script);
             if (data.state.tajweedMode !== undefined) setTajweedMode(data.state.tajweedMode);
           }
-        } catch (e) {}
+        } catch {}
       };
     }
 
@@ -139,9 +160,9 @@ export default function LiveClassroom() {
             if (data.state.script) setScript(data.state.script);
             if (data.state.tajweedMode !== undefined) setTajweedMode(data.state.tajweedMode);
           }
-        } catch (e) {}
+        } catch {}
       };
-    } catch (e) {}
+    } catch {}
 
     return () => {
       ws.current?.close();
@@ -152,7 +173,7 @@ export default function LiveClassroom() {
       if (recognitionRef.current) {
         try {
           recognitionRef.current.stop();
-        } catch (e) {}
+        } catch {}
       }
     };
   }, [classId]);
@@ -218,7 +239,21 @@ export default function LiveClassroom() {
 
   // Web Speech API Fallback
   const startWebSpeechFallback = () => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    interface BrowserSpeechRecognition {
+      new (): {
+        continuous: boolean;
+        interimResults: boolean;
+        lang: string;
+        onstart: () => void;
+        onerror: (e: { error: string }) => void;
+        onend: () => void;
+        onresult: (e: { resultIndex: number; results: { [key: number]: { [key: number]: { transcript: string } }; length: number } }) => void;
+        start: () => void;
+        stop: () => void;
+      };
+    }
+    const SpeechRecognition = (window as unknown as { SpeechRecognition?: BrowserSpeechRecognition; webkitSpeechRecognition?: BrowserSpeechRecognition }).SpeechRecognition || 
+      (window as unknown as { SpeechRecognition?: BrowserSpeechRecognition; webkitSpeechRecognition?: BrowserSpeechRecognition }).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       setVoiceError("Speech recognition is not supported in this browser. Try Chrome.");
       toast.error("Speech API not supported in this browser");
@@ -237,7 +272,7 @@ export default function LiveClassroom() {
         toast.success("Voice Follow active (Browser Web Speech)");
       };
 
-      recognition.onerror = (e: any) => {
+      recognition.onerror = (e: { error: string }) => {
         if (e.error !== "no-speech") {
           console.warn("Speech recognition error:", e.error);
           setVoiceError(`Mic error: ${e.error}`);
@@ -248,11 +283,11 @@ export default function LiveClassroom() {
         if (isVoiceFollowOnRef.current && activeSpeechEngine === "Web Speech") {
           try {
             recognition.start();
-          } catch (err) {}
+          } catch {}
         }
       };
 
-      recognition.onresult = (event: any) => {
+      recognition.onresult = (event: { resultIndex: number; results: { [key: number]: { [key: number]: { transcript: string } }; length: number } }) => {
         let fullTranscript = "";
         for (let i = event.resultIndex; i < event.results.length; i++) {
           fullTranscript += " " + event.results[i][0].transcript;
@@ -262,7 +297,7 @@ export default function LiveClassroom() {
 
       recognitionRef.current = recognition;
       recognition.start();
-    } catch (e: any) {
+    } catch {
       setVoiceError("Failed to access speech engine.");
     }
   };
@@ -295,7 +330,7 @@ export default function LiveClassroom() {
             setActiveSpeechEngine("Deepgram AI");
             setVoiceError(null);
             toast.success("Deepgram Nova-2 Active (Sub-300ms Voice Sync)");
-          } catch (micErr) {
+          } catch {
             setVoiceError("Microphone access denied for Deepgram streaming.");
           }
         };
@@ -307,7 +342,7 @@ export default function LiveClassroom() {
             if (transcript) {
               processSpokenTranscript(transcript);
             }
-          } catch (e) {}
+          } catch {}
         };
 
         socket.onerror = () => {
@@ -317,7 +352,7 @@ export default function LiveClassroom() {
         deepgramSocketRef.current = socket;
         return;
       }
-    } catch (e) {}
+    } catch {}
 
     // 2. Standard Web Speech fallback
     startWebSpeechFallback();
@@ -331,20 +366,20 @@ export default function LiveClassroom() {
 
       // Clean up Deepgram
       if (deepgramRecorderRef.current && deepgramRecorderRef.current.state !== "inactive") {
-        try { deepgramRecorderRef.current.stop(); } catch (e) {}
+        try { deepgramRecorderRef.current.stop(); } catch {}
       }
       if (deepgramStreamRef.current) {
         deepgramStreamRef.current.getTracks().forEach((t) => t.stop());
       }
       if (deepgramSocketRef.current) {
-        try { deepgramSocketRef.current.close(); } catch (e) {}
+        try { deepgramSocketRef.current.close(); } catch {}
       }
 
       // Clean up Web Speech
       if (recognitionRef.current) {
         try {
           recognitionRef.current.stop();
-        } catch (e) {}
+        } catch {}
       }
       toast("Voice Follow deactivated");
     } else {
@@ -398,7 +433,7 @@ export default function LiveClassroom() {
     broadcastChannel.current?.postMessage(msg);
   };
 
-  const syncTools = (newState: any) => {
+  const syncTools = (newState: Record<string, unknown>) => {
     const msg = {
       type: "tool_sync",
       state: { fontSize, fontColor, underlines, circles, script, tajweedMode, ...newState }
@@ -443,26 +478,7 @@ export default function LiveClassroom() {
     syncTools({ underlines: {}, circles: {} });
   };
 
-  const LetterPracticeTray = ({ wordIndex }: { wordIndex: number | null }) => {
-    if (wordIndex === null || !currentWords[wordIndex]) return null;
-    const word = currentWords[wordIndex]!;
-    const letters = splitArabicWord(word);
-    return (
-      <div className="mt-4 bg-emerald-50 rounded-2xl p-3 md:p-4 border border-emerald-100 animate-in fade-in shadow-inner w-full max-w-lg mx-auto">
-        <div className="flex justify-between items-center mb-2">
-          <div className="text-[10px] md:text-xs font-bold text-emerald-800 tracking-widest uppercase">Letter Practice (Huroof Breakdown)</div>
-          <div className="text-emerald-700 text-sm font-bold">{word}</div>
-        </div>
-        <div className="flex justify-center gap-2 md:gap-3 flex-row-reverse flex-wrap" dir="rtl">
-          {letters.map((letter, i) => (
-            <div key={i} className="bg-white border-2 border-emerald-200 rounded-xl w-10 h-12 md:w-12 md:h-14 flex items-center justify-center text-xl md:text-2xl font-quran text-[#0C4A3A] shadow-xs hover:scale-110 transition cursor-pointer">
-              {letter}
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
+  // LetterPracticeTray defined as static module component
 
   return (
     <div className="flex flex-col h-screen w-full bg-white text-[#111827] overflow-hidden relative">
@@ -617,7 +633,7 @@ export default function LiveClassroom() {
                 })}
               </div>
               
-              <LetterPracticeTray wordIndex={splitIndex} />
+              <LetterPracticeTray wordIndex={splitIndex} words={currentWords} />
               
               <div className="w-full mt-4 max-w-lg mx-auto shrink-0 hidden md:block">
                 <p className="text-sm md:text-base text-gray-700 mb-2 text-center">All praise belongs to Allah, Lord of all worlds.</p>
@@ -759,7 +775,7 @@ export default function LiveClassroom() {
                 })}
               </div>
               
-              <LetterPracticeTray wordIndex={splitIndex} />
+              <LetterPracticeTray wordIndex={splitIndex} words={currentWords} />
             </div>
             
             <div className="mt-auto pt-3 border-t border-gray-100 shrink-0">

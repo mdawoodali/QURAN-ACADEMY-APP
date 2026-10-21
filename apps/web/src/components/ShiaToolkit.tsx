@@ -1,17 +1,17 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  RotateCcw, Volume2, VolumeX, Sparkles, BookOpen, Clock, Heart, 
-  Search, Download, Share2, Copy, Check, ChevronRight, X, Shield, 
-  MapPin, Calendar, Compass, Info, Award
+  RotateCcw, Volume2, VolumeX, BookOpen, Clock, Heart, 
+  Search, Download, Copy, Check, X, Shield, 
+  MapPin, Calendar, Info, Award
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { 
   SHIA_DUAS_ZIYARAT, ShiaDua, 
-  SHIA_AHKAM_GUIDES, AhkamGuide,
-  MASOOMEEN_CALENDAR, MasoomeenDate,
+  SHIA_AHKAM_GUIDES,
+  MASOOMEEN_CALENDAR,
   SHIA_PRAYER_METHOD_INFO
 } from "@/data/shiaToolkitData";
 
@@ -202,7 +202,6 @@ https://quranlearnacademy.com/resources
   // -------------------------------------------------------------
   // 4. SHIA AHKAM MODAL STATE
   // -------------------------------------------------------------
-  const [selectedAhkam, setSelectedAhkam] = useState<AhkamGuide | null>(null);
 
   return (
     <div className="w-full">
@@ -217,7 +216,7 @@ https://quranlearnacademy.com/resources
         ].map(({ key, label, icon: Icon }) => (
           <button
             key={key}
-            onClick={() => setActiveSubTab(key as any)}
+            onClick={() => setActiveSubTab(key as typeof activeSubTab)}
             className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
               activeSubTab === key
                 ? "bg-amber-400 text-emerald-950 shadow-md scale-105"

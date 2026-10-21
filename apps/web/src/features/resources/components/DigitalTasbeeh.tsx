@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { RotateCcw, Volume2, VolumeX, Sparkles, Trophy, Check, ArrowRight } from "lucide-react";
+import React, { useState } from "react";
+import { RotateCcw, Volume2, VolumeX, Sparkles, Trophy, Check } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface DhikrPreset {

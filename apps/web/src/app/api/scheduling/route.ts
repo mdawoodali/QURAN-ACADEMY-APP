@@ -122,8 +122,25 @@ export async function GET() {
       .select("*, teacher_assignments(*)")
       .eq("status", "active");
 
+    interface DbScheduleItem {
+      id: string;
+      assignment_id: string;
+      teacher_id: string;
+      student_id: string;
+      day_of_week: string;
+      start_time_local?: string;
+      duration_minutes?: number;
+      timezone_anchor?: string;
+      status?: string;
+      teacher_assignments?: {
+        teacher_name?: string;
+        student_name?: string;
+        subject?: string;
+      };
+    }
+
     if (!error && dbSchedules && dbSchedules.length > 0) {
-      const mapped = dbSchedules.map((item: any) => ({
+      const mapped = (dbSchedules as unknown as DbScheduleItem[]).map((item) => ({
         id: item.id,
         assignmentId: item.assignment_id,
         teacherId: item.teacher_id,
@@ -144,7 +161,7 @@ export async function GET() {
         source: "supabase_postgresql"
       });
     }
-  } catch (err) {
+  } catch {
     // Graceful fallback to persistent relational memory
   }
 
@@ -173,7 +190,7 @@ export async function POST(req: Request) {
       subject: body.subject || "Tajweed & Fluent Recitation"
     };
 
-    IN_MEMORY_SCHEDULES.push(newSchedule as any);
+    IN_MEMORY_SCHEDULES.push(newSchedule);
 
     try {
       const supabase = await createClient();
@@ -183,10 +200,11 @@ export async function POST(req: Request) {
         duration_minutes: body.durationMinutes || 30,
         status: "active"
       });
-    } catch (e) {}
+    } catch {}
 
     return NextResponse.json({ success: true, schedule: newSchedule });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Internal error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

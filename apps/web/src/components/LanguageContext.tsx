@@ -313,6 +313,8 @@ export const translations = {
   }
 };
 
+export type TranslationKey = keyof typeof translations.en;
+
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
@@ -331,12 +333,17 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>("en");
 
   useEffect(() => {
-    const saved = localStorage.getItem("qa_language") as Language;
-    if (saved === "en" || saved === "ur") {
-      setLanguageState(saved);
-      document.documentElement.lang = saved;
+    try {
+      const saved = localStorage.getItem("qa_language") as Language;
+      if (saved === "en" || saved === "ur") {
+        queueMicrotask(() => {
+          setLanguageState(saved);
+        });
+        document.documentElement.lang = saved;
+      }
+    } catch {
+      // safe fallback
     }
-    // Always maintain ltr layout structure so navigation and button positions never invert
     document.documentElement.dir = "ltr";
   }, []);
 

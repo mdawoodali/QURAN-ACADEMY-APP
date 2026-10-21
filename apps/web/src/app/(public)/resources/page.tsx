@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Download, BookOpen, FileText, Search, ExternalLink, Sparkles, X, ChevronRight, Share2, Printer, Library, Bookmark, Heart, Compass, CircleDot, BookMarked } from "lucide-react";
-import { useLanguage } from "@/components/LanguageContext";
-import { QURAN_PARAS, ParaInfo } from "@/data/quranParas";
+import { Download, BookOpen, FileText, Search, Sparkles, X, Library, Heart, Compass, CircleDot, BookMarked } from "lucide-react";
+import { QURAN_PARAS } from "@/data/quranParas";
 import { DAILY_GUIDES_DATA, GuideResource } from "@/data/guidesData";
 import { SHIA_LIBRARY_BOOKS, ShiaBook, ShiaBookSection } from "@/data/shiaLibrary";
 import ShiaToolkit from "@/components/ShiaToolkit";
@@ -14,7 +13,6 @@ import SeeratView from "@/features/resources/components/SeeratView";
 import toast from "react-hot-toast";
 
 export default function ResourcesPage() {
-  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<
     "quran" | "guides" | "shia-toolkit" | "shia-library" | "tasbeeh" | "prayer-times" | "asma-ul-husna" | "seerat"
   >("quran");
@@ -22,23 +20,26 @@ export default function ResourcesPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const savedSect = localStorage.getItem("user_sect");
-        const urlParams = new URLSearchParams(window.location.search);
-        const tabParam = urlParams.get("tab");
-        if (tabParam === "shia-toolkit" || tabParam === "toolkit" || tabParam === "shia") {
-          setActiveTab("shia-toolkit");
-        } else if (tabParam === "shia-library") {
-          setActiveTab("shia-library");
-        } else if (tabParam === "guides") {
-          setActiveTab("guides");
-        } else if (savedSect === "shia" && !tabParam) {
-          setActiveTab("shia-toolkit");
-        }
-      } catch (e) {
-        // safe fallback
+    if (typeof window === "undefined") return;
+    try {
+      const savedSect = localStorage.getItem("user_sect");
+      const urlParams = new URLSearchParams(window.location.search);
+      const tabParam = urlParams.get("tab");
+      let nextTab: typeof activeTab | null = null;
+      if (tabParam === "shia-toolkit" || tabParam === "toolkit" || tabParam === "shia") {
+        nextTab = "shia-toolkit";
+      } else if (tabParam === "shia-library") {
+        nextTab = "shia-library";
+      } else if (tabParam === "guides") {
+        nextTab = "guides";
+      } else if (savedSect === "shia" && !tabParam) {
+        nextTab = "shia-toolkit";
       }
+      if (nextTab) {
+        queueMicrotask(() => setActiveTab(nextTab!));
+      }
+    } catch {
+      // safe fallback
     }
   }, []);
 

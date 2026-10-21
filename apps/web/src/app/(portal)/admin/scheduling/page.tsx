@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import { Calendar, Plus, Database, CheckCircle2, Clock, UserCheck, BookOpen, AlertCircle, X } from "lucide-react";
+import { Plus, Database, CheckCircle2, X } from "lucide-react";
 import { getAcademySchedules, addRecurringSchedule, RecurringScheduleRecord, TeacherAssignmentRecord } from "@/server/schedulingRepository";
 import toast from "react-hot-toast";
 
@@ -208,7 +207,7 @@ export default function AdminScheduling() {
                   <label className="font-bold text-gray-700 block mb-1">Day of Week</label>
                   <select
                     value={dayOfWeek}
-                    onChange={(e) => setDayOfWeek(e.target.value as any)}
+                    onChange={(e) => setDayOfWeek(e.target.value as RecurringScheduleRecord["dayOfWeek"])}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-emerald-600"
                   >
                     {DAYS.map((d) => (

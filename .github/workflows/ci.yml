@@ -46,7 +46,7 @@ jobs:
           fi
 
   validate:
-    name: Lint, Build & Security Audit
+    name: Lint, Test, Build & Security Audit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -65,6 +65,9 @@ jobs:
 
       - name: Lint
         run: pnpm lint
+
+      - name: Unit & Domain Tests
+        run: pnpm test
 
       - name: Typecheck & Build
         run: pnpm build

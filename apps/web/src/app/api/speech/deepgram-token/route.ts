@@ -12,7 +12,7 @@ export async function GET() {
   }
 
   try {
-    const deepgram = new DeepgramClient({ apiKey });
+    new DeepgramClient({ apiKey });
     
     return NextResponse.json({
       configured: true,
@@ -21,11 +21,12 @@ export async function GET() {
       language: "ar",
       message: "Deepgram API connection verified for ultra-low latency voice following."
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Deepgram initialization error:", error);
+    const message = error instanceof Error ? error.message : "Deepgram error";
     return NextResponse.json({
       configured: false,
-      error: error.message
+      error: message
     }, { status: 500 });
   }
 }

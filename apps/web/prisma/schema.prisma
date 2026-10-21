@@ -3,63 +3,112 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(cuid())
-  name      String
+model Profile {
+  id        String   @id @default(uuid())
+  role      String   // student, teacher, admin, parent
+  firstName String   @map("first_name")
+  lastName  String   @map("last_name")
   email     String   @unique
-  role      String   @default("STUDENT") // STUDENT, TEACHER, ADMIN, PARENT
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  // Relations
-  taughtClasses  Class[] @relation("TeacherClasses")
-  studentClasses Class[] @relation("StudentClasses")
+  studentDetails StudentDetail?
+  teacherDetails TeacherDetail?
+  taughtClasses  Class[]        @relation("TeacherClasses")
+  studentClasses Class[]        @relation("StudentClasses")
+
+  @@map("profiles")
+}
+
+model StudentDetail {
+  id         String   @id @default(uuid())
+  fatherName String   @map("father_name")
+  age        Int
+  country    String
+  city       String
+  postalCode String   @map("postal_code")
+  address    String
+  parentId   String?  @map("parent_id")
+
+  profile Profile @relation(fields: [id], references: [id], onDelete: Cascade)
+
+  @@map("student_details")
+}
+
+model TeacherDetail {
+  id           String  @id @default(uuid())
+  idCardNumber String  @unique @map("id_card_number")
+  phoneNumber  String  @map("phone_number")
+  address      String
+  qualification String
+  maslak       String?
+  fiqh         String?
+  gender       String
+  age          Int
+  bankAccount  String  @map("bank_account")
+  status       String  @default("pending")
+  adminNotes   String? @map("admin_notes")
+
+  profile Profile @relation(fields: [id], references: [id], onDelete: Cascade)
+
+  @@map("teacher_details")
 }
 
 model Course {
-  id          String   @id @default(cuid())
+  id          String   @id @default(uuid())
   slug        String   @unique
   title       String
   description String
   level       String
-  targetAge   String
+  targetAge   String   @map("target_age")
   classes     Class[]
   modules     CourseModule[]
+
+  @@map("courses")
 }
 
 model CourseModule {
-  id          String         @id @default(cuid())
-  courseId    String
+  id          String         @id @default(uuid())
+  courseId    String         @map("course_id")
   title       String
   description String?
-  orderIndex  Int
-  course      Course         @relation(fields: [courseId], references: [id])
+  orderIndex  Int            @map("order_index")
+  course      Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
   lessons     CourseLesson[]
+
+  @@map("course_modules")
 }
 
 model CourseLesson {
-  id             String       @id @default(cuid())
-  moduleId       String
+  id             String       @id @default(uuid())
+  moduleId       String       @map("module_id")
   title          String
-  planType       String       @default("lesson") // foundation, rule, sabaq, sabqi, manzil
-  contentSummary String
-  orderIndex     Int
-  module         CourseModule @relation(fields: [moduleId], references: [id])
+  planType       String       @default("lesson") @map("plan_type")
+  contentSummary String       @map("content_summary")
+  orderIndex     Int          @map("order_index")
+  module         CourseModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@map("course_lessons")
 }
 
 model Class {
-  id        String   @id @default(cuid())
-  courseId  String
-  teacherId String
-  studentId String
-  startTime DateTime
-  status    String   @default("SCHEDULED") // SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED
+  id             String   @id @default(uuid())
+  courseId       String?  @map("course_id")
+  teacherId      String   @map("teacher_id")
+  studentId      String   @map("student_id")
+  startTime      DateTime @map("start_time")
+  endTime        DateTime? @map("end_time")
+  status         String   @default("scheduled")
+  zoomOrMeetLink String?  @map("zoom_or_meet_link")
+  createdAt      DateTime @default(now()) @map("created_at")
 
-  course  Course @relation(fields: [courseId], references: [id])
-  teacher User   @relation("TeacherClasses", fields: [teacherId], references: [id])
-  student User   @relation("StudentClasses", fields: [studentId], references: [id])
+  course  Course? @relation(fields: [courseId], references: [id])
+  teacher Profile @relation("TeacherClasses", fields: [teacherId], references: [id])
+  student Profile @relation("StudentClasses", fields: [studentId], references: [id])
+
+  @@map("classes")
 }

@@ -1,5 +1,4 @@
 import { createClient } from "@/utils/supabase/server";
-import { redirect } from "next/navigation";
 import PortalLayoutClient from "./PortalLayoutClient";
 import { connection } from "next/server";
 

@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { MessageSquare, ShieldCheck, Lock, ArrowUpRight } from 'lucide-react';
 
 export default function SupportPage() {

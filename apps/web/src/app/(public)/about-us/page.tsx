@@ -3,21 +3,13 @@
 import Link from "next/link";
 import {
   BookOpen,
-  Globe2,
-  Home,
   Clock,
   HeartHandshake,
-  Sparkles,
-  MessageSquare,
-  Laptop,
-  UserCheck,
-  ShieldCheck,
   UserCheck2,
   CalendarRange,
   GraduationCap,
   Users,
   ArrowRight,
-  CheckCircle2,
 } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 

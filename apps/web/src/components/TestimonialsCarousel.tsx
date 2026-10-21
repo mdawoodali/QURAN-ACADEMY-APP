@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight, Quote, Star } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { STUDENT_TESTIMONIALS } from "@/data/testimonials";
@@ -24,6 +24,16 @@ export default function TestimonialsCarousel() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  const handleNext = useCallback(() => {
+    setDirection(1);
+    setStartIndex((prev) => (prev + 1) % total);
+  }, [total]);
+
+  const handlePrev = useCallback(() => {
+    setDirection(-1);
+    setStartIndex((prev) => (prev - 1 + total) % total);
+  }, [total]);
+
   // Autoplay swipe every 6 seconds if not hovered/paused
   useEffect(() => {
     if (isPaused) return;
@@ -31,17 +41,7 @@ export default function TestimonialsCarousel() {
       handleNext();
     }, 6000);
     return () => clearInterval(timer);
-  }, [startIndex, isPaused]);
-
-  const handleNext = () => {
-    setDirection(1);
-    setStartIndex((prev) => (prev + 1) % total);
-  };
-
-  const handlePrev = () => {
-    setDirection(-1);
-    setStartIndex((prev) => (prev - 1 + total) % total);
-  };
+  }, [isPaused, handleNext]);
 
   // Determine the 2 visible items for desktop, or 1 item for mobile
   const visibleItems = isMobile

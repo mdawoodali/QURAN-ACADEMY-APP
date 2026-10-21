@@ -41,9 +41,11 @@ const ReportDocument = () => (
   </Document>
 );
 
-export async function GET(request: Request) {
+const reportElement = <ReportDocument />;
+
+export async function GET() {
   try {
-    const stream = await renderToStream(<ReportDocument />);
+    const stream = await renderToStream(reportElement);
     
     return new NextResponse(stream as unknown as ReadableStream, {
       headers: {

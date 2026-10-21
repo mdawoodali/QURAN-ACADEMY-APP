@@ -1,4 +1,4 @@
-import { BookOpen, Plus, Shield, CreditCard } from 'lucide-react'
+import { Plus, Shield, CreditCard } from 'lucide-react'
 import Link from 'next/link'
 
 export default function ParentPortal() {

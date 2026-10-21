@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { submitTrialRegistration } from './actions'
 import { useLanguage } from '@/components/LanguageContext'
 
 export default function TrialFunnel() {
+  const router = useRouter()
   const { language } = useLanguage()
   const isUrdu = language === 'ur'
 
@@ -48,7 +50,7 @@ export default function TrialFunnel() {
       setError(result.error)
       setLoading(false)
     } else {
-      window.location.href = '/student'
+      router.push('/student')
     }
   }
 

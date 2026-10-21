@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search, Sparkles, Copy, Check, Share2, BookOpen } from "lucide-react";
+import { Search, Sparkles, Copy, Check } from "lucide-react";
 import { ASMA_UL_HUSNA, AllahName } from "@/data/asmaUlHusna";
 import toast from "react-hot-toast";
 
