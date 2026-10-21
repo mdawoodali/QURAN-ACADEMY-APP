@@ -316,3 +316,4 @@ This journal documents the engineering decisions, security defenses, UX design p
 - **Standardized Prisma Schema Index Syntax**: Replaced non-standard `(sort: Desc)` modifier with universal standard `@@index([actorId, createdAt])` and `@@index([action, createdAt])` in `apps/web/prisma/schema.prisma` to eliminate schema engine parse errors across diverse cloud environments.
 - **Next.js TypeScript Isolation**: Configured `apps/web/tsconfig.json` to explicitly exclude all test files (`**/*.test.ts`, `**/*.spec.ts`, `tests`) from Next.js bundle generation while maintaining full test coverage in Vitest. Added `vitest` dependency in `apps/web/package.json` for isolated subproject builds.
 - **Verification**: 25 tests passing in Vitest, 0 ESLint warnings, 0 errors, and clean Next.js 50-route production build.
+- **Lockfile Synchronization**: Synchronized `pnpm-lock.yaml` across all workspace projects for strict CI and cloud platform `--frozen-lockfile` verification.
