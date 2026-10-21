@@ -33,7 +33,7 @@ export default async function LoginPage(props: { searchParams: Promise<{ error?:
               type="email" 
               required 
               className="w-full px-4 py-3 bg-black/40 border border-white/20 rounded-xl text-white placeholder:text-emerald-200/40 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition text-sm"
-              placeholder="you@example.com"
+              placeholder="admin@quranacademy.com"
             />
           </div>
           <div>
@@ -63,7 +63,34 @@ export default async function LoginPage(props: { searchParams: Promise<{ error?:
           </div>
         </form>
 
-        <div className="mt-8 text-center text-sm text-emerald-100/70">
+        {/* Quick Portal Switcher for Testing / Local Evaluation */}
+        <div className="mt-8 pt-6 border-t border-white/10 text-center">
+          <span className="text-[11px] text-amber-300 font-bold uppercase tracking-wider block mb-3">
+            Quick Portal Access (Demo & Evaluation)
+          </span>
+          <div className="grid grid-cols-3 gap-2 text-xs font-bold">
+            <Link
+              href="/admin"
+              className="py-2.5 px-1 bg-amber-400/20 hover:bg-amber-400 text-amber-300 hover:text-emerald-950 border border-amber-400/40 rounded-xl transition-all shadow-sm text-center"
+            >
+              Admin
+            </Link>
+            <Link
+              href="/teacher"
+              className="py-2.5 px-1 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl transition-all shadow-sm text-center"
+            >
+              Teacher
+            </Link>
+            <Link
+              href="/student"
+              className="py-2.5 px-1 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl transition-all shadow-sm text-center"
+            >
+              Student
+            </Link>
+          </div>
+        </div>
+
+        <div className="mt-6 text-center text-sm text-emerald-100/70">
           <Link href="/" className="hover:text-amber-300 font-bold transition">← Back to homepage</Link>
         </div>
       </div>

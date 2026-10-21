@@ -571,7 +571,7 @@ This journal documents the engineering decisions, security defenses, UX design p
   - `pnpm build`: Next.js 16.4.0 (Turbopack) successfully compiled and prerendered all 54 routes in 2.3s.
 
 ## 9.22 Phase 5 Complete: 48-Hour Live Simulation Dry-Run, APM Telemetry, Health Diagnostics, and Public Launch Cutover
-- **Objective**: Complete Phase 5 (Days 36–40 of 40-Day Master Launch Plan), establishing production cutover readiness for the public launch on December 1, 2026.
+- **Objective**: Complete Phase 5 (Days 36ï¿½40 of 40-Day Master Launch Plan), establishing production cutover readiness for the public launch on December 1, 2026.
 - **Architectural Implementation**:
   - **48-Hour Live Simulation Test Suite (	ests/dry-run-simulation.test.ts)**:
     - Authored comprehensive 7-stage lifecycle simulation exercising 5 diverse test families (UK GBP via Barclays FPS, US USD via Chase ACH/Zelle, Pakistan PKR via Raast/Meezan) across 3 vetted Quran teachers.
@@ -591,3 +591,22 @@ This journal documents the engineering decisions, security defenses, UX design p
   - pnpm typecheck: 0 TypeScript compiler errors.
   - pnpm lint: 0 ESLint errors, 0 warnings.
   - pnpm build: Next.js 16.4.0 (Turbopack) successfully compiled and prerendered all 54 routes in 3.9s.
+
+---
+
+## 9.23 Portal Access & Local Development Authentication Bypass
+
+### 9.23.1 Root Cause of Localhost Access Blocking
+- **Issue**: In pps/web/src/middleware.ts, unauthenticated requests to protected routes (/admin, /teacher, /student, /parent) were unconditionally redirected to /login.
+- **Conflict**: In local development and evaluation environments, developers and testers without an actively running local GoTrue / Supabase Docker instance (http://127.0.0.1:54321) were trapped in a redirect loop:
+  1. Opening /admin redirected to /login.
+  2. Submitting login credentials at /login invoked supabase.auth.signInWithPassword, which threw a network etch failed error due to the inactive local database port, preventing sign-in.
+
+### 9.23.2 Architecture & Resolution
+1. **Middleware Graceful Degradation (pps/web/src/middleware.ts)**:
+   - Added isDummyConfig detection: When NEXT_PUBLIC_SUPABASE_ANON_KEY contains dummy, is unset, or points to localhost/127.0.0.1, route protection permits direct navigation.
+   - Added demo session cookie support (demo_role), allowing explicit evaluation of any portal without requiring an external database cluster.
+2. **Resilient Login Actions (pps/web/src/app/(public)/login/actions.ts)**:
+   - Added role inference and fallback session cookie generation: Signing in with emails matching dmin (e.g. dmin@quranacademy.com), 	eacher, or student sets the local evaluation role and redirects directly to /admin, /teacher, or /student.
+3. **One-Click Demo Switcher on Login Page (pps/web/src/app/(public)/login/page.tsx)**:
+   - Added quick-access buttons for **Admin**, **Teacher**, and **Student** portals on the /login screen for frictionless one-click testing.
