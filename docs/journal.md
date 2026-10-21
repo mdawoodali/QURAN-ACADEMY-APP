@@ -372,3 +372,17 @@ This journal documents the engineering decisions, security defenses, UX design p
   - `pnpm test`: 25 passed across 6 test suites in 755ms.
   - `pnpm lint`: 0 errors, 0 warnings.
   - `pnpm build`: 50 routes compiled cleanly with 0 errors.
+
+
+### 9.13 Blog Experience Optimization & Local Asset Fortification
+- **Root Cause Analysis of "Glitchy" Blog Page**:
+  - **TLS Renegotiation Block in Chrome**: Blog cards relied on external image URLs hosted on `www.quranlearnacademy.com`. The remote server initiates TLS renegotiation during asset downloads, which modern Chrome on Windows terminates for cross-origin media, leaving the top image boxes completely blank (`bg-emerald-950`).
+  - **Filter Layout Clipping**: Search input and category chips were packed into a single horizontal row (`sm:flex-row`), clipping the search placeholder and creating awkward horizontal scrolling for categories.
+- **Engineering Remediation**:
+  - **Asset Localization**: Downloaded and bundled all 15 blog post images directly into `apps/web/public/images/blogs/post-{id}.png`, eradicating third-party network bottlenecks, cross-origin TLS drops, and hotlink protection blocks.
+  - **Next.js `<Image />` Migration**: Replaced raw `<img>` tags with optimized `<Image fill sizes="..." priority={post.id <= 3} />` for zero layout shift and automatic responsive resolution delivery.
+  - **Fluid Search & Filter UI**: Re-architected filter controls with a full-width search bar (equipped with dynamic search-clear control) and flowing, multi-row wrapping category pills (`flex-wrap gap-2 sm:gap-2.5`), ensuring zero text truncation on any viewport.
+- **Validation**:
+  - `pnpm test`: 25 passed across 6 test suites in 586ms.
+  - `pnpm lint`: 0 errors, 0 warnings.
+  - `pnpm build`: 50 routes compiled cleanly with 0 errors.

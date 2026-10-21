@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { BookOpen, Calendar, User, ArrowRight, Search, Tag, X } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 
@@ -19,7 +20,7 @@ const ALL_BLOGS: BlogPost[] = [
   {
     id: 1,
     title: "How to Stay Consistent With Quran Learning: Proven Tips",
-    image: "https://www.quranlearnacademy.com/wp-content/uploads/bfi_thumb/how-to-stay-consistent-while-reading-quran-2-ruqv26vgng5r6gv0gcj1miczhs82kq6l3it9n2w48g.png",
+    image: "/images/blogs/post-1.png",
     date: "12 Oct, 2026",
     author: "M Orhan",
     tag: "Quran Learning",
@@ -29,7 +30,7 @@ const ALL_BLOGS: BlogPost[] = [
   {
     id: 2,
     title: "Nikkah in Islam: Pillars, Conditions and Common Mistakes Explained",
-    image: "https://www.quranlearnacademy.com/wp-content/uploads/bfi_thumb/nikah-in-islam-rui3umzs747sddtb6t0rriws9cv4pc6qmcqi1u0r5c.png",
+    image: "/images/blogs/post-2.png",
     date: "07 Oct, 2026",
     author: "M Orhan",
     tag: "Islamic Teachings",
@@ -39,7 +40,7 @@ const ALL_BLOGS: BlogPost[] = [
   {
     id: 3,
     title: "5 Times Namaz Name: A Simple Guide to the Five Daily Prayers",
-    image: "https://www.quranlearnacademy.com/wp-content/uploads/bfi_thumb/namaz-names-ru9pistrcf296x725pgnziuz43x06f3rwcv5mtlgfk.png",
+    image: "/images/blogs/post-3.png",
     date: "02 Oct, 2026",
     author: "M Orhan",
     tag: "Salah Guide",
@@ -49,7 +50,7 @@ const ALL_BLOGS: BlogPost[] = [
   {
     id: 4,
     title: "Spiritual Lessons Muslims Can Learn From Umrah Rituals",
-    image: "https://www.quranlearnacademy.com/wp-content/uploads/bfi_thumb/umrah-rituals-rtx7bb4oyg886zhcixh5sfem30kvd2hiwpzy94lshc.png",
+    image: "/images/blogs/post-4.png",
     date: "25 Sep, 2026",
     author: "M Orhan",
     tag: "Spiritual Lessons",
@@ -59,7 +60,7 @@ const ALL_BLOGS: BlogPost[] = [
   {
     id: 5,
     title: "What Should You Do After Arriving in Saudi Arabia for Umrah?",
-    image: "https://www.quranlearnacademy.com/wp-content/uploads/bfi_thumb/umrah-saudi-arabia-rsva6098e00jfdrwklp4b2nk07inht1le27mfcu1kg.png",
+    image: "/images/blogs/post-5.png",
     date: "03 Sep, 2026",
     author: "M Orhan",
     tag: "Umrah Guide",
@@ -69,7 +70,7 @@ const ALL_BLOGS: BlogPost[] = [
   {
     id: 6,
     title: "Noorani Qaida for Beginners: First Step to Reading the Quran Correctly",
-    image: "https://www.quranlearnacademy.com/wp-content/uploads/bfi_thumb/noorani-qaida-rs6dobxn1fsat53864n0r81gvccv10seu750xhc29c.png",
+    image: "/images/blogs/post-6.png",
     date: "20 Aug, 2026",
     author: "M Orhan",
     tag: "Quran Learning",
@@ -79,7 +80,7 @@ const ALL_BLOGS: BlogPost[] = [
   {
     id: 7,
     title: "Umrah 2026: The Complete Guide for First-Time Pilgrims",
-    image: "https://www.quranlearnacademy.com/wp-content/uploads/bfi_thumb/umrah-2026-guide-rrp5vkyu6nbbwnloybj5arn5h122dupzscdxj0o50w.png",
+    image: "/images/blogs/post-7.png",
     date: "10 Aug, 2026",
     author: "M Orhan",
     tag: "Umrah Guide",
@@ -89,7 +90,7 @@ const ALL_BLOGS: BlogPost[] = [
   {
     id: 8,
     title: "How to Prepare for Umrah 2027: A Complete Guide for Pilgrims",
-    image: "https://www.quranlearnacademy.com/wp-content/uploads/bfi_thumb/how-to-prepare-for-umrah-rrizadwld3upud7te2lkedbj2r2xhhvzqpe85rwzn4.png",
+    image: "/images/blogs/post-8.png",
     date: "07 Aug, 2026",
     author: "M Orhan",
     tag: "Travel & Worship",
@@ -99,7 +100,7 @@ const ALL_BLOGS: BlogPost[] = [
   {
     id: 9,
     title: "Umrah 2027 Packing Guide for Muslim Travellers",
-    image: "https://www.quranlearnacademy.com/wp-content/uploads/bfi_thumb/umrah-packing-guide-rrgmritd4qehi959krzuo84y28yvjdxipxfvmvlmcw.png",
+    image: "/images/blogs/post-9.png",
     date: "05 Aug, 2026",
     author: "M Orhan",
     tag: "Travel & Worship",
@@ -109,17 +110,17 @@ const ALL_BLOGS: BlogPost[] = [
   {
     id: 10,
     title: "The 8 Most Trusted Umrah Travel Agencies in the UK",
-    image: "https://www.quranlearnacademy.com/wp-content/uploads/bfi_thumb/umrah-travel-agencies-in-the-uk-rrgkxmcpyw6rigveeahhuutippsfvcb0bqucchbals.png",
+    image: "/images/blogs/post-10.png",
     date: "05 Aug, 2026",
     author: "M Orhan",
-    tag: "UK Travel",
+    tag: "Travel & Worship",
     excerpt: "Planning an Umrah is one of the most meaningful spiritual journeys. Choosing a licensed, trustworthy ATOL-certified agency in the UK makes all the difference.",
     content: "When booking from the United Kingdom, verifying Ministry of Hajj & Umrah authorized partnerships, ATOL financial bonding, close proximity of hotels to the Haramain, and transparent airline inclusions ensures peace of mind."
   },
   {
     id: 11,
     title: "Best Online Quran Learning Platforms in the UK for Children and Adults",
-    image: "https://www.quranlearnacademy.com/wp-content/uploads/bfi_thumb/online-quran-learing-platforms-rr1fj8m75a76towne7zh8iuzkx5obn66ukv9y5enhs.png",
+    image: "/images/blogs/post-11.png",
     date: "28 Jul, 2026",
     author: "M Orhan",
     tag: "Quran Learning",
@@ -129,7 +130,7 @@ const ALL_BLOGS: BlogPost[] = [
   {
     id: 12,
     title: "How to Choose an Online Quran Teacher for Your Child: A Parent's Checklist",
-    image: "https://www.quranlearnacademy.com/wp-content/uploads/bfi_thumb/how-to-choose-online-quran-teacher1-rqvkzr91sqgju2j08y5qc6h4q3gm3j5hfmi3c7kx2o.webp",
+    image: "/images/blogs/post-12.png",
     date: "24 Jul, 2026",
     author: "M Orhan",
     tag: "Parent Guide",
@@ -139,7 +140,7 @@ const ALL_BLOGS: BlogPost[] = [
   {
     id: 13,
     title: "Do You Need a Mahram for Umrah? Rules for Women Travelling from the UK?",
-    image: "https://www.quranlearnacademy.com/wp-content/uploads/bfi_thumb/mahram-for-umrah-rqfvmrwe4srf9adbd9dii6mgiopvy3835ptmwh5euo.png",
+    image: "/images/blogs/post-13.png",
     date: "15 Jul, 2026",
     author: "Academic Faculty",
     tag: "Islamic Teachings",
@@ -149,7 +150,7 @@ const ALL_BLOGS: BlogPost[] = [
   {
     id: 14,
     title: "What Is Umrah? A Complete Step-by-Step Guide for First-Time Pilgrims",
-    image: "https://www.quranlearnacademy.com/wp-content/uploads/bfi_thumb/what-is-umrah-rpfsseeoks2kxxinfp1lrhw42isokrpuh8zlca9bao.png",
+    image: "/images/blogs/post-14.png",
     date: "24 Jun, 2026",
     author: "Academic Faculty",
     tag: "Umrah Guide",
@@ -159,7 +160,7 @@ const ALL_BLOGS: BlogPost[] = [
   {
     id: 15,
     title: "Step-by-Step Guide to a Smooth and Comfortable Umrah Experience",
-    image: "https://www.quranlearnacademy.com/wp-content/uploads/bfi_thumb/step-by-step-umrah-guide-rpbs9aohjley43bdwmipmhcquo8cgvr9sa0j44ya28.png",
+    image: "/images/blogs/post-15.png",
     date: "22 Jun, 2026",
     author: "M Orhan",
     tag: "Travel & Worship",
@@ -188,12 +189,12 @@ export default function BlogPage() {
   return (
     <main className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 py-12 md:py-20 text-white">
       {/* Header */}
-      <div className="text-center max-w-3xl mx-auto mb-12">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-800/80 border border-amber-400/30 text-amber-300 text-xs sm:text-sm font-semibold mb-4">
+      <div className="text-center max-w-3xl mx-auto mb-10 md:mb-12">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-800/80 border border-amber-400/30 text-amber-300 text-xs sm:text-sm font-semibold mb-4 shadow-sm">
           <BookOpen size={16} />
           <span>Quran Learn Academy Knowledge Hub</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif text-white mb-6 leading-tight">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif text-white mb-4 leading-tight">
           {t("blog")} & Educational Articles
         </h1>
         <p className="text-emerald-100/85 text-base sm:text-lg leading-relaxed">
@@ -202,36 +203,46 @@ export default function BlogPage() {
       </div>
 
       {/* Search and Category Filter Bar */}
-      <div className="glass-container rounded-2xl p-4 sm:p-6 border border-white/15 shadow-xl mb-12 space-y-4">
-        <div className="flex flex-col sm:flex-row items-center gap-4">
-          {/* Search Input */}
-          <div className="relative w-full sm:w-80">
-            <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-200/50" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search articles by title or keyword..."
-              className="w-full bg-black/40 border border-white/20 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-emerald-200/40 focus:outline-none focus:border-amber-400 transition"
-            />
-          </div>
+      <div className="glass-container rounded-3xl p-5 sm:p-7 border border-white/15 shadow-2xl mb-12 space-y-4">
+        {/* Full-width Search Bar */}
+        <div className="relative w-full">
+          <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-300/70" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search articles by title, keyword, or author..."
+            className="w-full bg-black/40 border border-white/20 rounded-2xl pl-12 pr-10 py-3 text-sm sm:text-base text-white placeholder:text-emerald-200/50 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/50 transition shadow-inner"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 rounded-lg text-emerald-200/60 hover:text-white hover:bg-white/10 transition cursor-pointer"
+              title="Clear search"
+            >
+              <X size={16} />
+            </button>
+          )}
+        </div>
 
-          {/* Tags Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto w-full pb-2 sm:pb-0 scrollbar-none">
-            {tags.map((tag) => (
-              <button
-                key={tag}
-                onClick={() => setSelectedTag(tag)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
-                  selectedTag === tag
-                    ? "bg-amber-400 text-emerald-950 font-bold shadow-md"
-                    : "bg-white/10 hover:bg-white/20 text-emerald-100/80 border border-white/15"
-                }`}
-              >
-                {tag}
-              </button>
-            ))}
-          </div>
+        {/* Clean Flowing Tag Pills */}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 pt-1 border-t border-white/10">
+          <span className="text-xs font-bold text-amber-300 uppercase tracking-wider mr-1 hidden sm:inline-block">
+            Categories:
+          </span>
+          {tags.map((tag) => (
+            <button
+              key={tag}
+              onClick={() => setSelectedTag(tag)}
+              className={`px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                selectedTag === tag
+                  ? "bg-amber-400 text-emerald-950 font-bold shadow-md scale-105"
+                  : "bg-white/10 hover:bg-white/20 text-emerald-100/90 border border-white/15 hover:border-amber-400/40"
+              }`}
+            >
+              {tag}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -240,24 +251,21 @@ export default function BlogPage() {
         {filteredBlogs.map((post) => (
           <article
             key={post.id}
-            className="glass-container rounded-3xl overflow-hidden border border-white/15 shadow-2xl flex flex-col justify-between pop-hover group"
+            className="glass-container rounded-3xl overflow-hidden border border-white/15 shadow-2xl flex flex-col justify-between pop-hover group h-full"
           >
             <div>
               {/* Featured Image */}
-              <div className="relative w-full h-52 overflow-hidden bg-emerald-950/80">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+              <div className="relative w-full h-52 overflow-hidden bg-emerald-950">
+                <Image
                   src={post.image}
                   alt={post.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                  onError={(e) => {
-                    // Fallback to high quality geometric emerald background if external image fails
-                    (e.target as HTMLImageElement).src =
-                      "https://www.quranlearnacademy.com/wp-content/uploads/2021/03/banner_1.2.jpg";
-                  }}
+                  fill
+                  className="object-cover group-hover:scale-105 transition duration-500"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  priority={post.id <= 3}
                 />
-                <div className="absolute top-3 left-3">
-                  <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-black/70 backdrop-blur-md border border-amber-400/40 text-amber-300 flex items-center gap-1 shadow-md">
+                <div className="absolute top-3 left-3 z-10">
+                  <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-black/75 backdrop-blur-md border border-amber-400/50 text-amber-300 flex items-center gap-1 shadow-md">
                     <Tag size={11} />
                     <span>{post.tag}</span>
                   </span>
@@ -321,16 +329,13 @@ export default function BlogPage() {
               <X size={20} />
             </button>
 
-            <div className="w-full h-64 rounded-2xl overflow-hidden mb-6 bg-emerald-950">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+            <div className="relative w-full h-64 sm:h-72 rounded-2xl overflow-hidden mb-6 bg-emerald-950">
+              <Image
                 src={activeArticle.image}
                 alt={activeArticle.title}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src =
-                    "https://www.quranlearnacademy.com/wp-content/uploads/2021/03/banner_1.2.jpg";
-                }}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 700px"
               />
             </div>
 
