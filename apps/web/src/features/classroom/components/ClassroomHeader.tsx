@@ -9,6 +9,7 @@ interface ClassroomHeaderProps {
   tajweedMode: boolean;
   classId: string;
   livekitStatus: LiveKitStatus | null;
+  connectionStatus?: "connected" | "reconnecting" | "offline";
   isVoiceFollowOn: boolean;
   activeSpeechEngine: string | null;
   onScriptChange: (script: ScriptType) => void;
@@ -23,6 +24,7 @@ export default function ClassroomHeader({
   tajweedMode,
   classId,
   livekitStatus,
+  connectionStatus = "connected",
   isVoiceFollowOn,
   activeSpeechEngine,
   onScriptChange,
@@ -90,6 +92,14 @@ export default function ClassroomHeader({
             </button>
           </div>
         </div>
+
+        {/* Connection Resilience Indicator */}
+        {connectionStatus === "reconnecting" && (
+          <div className="flex items-center gap-1.5 bg-amber-50 text-amber-700 border border-amber-300 px-3 py-1 rounded-full text-[10px] font-bold shadow-xs">
+            <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+            <span>Reconnecting Sync...</span>
+          </div>
+        )}
 
         {/* LiveKit Server Pairing Indicator */}
         <div className="hidden sm:flex items-center gap-1.5 bg-emerald-50 text-[#0C4A3A] border border-emerald-300 px-3 py-1 rounded-full text-[10px] font-bold shadow-xs">

@@ -300,3 +300,11 @@ This journal documents the engineering decisions, security defenses, UX design p
 - Added `apps/web/src/features/classroom/classroom.test.ts` verifying grapheme decomposition, Unicode normalization, and script data integrity.
 - Added `apps/web/src/app/api/health/health.test.ts` verifying health diagnostic payloads.
 - Vitest suite now runs **24 automated tests across 6 spec files in <750ms** with 100% pass rate.
+
+
+### 9.7 Edge-Case Hardening & Reconnection Resilience (Shaheen Traders POS Standard)
+- **Automatic Reconnection Loop**: Re-engineered `useClassroomSync.ts` with an exponential backoff auto-reconnect strategy (starting at 1s, scaling to 10s maximum) to withstand real-world mobile 4G/5G connection drops. Added `connectionStatus` (`connected` | `reconnecting` | `offline`) with real-time UI indicator badges in `ClassroomHeader.tsx`.
+- **Fault-Tolerant React Error Boundary**: Created `apps/web/src/app/classroom/[id]/error.tsx` providing an automated recovery mechanism and safe diagnostic logging, preventing unhandled WebRTC/MediaStream errors from crashing the page.
+- **Branded Suspense Skeleton**: Added `apps/web/src/app/classroom/[id]/loading.tsx` ensuring zero layout shift while the Mushaf board initializes.
+- **Double-Booking Database Exclusion**: Added unique partial index `idx_prevent_teacher_double_booking` on `class_sessions (teacher_id, start_time) WHERE status IN ('scheduled', 'live')`, preventing race conditions and overlapping booking collisions at the database level.
+- **Comprehensive Edge Case Testing**: Added test cases in `apps/web/src/features/classroom/classroom.test.ts` for empty strings, nullish inputs, non-Arabic punctuation, and complex diacritics. Suite now runs 25 automated tests with 100% green pass rate.

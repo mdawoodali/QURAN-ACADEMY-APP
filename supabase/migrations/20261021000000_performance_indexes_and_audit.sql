@@ -67,3 +67,9 @@ CREATE POLICY "Admins can view audit logs"
 CREATE POLICY "System can record audit logs"
   ON audit_logs FOR INSERT
   WITH CHECK (true);
+
+-- 5. Double-Booking Prevention Unique Index (Prevents Concurrent Slot Collisions)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_prevent_teacher_double_booking 
+  ON class_sessions (teacher_id, start_time) 
+  WHERE status IN ('scheduled', 'live');
+

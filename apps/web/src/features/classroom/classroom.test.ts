@@ -27,4 +27,12 @@ describe("Classroom Arabic Parsing & Normalization Engine", () => {
     expect(SCRIPT_DATA.indopak[0].word).toBeTruthy();
     expect(SCRIPT_DATA.uthmani[3].type).toBe("madd");
   });
+
+  it("handles edge cases gracefully: empty strings, whitespace, and non-Arabic symbols", () => {
+    expect(normalizeArabic("")).toBe("");
+    expect(splitArabicWord("")).toEqual([]);
+    expect(normalizeArabic("   ")).toBe("");
+    // Mixed Arabic and numbers / special characters
+    expect(normalizeArabic("123 الحمد 456")).toContain("الحمد");
+  });
 });

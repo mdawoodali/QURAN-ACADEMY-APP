@@ -4,6 +4,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import toast from "react-hot-toast";
 import { ScriptType, LiveKitStatus, ClassroomToolState } from "../types";
 
+export type ConnectionStatus = "connected" | "reconnecting" | "offline";
+
 interface UseClassroomSyncOptions {
   classId: string;
   initialScript?: ScriptType;
@@ -21,9 +23,14 @@ export function useClassroomSync({ classId, initialScript = "uthmani" }: UseClas
   const [circles, setCircles] = useState<Record<number, boolean>>({});
 
   const [livekitStatus, setLivekitStatus] = useState<LiveKitStatus | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>("offline");
 
   const broadcastChannel = useRef<BroadcastChannel | null>(null);
   const ws = useRef<WebSocket | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectAttemptsRef = useRef(0);
+  const isUnmountedRef = useRef(false);
+  const connectWebSocketRef = useRef<() => void>(() => {});
 
   // Broadcast helper
   const broadcast = useCallback((payload: Record<string, unknown>) => {
@@ -69,11 +76,76 @@ export function useClassroomSync({ classId, initialScript = "uthmani" }: UseClas
     });
   }, [broadcast, fontSize, fontColor, underlines, circles, script, tajweedMode]);
 
+  // Connect WebSocket with resilient exponential backoff
+  const connectWebSocket = useCallback(() => {
+    if (isUnmountedRef.current) return;
+
+    try {
+      const socket = new WebSocket(`ws://localhost:8000/ws/classroom/${classId}`);
+      ws.current = socket;
+
+      socket.onopen = () => {
+        if (isUnmountedRef.current) {
+          socket.close();
+          return;
+        }
+        reconnectAttemptsRef.current = 0;
+        setConnectionStatus("connected");
+      };
+
+      socket.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === "highlight") setHighlightedIndex(data.index);
+          else if (data.type === "split") setSplitIndex(data.index);
+          else if (data.type === "close_split") setSplitIndex(null);
+          else if (data.type === "tool_sync" && data.state) {
+            if (data.state.fontSize) setFontSize(data.state.fontSize);
+            if (data.state.fontColor) setFontColor(data.state.fontColor);
+            if (data.state.underlines) setUnderlines(data.state.underlines);
+            if (data.state.circles) setCircles(data.state.circles);
+            if (data.state.script) setScript(data.state.script);
+            if (data.state.tajweedMode !== undefined) setTajweedMode(data.state.tajweedMode);
+          }
+        } catch {}
+      };
+
+      socket.onclose = () => {
+        if (isUnmountedRef.current) return;
+        setConnectionStatus("reconnecting");
+        // Exponential backoff capped at 10 seconds
+        const delay = Math.min(1000 * Math.pow(1.5, reconnectAttemptsRef.current), 10000);
+        reconnectAttemptsRef.current += 1;
+        reconnectTimeoutRef.current = setTimeout(() => {
+          connectWebSocketRef.current();
+        }, delay);
+      };
+
+      socket.onerror = () => {
+        // Handled in onclose
+      };
+    } catch {
+      const delay = Math.min(1000 * Math.pow(1.5, reconnectAttemptsRef.current), 10000);
+      reconnectAttemptsRef.current += 1;
+      reconnectTimeoutRef.current = setTimeout(() => {
+        setConnectionStatus("offline");
+        connectWebSocketRef.current();
+      }, delay);
+    }
+  }, [classId]);
+
   useEffect(() => {
+    connectWebSocketRef.current = connectWebSocket;
+  }, [connectWebSocket]);
+
+  useEffect(() => {
+    isUnmountedRef.current = false;
+
     // 1. Fetch LiveKit Token from server
     fetch(`/api/livekit/token?room=${encodeURIComponent(classId)}&username=Teacher&role=teacher`)
       .then((res) => res.json())
       .then((data) => {
+        if (isUnmountedRef.current) return;
         setLivekitStatus({ mode: data.mode, token: data.token, serverUrl: data.serverUrl });
         if (data.mode === "live") {
           toast.success(`LiveKit Cloud Connected: Room ${data.room}`);
@@ -104,34 +176,18 @@ export function useClassroomSync({ classId, initialScript = "uthmani" }: UseClas
       };
     }
 
-    // 3. Fallback WebSocket
-    try {
-      const socket = new WebSocket(`ws://localhost:8000/ws/classroom/${classId}`);
-      ws.current = socket;
-
-      socket.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (data.type === "highlight") setHighlightedIndex(data.index);
-          else if (data.type === "split") setSplitIndex(data.index);
-          else if (data.type === "close_split") setSplitIndex(null);
-          else if (data.type === "tool_sync" && data.state) {
-            if (data.state.fontSize) setFontSize(data.state.fontSize);
-            if (data.state.fontColor) setFontColor(data.state.fontColor);
-            if (data.state.underlines) setUnderlines(data.state.underlines);
-            if (data.state.circles) setCircles(data.state.circles);
-            if (data.state.script) setScript(data.state.script);
-            if (data.state.tajweedMode !== undefined) setTajweedMode(data.state.tajweedMode);
-          }
-        } catch {}
-      };
-    } catch {}
+    // 3. Start resilient WebSocket connection
+    connectWebSocket();
 
     return () => {
+      isUnmountedRef.current = true;
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
       ws.current?.close();
       broadcastChannel.current?.close();
     };
-  }, [classId]);
+  }, [classId, connectWebSocket]);
 
   return {
     script,
@@ -151,6 +207,7 @@ export function useClassroomSync({ classId, initialScript = "uthmani" }: UseClas
     circles,
     setCircles,
     livekitStatus,
+    connectionStatus,
     sendHighlight,
     sendSplit,
     sendToolSync

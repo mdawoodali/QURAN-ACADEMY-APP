@@ -33,6 +33,7 @@ export default function LiveClassroom() {
     underlines,
     circles,
     livekitStatus,
+    connectionStatus,
     sendHighlight,
     sendSplit,
     sendToolSync
@@ -158,6 +159,7 @@ export default function LiveClassroom() {
         tajweedMode={tajweedMode}
         classId={classId}
         livekitStatus={livekitStatus}
+        connectionStatus={connectionStatus}
         isVoiceFollowOn={isVoiceFollowOn}
         activeSpeechEngine={activeSpeechEngine}
         onScriptChange={handleScriptChange}
