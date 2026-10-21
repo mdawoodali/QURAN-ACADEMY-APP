@@ -5,10 +5,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { Menu, X, Mail } from "lucide-react";
 import { useLanguage, TranslationKey } from "./LanguageContext";
+import { useSect } from "./SectContext";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function PublicNavbar() {
   const { language, setLanguage, t } = useLanguage();
+  const { sect, setSect, isSunni, isShia } = useSect();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const closeMenu = () => setMobileMenuOpen(false);
@@ -85,6 +87,32 @@ export default function PublicNavbar() {
               >
                 <LinkedInTopIcon className="w-3.5 h-3.5 fill-current" />
               </a>
+            </div>
+
+            {/* Desktop Sect Switcher: Sunni / Shia */}
+            <div className="flex items-center gap-1 text-[11px] font-bold bg-black/40 p-0.5 rounded-full border border-white/15 shadow-sm">
+              <button 
+                onClick={() => setSect("sunni")}
+                title="Sunni Portal & Curriculum"
+                className={`px-2.5 py-0.5 rounded-full transition-all cursor-pointer ${
+                  isSunni 
+                    ? "bg-amber-400 text-emerald-950 font-bold shadow-xs" 
+                    : "text-emerald-100/70 hover:text-white"
+                }`}
+              >
+                Sunni
+              </button>
+              <button 
+                onClick={() => setSect("shia")}
+                title="Shia Portal & Classical Library"
+                className={`px-2.5 py-0.5 rounded-full transition-all cursor-pointer ${
+                  isShia 
+                    ? "bg-amber-400 text-emerald-950 font-bold shadow-xs" 
+                    : "text-emerald-100/70 hover:text-white"
+                }`}
+              >
+                Shia
+              </button>
             </div>
 
             {/* Desktop / Global Language Toggle Switcher */}
@@ -307,6 +335,28 @@ export default function PublicNavbar() {
                   {t("contact")}
                 </Link>
               </nav>
+
+              {/* Mobile Sect & Language Toggle */}
+              <div className="pt-4 border-t border-white/10 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-1 text-xs font-bold bg-white/10 p-1 rounded-xl border border-white/15 w-full justify-center">
+                  <button 
+                    onClick={() => setSect("sunni")}
+                    className={`flex-1 py-1.5 rounded-lg text-center transition ${
+                      isSunni ? "bg-amber-400 text-emerald-950 font-bold" : "text-emerald-100/75"
+                    }`}
+                  >
+                    Sunni
+                  </button>
+                  <button 
+                    onClick={() => setSect("shia")}
+                    className={`flex-1 py-1.5 rounded-lg text-center transition ${
+                      isShia ? "bg-amber-400 text-emerald-950 font-bold" : "text-emerald-100/75"
+                    }`}
+                  >
+                    Shia
+                  </button>
+                </div>
+              </div>
 
               <div className="pt-4 border-t border-white/10 flex flex-col gap-3">
                 <Link 

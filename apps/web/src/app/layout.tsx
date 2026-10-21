@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Source_Serif_4, Figtree, Amiri_Quran, Noto_Sans_Arabic, Vidaloka, Cinzel } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import { LanguageProvider } from "@/components/LanguageContext";
+import { SectProvider } from "@/components/SectContext";
 import "./globals.css";
 
 const sourceSerif = Source_Serif_4({ subsets: ["latin"], variable: "--font-hero" });
@@ -166,9 +167,11 @@ export default function RootLayout({
         className={`${sourceSerif.variable} ${figtree.variable} ${amiriQuran.variable} ${notoSansArabic.variable} ${vidaloka.variable} ${cinzel.variable} font-sans antialiased`}
         suppressHydrationWarning
       >
-        <LanguageProvider>
-          {children}
-        </LanguageProvider>
+        <SectProvider>
+          <LanguageProvider>
+            {children}
+          </LanguageProvider>
+        </SectProvider>
         <Toaster position="bottom-right" />
       </body>
     </html>

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { BookOpen, CheckCircle } from "lucide-react";
 import { useLanguage } from "./LanguageContext";
+import { useSect } from "./SectContext";
 
 interface WelcomeSplashProps {
   onGetStarted: (sect?: "sunni" | "shia") => void;
@@ -15,16 +16,12 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
   const [isExiting, setIsExiting] = useState(false);
   const [selectedSect, setSelectedSect] = useState<"sunni" | "shia" | null>(null);
 
+  const { setSect } = useSect();
+
   const handleSelect = (sect: "sunni" | "shia") => {
     setSelectedSect(sect);
     setIsExiting(true);
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.setItem("user_sect", sect);
-      } catch {
-        // safe fallback
-      }
-    }
+    setSect(sect);
     // Smooth delay before triggering parent unmount to let animation play
     setTimeout(() => {
       onGetStarted(sect);

@@ -8,7 +8,8 @@ This file tracks all completed changes and upcoming planned roadmap tasks for **
 
 | Commit ID | Timestamp (PKT) | Author | Summary of Changes |
 | :--- | :--- | :--- | :--- |
-| [pending] | 2026-10-21 19:35:00 | **Isbah** | Fixed localhost portal access by enabling resilient auth degradation in middleware, login actions, and adding one-click portal switcher on login screen. |
+| 74b6b67 | 2026-10-21 20:00:00 | **Isbah** | Merged Shia Tool Kit and Shia Classical Library under unified 'Shia Classical Library' with dual sub-views, and implemented strict Sunni sect isolation via SectContext. |
+| 37635e4 | 2026-10-21 19:35:00 | **Isbah** | Fixed localhost portal access by enabling resilient auth degradation in middleware, login actions, and adding one-click portal switcher on login screen. |
 | `dd1edee` | 2026-10-21 00:47:44 | **Isbah** | Added Digital Tasbeeh, Prayer Times & Qibla Direction, 99 Names of Allah (Asma-ul-Husna), and Seerat-un-Nabi (S.A.W) to Resources. |
 | `4697b23` | 2026-10-21 00:23:55 | **Isbah** | Enlarged opening logo, elevated position, and added luminous golden ambient backlight halo. |
 | `671b407` | 2026-10-21 00:20:03 | **Isbah** | Replaced background Bismillah with Quran Learn Academy logo emblem and clean emerald textured pattern. |

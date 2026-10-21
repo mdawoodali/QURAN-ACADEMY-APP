@@ -578,7 +578,8 @@ This journal documents the engineering decisions, security defenses, UX design p
     - Simulated entire pipeline: Student Registration & Zod schema validation -> Non-conflicting trial scheduling -> Teacher pairing -> LiveKit WebRTC classroom entry -> Quranic phonetic recitation matching -> Teacher scorecard logging -> Zero-Stripe multi-currency direct tuition invoicing -> Admin payment verification -> Resend transactional email clearance.
   - **APM Telemetry & Funnel Analytics Engine**:
     - Built production APM telemetry service (pps/web/src/lib/telemetry.ts) providing captureError, captureMessage, and startSpan with automatic duration tracking and slow-span performance warnings.
-    - Engineered conversion funnel tracker (pps/web/src/lib/analytics.ts) tracking five core lifecycle milestones: 	rial_booked, classroom_entered, lesson_completed, eceipt_uploaded, and payment_verified.
+    - Engineered conversion funnel tracker (pps/web/src/lib/analytics.ts) tracking five core lifecycle milestones: 	rial_booked, classroom_entered, lesson_completed, 
+eceipt_uploaded, and payment_verified.
   - **Deep Subsystem Health Diagnostics (pps/web/src/app/api/health/route.ts)**:
     - Upgraded health API to inspect and report live status for Supabase transaction pooler (port 6543), LiveKit SFU (WebRTC OPUS 48kHz), Deepgram speech recognition, Resend transactional mailer, and WebSocket cluster broker.
     - Returns standardized HTTP 200 payload with subsystem uptime breakdown and productionReady: true flag.
@@ -610,3 +611,31 @@ This journal documents the engineering decisions, security defenses, UX design p
    - Added role inference and fallback session cookie generation: Signing in with emails matching dmin (e.g. dmin@quranacademy.com), 	eacher, or student sets the local evaluation role and redirects directly to /admin, /teacher, or /student.
 3. **One-Click Demo Switcher on Login Page (pps/web/src/app/(public)/login/page.tsx)**:
    - Added quick-access buttons for **Admin**, **Teacher**, and **Student** portals on the /login screen for frictionless one-click testing.
+
+---
+
+## 9.24 Shia Classical Library Unified Merge & Sect Isolation Architecture
+
+### 9.24.1 Context & Objectives
+- **Requirement**: Unify the previously decoupled *Shia Tool Kit* and *Shia Classical Library* tabs under a single coherent portal named **Shia Classical Library**.
+- **Sect Partitioning Directive**: Partition user experiences so that users accessing via the **Sunni** portal option are completely isolated from Shia-specific resources, keeping the Sunni experience focused and standard. Users accessing via the **Shia** option enjoy immediate access to the full merged Shia Classical Library, preserving all daily tools and classical manuscripts.
+
+### 9.24.2 Architectural Implementation
+1. **Global Sect Context (`apps/web/src/components/SectContext.tsx`)**:
+   - Built React `SectProvider` and `useSect()` hook maintaining reactive `sect: "sunni" | "shia"` state.
+   - Synchronizes seamlessly with both `localStorage.getItem("user_sect")` and browser cookies (`user_sect=sunni|shia; path=/; max-age=31536000; SameSite=Lax`).
+   - Integrated into the root application layout (`apps/web/src/app/layout.tsx`).
+
+2. **Welcome Splash Sect Selection (`apps/web/src/components/WelcomeSplash.tsx`)**:
+   - Connected Sunni and Shia buttons to `setSect()`, immediately persisting the choice across sessions and transitioning smoothly to the selected portal environment.
+
+3. **Dynamic Public Navbar Sect Switcher (`apps/web/src/components/PublicNavbar.tsx`)**:
+   - Added persistent, glassmorphic `[Sunni | Shia]` switcher pills in both the desktop top-bar and the mobile responsive drawer.
+   - Enables users and evaluators to switch between Sunni and Shia views instantly with zero state desynchronization.
+
+4. **Merged Shia Classical Library Hub (`apps/web/src/app/(public)/resources/page.tsx`)**:
+   - **Consolidation**: Merged the standalone *Shia Tool Kit* tab and *Shia Classical Library* tab into one unified **Shia Classical Library** tab (`activeTab === "shia-library"`).
+   - **Dual Sub-Navbar**: Introduced a symmetrical sub-view toggle within the section:
+     - **Classical Reference Texts**: Full interactive readers, category filtering, search, and text export for *Nahj al-Balagha*, *Al-Kafi*, *Al-Sahifa al-Sajjadiyya*, *Mafatih al-Jinan*, and *Kitab al-Irshad*.
+     - **Spiritual Tools & Ahkam Companion**: Complete interactive *ShiaToolkit* suite featuring Sayyida Fatima Zahra's (SA) 34-33-33 Tasbih, Core Duas & Ziyarat, Ja'fari astronomical prayer calculation engine, and Wudhu/Salat Ahkam guides.
+   - **Sunni Isolation**: When `isSunni` is active, the Shia Classical Library tab is completely omitted from the DOM, and URL parameters targeting Shia tabs automatically fall back to the Holy Quran (30 Paras) tab.
