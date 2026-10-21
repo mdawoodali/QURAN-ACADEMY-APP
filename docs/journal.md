@@ -639,3 +639,23 @@ eceipt_uploaded, and payment_verified.
      - **Classical Reference Texts**: Full interactive readers, category filtering, search, and text export for *Nahj al-Balagha*, *Al-Kafi*, *Al-Sahifa al-Sajjadiyya*, *Mafatih al-Jinan*, and *Kitab al-Irshad*.
      - **Spiritual Tools & Ahkam Companion**: Complete interactive *ShiaToolkit* suite featuring Sayyida Fatima Zahra's (SA) 34-33-33 Tasbih, Core Duas & Ziyarat, Ja'fari astronomical prayer calculation engine, and Wudhu/Salat Ahkam guides.
    - **Sunni Isolation**: When `isSunni` is active, the Shia Classical Library tab is completely omitted from the DOM, and URL parameters targeting Shia tabs automatically fall back to the Holy Quran (30 Paras) tab.
+
+---
+
+## 9.25 Standard Prayer Times & Qibla Dashboard Harmonization
+
+### 9.25.1 Context & Objectives
+- **Requirement**: Harmonize the standard/Sunni prayer timings view (`PrayerTimesQibla.tsx`) with the visual richness, interactivity, live clock, Hijri date, countdown, and audio capabilities pioneered in the Shia prayer engine.
+
+### 9.25.2 Architectural Implementation
+1. **Mathematical Engine Expansion (`apps/web/src/lib/prayerMath.ts`)**:
+   - Created `STANDARD_CITIES_DATABASE` covering 15 global Islamic capitals and metropolises (Makkah, Madinah, Jerusalem, Karachi, Lahore, Islamabad, Cairo, Istanbul, Dubai, London, New York, Chicago, Toronto, Kuala Lumpur, Sydney).
+   - Implemented `calculateStandardPrayerTimes()` supporting both **Hanafi** (double shadow length) and **Shafi'i / Standard** (single shadow length) Asr juristic conventions and standard 18° twilight angles (MWL & Karachi conventions).
+
+2. **Full-Featured Dashboard Architecture (`apps/web/src/features/resources/components/PrayerTimesQibla.tsx`)**:
+   - **Top Live Dashboard Panel**: Live ticking digital clock (`HH:MM:SS`), dynamic Hijri date in Arabic and English, active GPS location detection, Web Audio Adhan synthesizer chime, and interactive calendar date picker.
+   - **Next Prayer Glowing Countdown Strip**: Real-time ticking remaining countdown (`HH:MM:SS Remaining`), next prayer call card with Arabic script, Qibla heading card, and dynamic Hanafi/Shafi'i toggle card.
+   - **Calibrated Cities Quick Pills**: Instant switching across holy capitals and international cities with active selection indicators.
+   - **8 Prayer Time Cards Grid**: Complete cards for Fajr, Sunrise, Dhuhr, Asr, Sunset, Maghrib, Isha, and Midnight (Tahajjud), with animated ping badge and golden highlight on the active next prayer.
+   - **360° Rotating Qibla Compass Visualizer**: Cardinal points dial, rotating Kaaba needle, direct distance in km, and mobile `deviceorientation` sensor synchronization.
+   - **Juristic & Astronomical Reference Guide**: Contextual explanations of Asr shadow factors and Qiyam al-Layl timings.

@@ -206,3 +206,119 @@ export function getLiveHijriDate(date: Date = new Date()): { english: string; ar
     return { english: "Jumada al-Ula 1448 AH", arabic: "جمادى الأولى ١٤٤٨ هـ" };
   }
 }
+
+
+export const STANDARD_CITIES_DATABASE: Record<string, CityLocation> = {
+  "Makkah": { name: "Makkah al-Mukarramah", country: "Saudi Arabia", lat: 21.3891, lng: 39.8579, timezone: 3, timezoneName: "AST (UTC+3)" },
+  "Madinah": { name: "Madinah al-Munawwarah", country: "Saudi Arabia", lat: 24.5247, lng: 39.5692, timezone: 3, timezoneName: "AST (UTC+3)" },
+  "Jerusalem": { name: "Al-Quds (Jerusalem)", country: "Palestine", lat: 31.7683, lng: 35.2137, timezone: 2, timezoneName: "EET (UTC+2)" },
+  "Karachi": { name: "Karachi", country: "Pakistan", lat: 24.8607, lng: 67.0011, timezone: 5, timezoneName: "PKT (UTC+5)" },
+  "Lahore": { name: "Lahore", country: "Pakistan", lat: 31.5204, lng: 74.3587, timezone: 5, timezoneName: "PKT (UTC+5)" },
+  "Islamabad": { name: "Islamabad", country: "Pakistan", lat: 33.6844, lng: 73.0479, timezone: 5, timezoneName: "PKT (UTC+5)" },
+  "Cairo": { name: "Cairo", country: "Egypt", lat: 30.0444, lng: 31.2357, timezone: 2, timezoneName: "EEST (UTC+2)" },
+  "Istanbul": { name: "Istanbul", country: "Turkey", lat: 41.0082, lng: 28.9784, timezone: 3, timezoneName: "TRT (UTC+3)" },
+  "Dubai": { name: "Dubai", country: "United Arab Emirates", lat: 25.2048, lng: 55.2708, timezone: 4, timezoneName: "GST (UTC+4)" },
+  "London": { name: "London", country: "United Kingdom", lat: 51.5074, lng: -0.1278, timezone: 1, timezoneName: "BST (UTC+1)" },
+  "New York": { name: "New York", country: "United States", lat: 40.7128, lng: -74.0060, timezone: -4, timezoneName: "EDT (UTC-4)" },
+  "Chicago": { name: "Chicago", country: "United States", lat: 41.8781, lng: -87.6298, timezone: -5, timezoneName: "CDT (UTC-5)" },
+  "Toronto": { name: "Toronto", country: "Canada", lat: 43.6532, lng: -79.3832, timezone: -4, timezoneName: "EDT (UTC-4)" },
+  "Kuala Lumpur": { name: "Kuala Lumpur", country: "Malaysia", lat: 3.1390, lng: 101.6869, timezone: 8, timezoneName: "MYT (UTC+8)" },
+  "Sydney": { name: "Sydney", country: "Australia", lat: -33.8688, lng: 151.2093, timezone: 11, timezoneName: "AEST (UTC+11)" },
+};
+
+export interface StandardPrayerTimes {
+  fajr: string;
+  sunrise: string;
+  dhuhr: string;
+  asr: string;
+  sunset: string;
+  maghrib: string;
+  isha: string;
+  midnight: string;
+  rawMinutes: {
+    fajr: number;
+    sunrise: number;
+    dhuhr: number;
+    asr: number;
+    sunset: number;
+    maghrib: number;
+    isha: number;
+    midnight: number;
+  };
+}
+
+/**
+ * Standard Solar Calculation for Sunni / Standard Jurisprudence
+ * Supporting Hanafi and Shafi'i Asr methods and standard 18° twilight angles.
+ */
+export function calculateStandardPrayerTimes(
+  lat: number,
+  lng: number,
+  timezoneOffset: number,
+  date: Date = new Date(),
+  asrMethod: "hanafi" | "standard" = "hanafi",
+  fajrAngleDeg: number = 18.0,
+  ishaAngleDeg: number = 18.0
+): StandardPrayerTimes {
+  const start = new Date(date.getFullYear(), 0, 0);
+  const diff = date.getTime() - start.getTime();
+  const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+  // Equation of Time and Solar Declination
+  const b = (2 * Math.PI * (dayOfYear - 81)) / 365;
+  const eot = 9.87 * Math.sin(2 * b) - 7.53 * Math.cos(b) - 1.5 * Math.sin(b);
+  const declination = 23.45 * Math.sin(((dayOfYear - 81) * 2 * Math.PI) / 365);
+
+  // Solar Noon (Dhuhr start: +1 minute for safe meridian pass)
+  const solarNoonMin = 720 - 4 * (lng - timezoneOffset * 15) - eot;
+  const dhuhrMin = solarNoonMin + 1;
+
+  // Sunrise and Sunset (-0.833° for atmospheric refraction)
+  const sunAngle = calcHourAngle(lat, declination, -0.833);
+  const sunriseMin = solarNoonMin - sunAngle * 4;
+  const sunsetMin = solarNoonMin + sunAngle * 4;
+
+  // Fajr (standard 18° twilight)
+  const fajrAngle = calcHourAngle(lat, declination, -fajrAngleDeg);
+  const fajrMin = solarNoonMin - fajrAngle * 4;
+
+  // Asr: shadow factor 2 (Hanafi) vs 1 (Shafi'i / Standard)
+  const shadowFactor = asrMethod === "hanafi" ? 2 : 1;
+  const latRad = (lat * Math.PI) / 180;
+  const decRad = (declination * Math.PI) / 180;
+  const asrAltRad = Math.atan(1 / (shadowFactor + Math.tan(Math.abs(latRad - decRad))));
+  const asrAltDeg = (asrAltRad * 180) / Math.PI;
+  const asrAngle = calcHourAngle(lat, declination, asrAltDeg);
+  const asrMin = solarNoonMin + asrAngle * 4;
+
+  // Maghrib: Sunset + 2 minutes
+  const maghribMin = sunsetMin + 2;
+
+  // Isha: Standard 18° twilight
+  const ishaAngle = calcHourAngle(lat, declination, -ishaAngleDeg);
+  const ishaMin = solarNoonMin + ishaAngle * 4;
+
+  // Midnight (Qiyam al-Layl): Halfway between Sunset and next day Fajr
+  const midnightMin = ((sunsetMin + (fajrMin + 1440)) / 2) % 1440;
+
+  return {
+    fajr: formatMinutesToTime(fajrMin),
+    sunrise: formatMinutesToTime(sunriseMin),
+    dhuhr: formatMinutesToTime(dhuhrMin),
+    asr: formatMinutesToTime(asrMin),
+    sunset: formatMinutesToTime(sunsetMin),
+    maghrib: formatMinutesToTime(maghribMin),
+    isha: formatMinutesToTime(ishaMin),
+    midnight: formatMinutesToTime(midnightMin),
+    rawMinutes: {
+      fajr: Math.round(fajrMin),
+      sunrise: Math.round(sunriseMin),
+      dhuhr: Math.round(dhuhrMin),
+      asr: Math.round(asrMin),
+      sunset: Math.round(sunsetMin),
+      maghrib: Math.round(maghribMin),
+      isha: Math.round(ishaMin),
+      midnight: Math.round(midnightMin),
+    },
+  };
+}
