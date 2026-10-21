@@ -719,3 +719,11 @@ eceipt_uploaded, and payment_verified.
   - Live API validation executed against Deepgram's projects endpoint: confirmed active project link.
 - **Validation**:
   - `pnpm test`: 53/53 tests passed across 11 test suites.
+
+---
+
+## 9.29 Top-Level Tab & Heading Harmonization to 'Daily guides and Duas'
+
+### 9.29.1 Objectives & Changes
+- Updated the primary top-level navigation tab label and section heading under Academy Resources (`apps/web/src/app/(public)/resources/page.tsx`) to **"Daily guides and Duas"**.
+- Aligned typography and metadata across both mobile and desktop viewports.

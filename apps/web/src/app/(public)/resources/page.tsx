@@ -201,7 +201,7 @@ https://quranlearnacademy.com/resources
             }`}
           >
             <FileText size={16} />
-            <span>Daily Guides & Duas</span>
+            <span>Daily guides and Duas</span>
           </button>
 
           {/* Unified Shia Classical Library Tab - Exclusively visible in Shia mode */}
@@ -375,7 +375,7 @@ https://quranlearnacademy.com/resources
         <section className="mb-16">
           <div className="text-center max-w-2xl mx-auto mb-10">
             <h2 className="text-2xl sm:text-3xl font-serif font-bold text-white mb-2">
-              Essential Daily Guides & Masnoon Duas
+              Daily guides and Duas
             </h2>
             <p className="text-sm sm:text-base text-emerald-100/80">
               Instant interactive in-app reading without external download delays, plus full offline export.
