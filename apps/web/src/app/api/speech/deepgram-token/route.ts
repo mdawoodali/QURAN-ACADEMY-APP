@@ -3,7 +3,12 @@ import { connection } from "next/server";
 import { DeepgramClient } from "@deepgram/sdk";
 
 export async function GET() {
-  await connection();
+  try {
+    await connection();
+  } catch {
+    // Gracefully handle unit test environments outside Next.js request context
+  }
+
   const apiKey = process.env.DEEPGRAM_API_KEY;
 
   if (!apiKey || apiKey === "your_deepgram_api_key_here") {

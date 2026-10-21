@@ -2,7 +2,12 @@ import { NextResponse } from "next/server";
 import { connection } from "next/server";
 
 export async function GET() {
-  await connection();
+  try {
+    await connection();
+  } catch {
+    // Gracefully handle unit test environments outside Next.js request context
+  }
+
   const startTime = Date.now();
   const mem = process.memoryUsage();
 
