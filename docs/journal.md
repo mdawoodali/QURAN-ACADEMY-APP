@@ -403,3 +403,22 @@ This journal documents the engineering decisions, security defenses, UX design p
   - `pnpm lint`: 0 errors, 0 warnings.
   - `pnpm typecheck`: 0 type errors.
   - `pnpm build`: All 50 routes statically and dynamically built cleanly.
+
+### 9.15 ShiaToolkit: Astronomical Ja'fari Prayer Engine, Live Clock, Countdown, Geolocation & Symmetrical Sub-Navbar
+- **Defects Identified**:
+  - **Static Mock Times**: In `apps/web/src/components/ShiaToolkit.tsx`, prayer times were hardcoded static string constants (`CITIES_PRAYER_DATA`), failing to reflect true date-based astronomical solar movements.
+  - **No Live Feedback**: Lack of real-time ticking clock, next prayer determination, or active countdown to the next prayer.
+  - **No Device Geolocation**: Users outside the pre-listed static cities had no means to calibrate prayer times for their actual GPS coordinates.
+  - **Sub-Navbar Layout Imbalance**: The 5 subtabs wrapped irregularly on medium and desktop screens (`max-w-4xl` with `flex-wrap`), causing the 5th item (`14 Infallibles Calendar`) to drop awkwardly onto a lonely second line.
+- **Engineering Remediation**:
+  - **Astronomical Ja'fari Calculation Engine**: Created [`apps/web/src/lib/prayerMath.ts`](file:///C:/Users/ESHOP/.gemini/antigravity/scratch/QuranAcademy/apps/web/src/lib/prayerMath.ts) implementing solar declination, equation of time, solar noon (Zawal), University of Tehran standard (Fajr 17.7°, Maghrib 4.5° eastern redness depression, Isha 14°, and Midnight / Nisf al-Layl halfway between sunset and dawn).
+  - **Live Digital Clock & Next Prayer Countdown**: Integrated a 1-second interval timer updating local city time and calculating the exact remaining duration (`hh:mm:ss`) to the upcoming prayer call, with dynamic golden highlight cards.
+  - **HTML5 Geolocation Integration**: Added a one-click `Detect My Location` GPS button that extracts device coordinates and computes high-accuracy localized prayer schedules globally.
+  - **Spherical Qibla Direction**: Computes great-circle Kaaba azimuth and kilometer distance with an animated compass bearing needle.
+  - **Web Audio Shia Adhan Test**: Implemented a melodic Web Audio synthesizer for Adhan cadence testing.
+  - **Symmetrical 5-Column Navigation**: Upgraded the sub-navbar container to `grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5`, ensuring all 5 items align horizontally on desktop without awkward line breaking, and balance cleanly on mobile.
+- **Validation**:
+  - `pnpm test`: 25 passed across 6 test suites.
+  - `pnpm lint`: 0 errors, 0 warnings.
+  - `pnpm typecheck`: 0 type errors.
+  - `pnpm build`: All 50 routes compiled in 4.2s with 0 errors.
