@@ -206,3 +206,32 @@ CREATE POLICY "Admins can view audit logs" ON audit_logs FOR SELECT USING (
 
 DROP POLICY IF EXISTS "System can record audit logs" ON audit_logs;
 CREATE POLICY "System can record audit logs" ON audit_logs FOR INSERT WITH CHECK (true);
+
+-- Phase 4 Concurrency & Invoices
+CREATE UNIQUE INDEX IF NOT EXISTS idx_prevent_student_double_booking ON class_sessions (student_id, start_time) WHERE status IN ('scheduled', 'live');
+CREATE INDEX IF NOT EXISTS idx_class_sessions_teacher_time_status ON class_sessions (teacher_id, start_time, status);
+CREATE INDEX IF NOT EXISTS idx_class_sessions_student_time_status ON class_sessions (student_id, start_time, status);
+
+CREATE TABLE IF NOT EXISTS invoices (
+  id TEXT PRIMARY KEY,
+  student_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  parent_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
+  package_id TEXT NOT NULL,
+  package_name TEXT NOT NULL,
+  amount NUMERIC(10, 2) NOT NULL CHECK (amount > 0),
+  currency TEXT NOT NULL CHECK (currency IN ('PKR', 'GBP', 'USD', 'EUR', 'CAD', 'AUD')),
+  status TEXT NOT NULL DEFAULT 'pending_verification' CHECK (status IN ('pending_verification', 'paid', 'refunded')),
+  payment_method TEXT NOT NULL,
+  transaction_ref TEXT NOT NULL,
+  metadata JSONB DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  verified_at TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_invoices_student_status ON invoices (student_id, status);
+CREATE INDEX IF NOT EXISTS idx_invoices_ref ON invoices (transaction_ref);
+ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Parents view own family invoices" ON invoices FOR SELECT USING (parent_id = auth.uid());
+CREATE POLICY "Students view own invoices" ON invoices FOR SELECT USING (student_id = auth.uid());
+CREATE POLICY "Admins full invoice access" ON invoices FOR ALL USING (EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin'));
+CREATE POLICY "System can record invoices" ON invoices FOR INSERT WITH CHECK (true);

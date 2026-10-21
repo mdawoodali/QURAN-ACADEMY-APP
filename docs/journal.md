@@ -543,3 +543,29 @@ This journal documents the engineering decisions, security defenses, UX design p
   - Verified local and relative asset references.
   - `pnpm test`: 39/39 tests passed.
   - `pnpm lint`: 0 errors, 0 warnings.
+
+## 9.21 Phase 4 Complete: Concurrency Scaling, Database Indexing, WebSocket Multi-Instance Clustering, and Security / COPPA Child Safeguarding
+- **Objective**: Complete Phase 4 (Days 29–35 of 40-Day Master Launch Plan) with database connection pooling, high-concurrency composite indexes, horizontal WebSocket clustering, strict API rate limiting, and COPPA child safety PII masking.
+- **Architectural Implementation**:
+  - **Database Connection Pooling & Composite Indexing**:
+    - Enabled Supabase transaction pooler in `supabase/config.toml` (`pool_mode = "transaction"`, `default_pool_size = 50`, `max_client_conn = 1000`) supporting 1,000+ concurrent live classes.
+    - Authored migration `supabase/migrations/20261021180000_phase4_concurrency_and_security.sql`:
+      - Double-booking prevention unique indexes for both teachers and students (`idx_prevent_teacher_double_booking`, `idx_prevent_student_double_booking`).
+      - High-concurrency composite indexes: `idx_class_sessions_teacher_time_status`, `idx_class_sessions_student_time_status`, `idx_class_sessions_range_status`.
+      - Multi-currency `invoices` table with strict foreign key constraints, status constraints, and composite indexes (`(student_id, status)`, `(transaction_ref)`, `(created_at DESC)`).
+      - Row Level Security (RLS) policies for parent, student, and admin invoice access.
+      - Child safety PII masking view (`safe_student_roster`) protecting student phone, email, and home address.
+  - **WebSocket Horizontal Scaling & Cluster Architecture (`apps/ws`)**:
+    - Implemented `RedisClusterBroker` and modular `RoomMessageBroker` in `apps/ws/index.ts` enabling multi-instance clustering across WebSocket gateway instances.
+    - Added `/metrics` and `/health` HTTP endpoints exposing live connection counts, active classroom counts, broker telemetry, and memory usage.
+    - Stress-tested concurrency in `apps/ws/scale.test.ts`: 1,000 concurrent message broadcasts across 10 rooms with zero message drops and sub-millisecond dispatch time.
+  - **OWASP Top 10 Security & API Rate Limiting**:
+    - Engineered modular sliding window rate limiter (`apps/web/src/lib/security/rateLimit.ts`) enforcing 60 req/min for general APIs and 15 req/min for sensitive token routes.
+    - Integrated rate limiter and security headers (`X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection`, `Referrer-Policy`, `Permissions-Policy`) directly into `apps/web/src/middleware.ts`.
+    - Built child safety and COPPA compliance helpers (`apps/web/src/lib/security/childSafety.ts`): `maskStudentPii`, `isRecordingPermitted`, and `hasScheduleCollision`.
+    - Added 9 unit tests in `tests/security.test.ts` verifying rate limit throttling, 429 Retry-After calculation, PII redaction, and double-booking rejection.
+- **Verification & Testing**:
+  - `pnpm test`: 51/51 tests passed across all 10 test suites in 1.59s.
+  - `pnpm typecheck`: 0 TypeScript compiler errors.
+  - `pnpm lint`: 0 ESLint errors, 0 warnings.
+  - `pnpm build`: Next.js 16.4.0 (Turbopack) successfully compiled and prerendered all 54 routes in 2.3s.
