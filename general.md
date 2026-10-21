@@ -8,6 +8,12 @@ This file tracks all completed changes and upcoming planned roadmap tasks for **
 
 | Commit ID | Timestamp (PKT) | Author | Summary of Changes |
 | :--- | :--- | :--- | :--- |
+| `4aa17fe` | 2026-10-22 01:30:00 | **Isbah** | Universally promoted Digital Tasbeeh for Shia and Sunni and decoupled from Shia Classical Library. |
+| `ba3b499` | 2026-10-22 01:29:00 | **Isbah** | Upgraded top-level Digital Tasbeeh with Tasbih Fatima Zahra (SA) auto-advancement engine. |
+| `c253910` | 2026-10-22 01:28:00 | **Isbah** | Decoupled Duas & Ziyarat from Shia Classical Library sub-navbar into 4-item layout. |
+| `9540a90` | 2026-10-22 01:27:00 | **Isbah** | Added category filter pills, search, and in-app recitation reader modal for Duas. |
+| `450bc75` | 2026-10-22 01:26:00 | **Isbah** | Integrated Duas & Ziyarat into Daily guides and Duas with sect isolation. |
+| `6652f97` | 2026-10-22 01:25:00 | **Isbah** | Updated top-level tab and section heading to 'Daily guides and Duas'. |
 | 9d9262a | 2026-10-21 21:35:00 | **Isbah** | Replaced Prayer Times with Ja'fari Prayer Schedule in Shia mode, and decoupled it from Shia Classical Library sub-navbar. |
 | `afad0e7` | 2026-10-21 21:28:00 | **Isbah** | Unified Shia resources into a single co-located sub-navbar under Shia Classical Library. |
 | `f546897` | 2026-10-21 21:15:00 | **Isbah** | Harmonized standard Prayer Times & Qibla view with live clock, Hijri date, next prayer countdown, Web Audio Adhan, and city pills. |

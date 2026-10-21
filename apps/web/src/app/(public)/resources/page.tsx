@@ -28,7 +28,7 @@ export default function ResourcesPage() {
   const { sect, isSunni, isShia } = useSect();
   const [activeTab, setActiveTab] = useState<ResourceTab>("quran");
   const [shiaInitialTab, setShiaInitialTab] = useState<
-    "texts" | "tasbeeh" | "ahkam" | "calendar"
+    "texts" | "ahkam" | "calendar"
   >("texts");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -51,7 +51,6 @@ export default function ResourcesPage() {
 
       if (
         subParam === "texts" ||
-        subParam === "tasbeeh" ||
         subParam === "ahkam" ||
         subParam === "calendar"
       ) {

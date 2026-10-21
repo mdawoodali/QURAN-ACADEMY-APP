@@ -754,3 +754,11 @@ eceipt_uploaded, and payment_verified.
 - Upgraded `apps/web/src/features/resources/components/DigitalTasbeeh.tsx` with the authentic 3-phase advancement of *Tasbih Sayyida Fatima al-Zahra (SA)* (34 Allahu Akbar -> 33 Alhamdulillah -> 33 SubhanAllah) with automatic limit detection, phase step transition toasts, and lap completion counters.
 - Preserved universal prophetic dhikr presets (`salawat`, `istighfar`, `arbaah`, `yunusiya`, `free`).
 - Integrated Web Audio API `AudioContext` click synthesis with exponential gain drop and haptic feedback (`navigator.vibrate`).
+
+### 9.29.2 Universal Promotion & Shia Classical Library Decoupling
+- Decoupled `tasbeeh` state, handlers, and view from `ShiaToolkit`.
+- Refactored sub-navbar into a focused 3-item grid (`grid-cols-1 sm:grid-cols-3`):
+  1. Classical Reference Texts (`texts`)
+  2. Wudhu & Salat Ahkam (`ahkam`)
+  3. 14 Infallibles Calendar (`calendar`)
+- Replaced nested tasbeeh initialTab binding in `CompanionApp` with the upgraded `<DigitalTasbeeh />` component alongside `<JafariPrayerSchedule />` and `<ShiaToolkit initialTab="texts" />`.
