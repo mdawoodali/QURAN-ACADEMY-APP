@@ -1,7 +1,10 @@
+import { connection } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import ProfileForm from "./ProfileForm";
 
 export default async function StudentProfile() {
+  await connection();
+
   let initialData = {
     fullName: "Yusuf Khan",
     email: "yusuf.student@quranacademy.com",

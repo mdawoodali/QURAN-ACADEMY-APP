@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
+import { connection } from "next/server";
 import { DeepgramClient } from "@deepgram/sdk";
 
 export async function GET() {
+  await connection();
   const apiKey = process.env.DEEPGRAM_API_KEY;
 
   if (!apiKey || apiKey === "your_deepgram_api_key_here") {

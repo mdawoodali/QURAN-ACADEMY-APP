@@ -317,3 +317,22 @@ This journal documents the engineering decisions, security defenses, UX design p
 - **Next.js TypeScript Isolation**: Configured `apps/web/tsconfig.json` to explicitly exclude all test files (`**/*.test.ts`, `**/*.spec.ts`, `tests`) from Next.js bundle generation while maintaining full test coverage in Vitest. Added `vitest` dependency in `apps/web/package.json` for isolated subproject builds.
 - **Verification**: 25 tests passing in Vitest, 0 ESLint warnings, 0 errors, and clean Next.js 50-route production build.
 - **Lockfile Synchronization**: Synchronized `pnpm-lock.yaml` across all workspace projects for strict CI and cloud platform `--frozen-lockfile` verification.
+
+
+### 9.9 Vercel Production Build Rectification & Consolidated Supabase Sync
+- **Root Cause Analysis of 34s Vercel Build Failure**:
+  1. Identified that Vercel automatically triggers `prisma generate` during its build pipeline whenever `prisma/schema.prisma` is located inside `apps/web`. In `apps/web/package.json`, `"prisma": "^8.0.0-rc.21"` installed `@prisma/composer` (an experimental AI composer tool rather than the ORM CLI), crashing with `CLI.UNKNOWN_COMMAND: No command registered for generate` at 34 seconds.
+  2. The production codebase is natively powered by `@supabase/ssr` and `@supabase/supabase-js`; `@prisma/client` had 0 active imports throughout the codebase.
+- **Cloud Build Hardening & Dependency Cleanup**:
+  - Removed unused `@prisma/client` and `prisma` dependencies from `apps/web/package.json`, stripping 270 redundant packages.
+  - Relocated `schema.prisma` to repository root `prisma/schema.prisma` to retain schema documentation while preventing Vercel from triggering automated Prisma build hooks.
+  - Defined explicit `"vercel-build": "next build"` script in `apps/web/package.json`.
+- **Next.js 16 Cache Components / PPR Alignment**:
+  - Replaced forbidden route segment configurations (`export const dynamic = "force-dynamic"`) with idiomatic Next.js 16 `await connection();` from `next/server` across `/student/profile`, `/api/health`, and `/api/speech/deepgram-token`.
+  - Fully eliminated `HANGING_PROMISE_REJECTION` during static page prerendering.
+- **Consolidated Idempotent Supabase Migration**:
+  - Created `supabase/migrations/FULL_DATABASE_SYNC.sql` unifying all enums, tables (`teacher_assignments`, `recurring_schedules`, `class_sessions`, `session_attendance_logs`, `audit_logs`), performance indexes, immutability triggers, RLS policies, and double-booking exclusion constraints for error-free 1-click execution in Supabase SQL Editor.
+- **Quality Verification**:
+  - Vitest: 25/25 tests passing in ~580ms.
+  - ESLint: 0 errors, 0 warnings.
+  - Next.js Production Build: 50 routes compiled, zero errors, zero warnings.

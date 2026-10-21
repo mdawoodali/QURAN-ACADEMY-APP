@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
+import { connection } from "next/server";
 
 export async function GET() {
+  await connection();
   const startTime = Date.now();
   const mem = process.memoryUsage();
 
