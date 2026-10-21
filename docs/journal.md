@@ -386,3 +386,20 @@ This journal documents the engineering decisions, security defenses, UX design p
   - `pnpm test`: 25 passed across 6 test suites in 586ms.
   - `pnpm lint`: 0 errors, 0 warnings.
   - `pnpm build`: 50 routes compiled cleanly with 0 errors.
+
+### 9.14 ShiaToolkit Digital Tasbeeh: Free Counter & Dhikr Yunus Decoupling & Target Fix
+- **Defects Identified**:
+  - **Shared Fallback Bug**: In `apps/web/src/components/ShiaToolkit.tsx`, the mode switch statement omitted an explicit condition for `mode === "yunusiya"`, allowing both `yunusiya` and `free` to fall through to the identical Dhikr Yunus Arabic text block (`لَّا إِلَهَ إِلَّا أَنتَ سُبْحَانَكَ إِنِّي كُنتُ مِنَ الظَّالِمِينَ`).
+  - **Hardcoded Denominator Bug**: Dhikr Yunus has a traditional recommended limit of 40 in Sujud, but the circle counter displayed `/ 100` instead of `/ 40`.
+  - **Completion Toast Mismatch**: At limit 40, the completion notification erroneously celebrated "Completed cycle of 100!".
+  - **Static Hadith Attribution**: The educational Hadith section beneath the counter was statically pinned to Tasbih Fatima Zahra even when reciting Salawat, Istighfar, Dhikr Yunus, or Free Counter.
+- **Engineering Remediation**:
+  - **Decoupled Architecture**: Established `TASBEEH_CONFIG` dictionary defining type-safe presets for `salawat` (100), `istighfar` (100), `arbaah` (100), `yunusiya` (40), and `free` (unlimited / null limit).
+  - **Free Counter Identity**: Endowed `free` counter with its own Arabic presentation (`بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ`), transliteration, description, and dynamic `Free Count (∞)` indicator with unbounded incrementation.
+  - **Accurate Targets & Notifications**: Set Dhikr Yunus target to `/ 40` with contextualized completion toasts matching the active dhikr preset and limit.
+  - **Dynamic Virtues & Hadiths**: Dynamically rendered authentic prophetic and Ahlulbayt hadiths / Quranic verses tailored to the active dhikr mode.
+- **Validation**:
+  - `pnpm test`: 25 passed across 6 test suites.
+  - `pnpm lint`: 0 errors, 0 warnings.
+  - `pnpm typecheck`: 0 type errors.
+  - `pnpm build`: All 50 routes statically and dynamically built cleanly.

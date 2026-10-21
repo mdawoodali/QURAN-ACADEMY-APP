@@ -39,6 +39,71 @@ export default function ShiaToolkit({ initialTab = "tasbeeh" }: ShiaToolkitProps
     { name: "SubhanAllah", arabic: "سُبْحَانَ اللَّهِ", meaning: "Glory be to Allah", limit: 33, color: "text-sky-300" }
   ], []);
 
+  const TASBEEH_CONFIG: Record<
+    Exclude<TasbeehMode, "fatima-zahra">,
+    {
+      title: string;
+      arabic: string;
+      transliteration: string;
+      meaning: string;
+      limit: number | null;
+      color: string;
+      hadithSource: string;
+      hadithText: string;
+    }
+  > = useMemo(() => ({
+    salawat: {
+      title: "Salawat 'Ala Muhammad wa Aali Muhammad",
+      arabic: "اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّد",
+      transliteration: "Allahumma Salli 'Ala Muhammadin wa Aali Muhammad",
+      meaning: "O Allah, bless Muhammad and the Family of Muhammad",
+      limit: 100,
+      color: "text-amber-300",
+      hadithSource: "Imam Ali al-Rida (AS) — Wasail al-Shia",
+      hadithText: "Whoever is unable to perform expiation for sins should recite abundant Salawat upon Muhammad and his pure Ahlulbayt, for verily it obliterates sins entirely.",
+    },
+    istighfar: {
+      title: "Astaghfirullah (Repentance)",
+      arabic: "أَسْتَغْفِرُ اللَّهَ رَبِّي وَأَتُوبُ إِلَيْه",
+      transliteration: "Astaghfirullaha Rabbi wa Atubu Ilayh",
+      meaning: "I seek forgiveness of Allah, my Lord, and to Him I turn in repentance",
+      limit: 100,
+      color: "text-emerald-300",
+      hadithSource: "Imam Ali (AS) — Nahj al-Balagha",
+      hadithText: "Perfume yourselves with the fragrance of seeking forgiveness (Istighfar), so that the stains of errors do not disfigure your spiritual dignity.",
+    },
+    arbaah: {
+      title: "Tasbihat al-Arba'ah",
+      arabic: "سُبْحَانَ اللَّهِ وَالْحَمْدُ لِلَّهِ وَلَا إِلَهَ إِلَّا اللَّهُ وَاللَّهُ أَكْبَر",
+      transliteration: "SubhanAllahi wal-Hamdu Lillahi wa La Ilaha Illallah Wallahu Akbar",
+      meaning: "Glory be to Allah, all praise is for Allah, there is no god but Allah, and Allah is the Greatest",
+      limit: 100,
+      color: "text-sky-300",
+      hadithSource: "Imam Ja'far al-Sadiq (AS) — Al-Kafi",
+      hadithText: "Tasbihat al-Arba'ah is the quintessential praise recited in the 3rd and 4th rak'ahs of daily prayers; it brings protection from tribulations in this world and the hereafter.",
+    },
+    yunusiya: {
+      title: "Dhikr Yunus (Ayah al-Yunusiya)",
+      arabic: "لَّا إِلَهَ إِلَّا أَنتَ سُبْحَانَكَ إِنِّي كُنتُ مِنَ الظَّالِمِينَ",
+      transliteration: "La Ilaha Illa Anta Subhanaka Inni Kuntu Minaz-Zalimeen",
+      meaning: "There is no deity except You; exalted are You. Indeed, I have been of the wrongdoers. (Surah Al-Anbiya 21:87)",
+      limit: 40,
+      color: "text-amber-300",
+      hadithSource: "Holy Quran (21:87) & Hadith of the Holy Prophet (SAWW)",
+      hadithText: "The supplication of Prophet Yunus (AS) in the depths of darkness. The Prophet (SAWW) declared: 'No afflicted believer recites this prayer except that Allah removes their distress.' Ahlulbayt scholars recommend reciting it 40 times in Sujud for relief and spiritual opening.",
+    },
+    free: {
+      title: "Free Counter (Wird-e-Khas / Any Dhikr)",
+      arabic: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+      transliteration: "Bismillahir-Rahmanir-Rahim",
+      meaning: "In the Name of Allah, the Most Gracious, the Most Merciful • Count Without Limit",
+      limit: null,
+      color: "text-amber-200",
+      hadithSource: "Holy Quran — Surah Al-Ahzab (33:41)",
+      hadithText: "يَا أَيُّهَا الَّذِينَ آمَنُوا اذْكُرُوا اللَّهَ ذِكْرًا كَثِيرًا • 'O you who believe! Remember Allah with abundant remembrance, and glorify Him morning and afternoon.' Tap freely for any personal wird, nawafl, or prayer.",
+    },
+  }), []);
+
   // Web Audio click synth
   const playClickSound = () => {
     if (!soundEnabled || typeof window === "undefined") return;
@@ -87,11 +152,11 @@ export default function ShiaToolkit({ initialTab = "tasbeeh" }: ShiaToolkitProps
         }
       }
     } else {
-      const limit = mode === "yunusiya" ? 40 : 100;
-      if (mode !== "free" && counter + 1 >= limit) {
+      const config = TASBEEH_CONFIG[mode];
+      if (config.limit !== null && counter + 1 >= config.limit) {
         setCounter(0);
         setTotalCycles(c => c + 1);
-        toast.success(`Completed cycle of 100!`, { icon: "🎉" });
+        toast.success(`Masha'Allah! Completed cycle of ${config.limit} for ${config.title}!`, { icon: "🎉" });
       } else {
         setCounter(c => c + 1);
       }
@@ -265,7 +330,7 @@ https://quranlearnacademy.com/resources
           </div>
 
           {/* Current Dhikr Display */}
-          <div className="relative z-10 my-4 min-h-[90px] flex flex-col items-center justify-center">
+          <div className="relative z-10 my-4 min-h-[110px] flex flex-col items-center justify-center">
             {mode === "fatima-zahra" ? (
               <motion.div
                 key={fatimaPhase}
@@ -286,34 +351,23 @@ https://quranlearnacademy.com/resources
                   "{fatimaPhases[fatimaPhase].meaning}"
                 </div>
               </motion.div>
-            ) : mode === "salawat" ? (
-              <div>
-                <div className="text-2xl sm:text-3xl font-arabic font-bold text-amber-300 mb-1">
-                  اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّد
-                </div>
-                <div className="text-white text-sm font-semibold">Allahumma Salli 'Ala Muhammadin wa Aali Muhammad</div>
-              </div>
-            ) : mode === "istighfar" ? (
-              <div>
-                <div className="text-2xl sm:text-3xl font-arabic font-bold text-emerald-300 mb-1">
-                  أَسْتَغْفِرُ اللَّهَ رَبِّي وَأَتُوبُ إِلَيْه
-                </div>
-                <div className="text-white text-sm font-semibold">Astaghfirullaha Rabbi wa Atubu Ilayh</div>
-              </div>
-            ) : mode === "arbaah" ? (
-              <div>
-                <div className="text-xl sm:text-2xl font-arabic font-bold text-sky-300 mb-1">
-                  سُبْحَانَ اللَّهِ وَالْحَمْدُ لِلَّهِ وَلَا إِلَهَ إِلَّا اللَّهُ وَاللَّهُ أَكْبَر
-                </div>
-                <div className="text-white text-xs font-semibold">SubhanAllahi wal-Hamdu Lillahi wa La Ilaha Illallah Wallahu Akbar</div>
-              </div>
             ) : (
-              <div>
-                <div className="text-xl sm:text-2xl font-arabic font-bold text-amber-300 mb-1">
-                  لَّا إِلَهَ إِلَّا أَنتَ سُبْحَانَكَ إِنِّي كُنتُ مِنَ الظَّالِمِينَ
+              <motion.div
+                key={mode}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-col items-center px-4"
+              >
+                <div className={`text-2xl sm:text-3xl md:text-4xl font-arabic font-bold ${TASBEEH_CONFIG[mode].color} mb-2 drop-shadow-md text-center leading-relaxed`}>
+                  {TASBEEH_CONFIG[mode].arabic}
                 </div>
-                <div className="text-white text-xs font-semibold">La Ilaha Illa Anta Subhanaka Inni Kuntu Minaz-Zalimeen</div>
-              </div>
+                <div className="text-white text-sm sm:text-base font-semibold text-center mb-1">
+                  {TASBEEH_CONFIG[mode].transliteration}
+                </div>
+                <div className="text-emerald-200/70 text-xs italic text-center max-w-lg">
+                  "{TASBEEH_CONFIG[mode].meaning}"
+                </div>
+              </motion.div>
             )}
           </div>
 
@@ -331,7 +385,11 @@ https://quranlearnacademy.com/resources
                 {counter}
               </span>
               <span className="text-xs uppercase tracking-wider text-emerald-200/70 mt-1 font-bold">
-                {mode === "fatima-zahra" ? `/ ${fatimaPhases[fatimaPhase].limit}` : mode === "free" ? "Count" : `/ 100`}
+                {mode === "fatima-zahra"
+                  ? `/ ${fatimaPhases[fatimaPhase].limit}`
+                  : TASBEEH_CONFIG[mode].limit !== null
+                  ? `/ ${TASBEEH_CONFIG[mode].limit}`
+                  : "Free Count (∞)"}
               </span>
               <span className="text-[11px] text-amber-300/75 mt-2 bg-black/40 px-3 py-0.5 rounded-full border border-amber-400/20">
                 Tap to Count
@@ -366,8 +424,14 @@ https://quranlearnacademy.com/resources
 
           {/* Historical / Hadith Note */}
           <div className="mt-6 text-left bg-emerald-950/60 border border-emerald-500/20 rounded-2xl p-4 text-xs text-emerald-100/80 leading-relaxed">
-            <strong className="text-amber-300 block mb-1">Authentic Hadith of the Holy Prophet (SAWW):</strong>
-            "The Prophet (SAWW) bestowed this remembrance upon his daughter Sayyida Fatima al-Zahra (SA) as superior to any worldly possession. Imam Ja'far al-Sadiq (AS) affirmed: 'Reciting Tasbih Fatima Zahra after every obligatory prayer is more beloved to me than offering a thousand units of optional prayer daily.'"
+            <strong className="text-amber-300 block mb-1">
+              {mode === "fatima-zahra"
+                ? "Authentic Hadith of the Holy Prophet (SAWW) & Imam al-Sadiq (AS):"
+                : `${TASBEEH_CONFIG[mode].hadithSource}:`}
+            </strong>
+            {mode === "fatima-zahra"
+              ? "The Prophet (SAWW) bestowed this remembrance upon his daughter Sayyida Fatima al-Zahra (SA) as superior to any worldly possession. Imam Ja'far al-Sadiq (AS) affirmed: 'Reciting Tasbih Fatima Zahra after every obligatory prayer is more beloved to me than offering a thousand units of optional prayer daily.'"
+              : TASBEEH_CONFIG[mode].hadithText}
           </div>
         </div>
       )}
