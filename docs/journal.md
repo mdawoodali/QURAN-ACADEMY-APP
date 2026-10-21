@@ -531,3 +531,15 @@ This journal documents the engineering decisions, security defenses, UX design p
   - `pnpm typecheck`: 0 TypeScript compiler errors.
   - `pnpm lint`: 0 ESLint errors, 0 warnings.
   - `pnpm build`: Next.js 16.4.0 (Turbopack) successfully compiled and prerendered all 54 routes in 2.6s.
+
+## 9.20 Documentation & Asset Harmonization: Production README & Brand Identity
+- **Objective**: Author a comprehensive, production-grade root `README.md` featuring official brand logo assets, GitHub status badges, live deployment links, architecture breakdown, and security documentation.
+- **Implementation**:
+  - Added official brand mark `logo.png` to project root with centered header presentation.
+  - Incorporated live badges for Vercel production deployment, GitHub Actions CI status, Next.js 16 Turbopack, strict TypeScript 5.0, LiveKit Cloud WebRTC, and Supabase.
+  - Documented complete feature specifications: Live One-to-One Classroom with sub-50ms sync, pre-call hardware diagnostics, bilingual RTL support, role-based portals, zero-Stripe multi-currency settlement engine, dynamic PDF tax invoices, and Resend transactional messaging.
+  - Updated Monorepo architecture schema, getting started prerequisites, local execution instructions, security model, and workspace scripts.
+- **Validation**:
+  - Verified local and relative asset references.
+  - `pnpm test`: 39/39 tests passed.
+  - `pnpm lint`: 0 errors, 0 warnings.
