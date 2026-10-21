@@ -731,3 +731,8 @@ eceipt_uploaded, and payment_verified.
 ### 9.28.2 Duas & Ziyarat Dataset Integration with Sect Isolation
 - Imported `SHIA_DUAS_ZIYARAT` into `apps/web/src/app/(public)/resources/page.tsx`.
 - Architected sect isolation: when users access via the Sunni portal, Shia Duas remain hidden, displaying only Sunni foundational Tajweed and Masnoon Duas. In Shia and multi-sect modes, the full merged suite is accessible.
+
+### 9.28.3 Category Filter Pills, Search Bar & In-App Recitation Modal
+- Built responsive category filter pills (`All Resources`, `Tajweed & Guides`, `Daily Masnoon Duas`, `Duas & Ziyarat`).
+- Implemented real-time search filtering simultaneously across both educational guides and sacred supplications.
+- Built interactive in-app recitation reader modal with verse-by-verse typography, English transliteration, translation, one-click clipboard copying, and offline `.txt` download.
