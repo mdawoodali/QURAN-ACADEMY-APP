@@ -1,143 +1,157 @@
 "use client";
 
-import React, { useState } from "react";
-import { RotateCcw, Volume2, VolumeX, Sparkles, Trophy, Check } from "lucide-react";
+import React, { useState, useMemo } from "react";
+import { motion } from "framer-motion";
+import { 
+  RotateCcw, Volume2, VolumeX, Sparkles, Award
+} from "lucide-react";
 import toast from "react-hot-toast";
 
-interface DhikrPreset {
-  id: string;
-  arabic: string;
-  transliteration: string;
-  meaning: string;
-  target: number;
-}
-
-const PRESETS: DhikrPreset[] = [
-  {
-    id: "subhanallah",
-    arabic: "سُبْحَانَ اللَّهِ",
-    transliteration: "SubhanAllah",
-    meaning: "Glory be to Allah",
-    target: 33,
-  },
-  {
-    id: "alhamdulillah",
-    arabic: "الْحَمْدُ لِلَّهِ",
-    transliteration: "Alhamdulillah",
-    meaning: "All praise is due to Allah",
-    target: 33,
-  },
-  {
-    id: "allahuakbar",
-    arabic: "اللَّهُ أَكْبَرُ",
-    transliteration: "Allahu Akbar",
-    meaning: "Allah is the Greatest",
-    target: 34,
-  },
-  {
-    id: "astaghfirullah",
-    arabic: "أَسْتَغْفِرُ اللَّهَ",
-    transliteration: "Astaghfirullah",
-    meaning: "I seek forgiveness from Allah",
-    target: 100,
-  },
-  {
-    id: "lailahaillallah",
-    arabic: "لَا إِلٰهَ إِلَّا اللَّهُ",
-    transliteration: "La ilaha illallah",
-    meaning: "There is no deity worthy of worship except Allah",
-    target: 100,
-  },
-  {
-    id: "durood",
-    arabic: "اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ",
-    transliteration: "Allahumma Salli Ala Muhammadin wa Aali Muhammad",
-    meaning: "O Allah, send blessings upon Muhammad and the Family of Muhammad",
-    target: 100,
-  },
-  {
-    id: "hawqala",
-    arabic: "لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ الْعَلِيِّ الْعَظِيمِ",
-    transliteration: "La hawla wa la quwwata illa billah",
-    meaning: "There is no power nor might except with Allah, the Most High, the Supreme",
-    target: 100,
-  },
-];
+type TasbeehMode = "fatima-zahra" | "salawat" | "istighfar" | "arbaah" | "yunusiya" | "free";
 
 export default function DigitalTasbeeh() {
-  const [selectedPreset, setSelectedPreset] = useState<DhikrPreset>(PRESETS[0]);
-  const [count, setCount] = useState<number>(0);
-  const [totalToday, setTotalToday] = useState<number>(0);
-  const [completedLaps, setCompletedLaps] = useState<number>(0);
-  const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
-  const [vibrateEnabled, setVibrateEnabled] = useState<boolean>(true);
-  const [targetLimit, setTargetLimit] = useState<number>(33);
-  const [isPressing, setIsPressing] = useState<boolean>(false);
+  const [mode, setMode] = useState<TasbeehMode>("fatima-zahra");
+  const [counter, setCounter] = useState(0);
+  const [fatimaPhase, setFatimaPhase] = useState<0 | 1 | 2>(0); // 0: Allahu Akbar (34), 1: Alhamdulillah (33), 2: SubhanAllah (33)
+  const [totalCycles, setTotalCycles] = useState(0);
+  const [soundEnabled, setSoundEnabled] = useState(true);
 
-  // Play subtle synthesis click sound
+  const fatimaPhases = useMemo(() => [
+    { name: "Allahu Akbar", arabic: "اللهُ أَكْبَرُ", meaning: "Allah is the Greatest", limit: 34, color: "text-amber-400" },
+    { name: "Alhamdulillah", arabic: "الْحَمْدُ لِلَّهِ", meaning: "All praise belongs to Allah", limit: 33, color: "text-emerald-300" },
+    { name: "SubhanAllah", arabic: "سُبْحَانَ اللَّهِ", meaning: "Glory be to Allah", limit: 33, color: "text-sky-300" }
+  ], []);
+
+  const TASBEEH_CONFIG: Record<
+    Exclude<TasbeehMode, "fatima-zahra">,
+    {
+      title: string;
+      arabic: string;
+      transliteration: string;
+      meaning: string;
+      limit: number | null;
+      color: string;
+      hadithSource: string;
+      hadithText: string;
+    }
+  > = useMemo(() => ({
+    salawat: {
+      title: "Salawat 'Ala Muhammad wa Aali Muhammad",
+      arabic: "اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّد",
+      transliteration: "Allahumma Salli 'Ala Muhammadin wa Aali Muhammad",
+      meaning: "O Allah, bless Muhammad and the Family of Muhammad",
+      limit: 100,
+      color: "text-amber-300",
+      hadithSource: "Sunnah of the Holy Prophet (SAWW)",
+      hadithText: "Abundant recitation of Salawat brings profound peace, divine mercy, and elevation of spiritual status.",
+    },
+    istighfar: {
+      title: "Astaghfirullah (Repentance)",
+      arabic: "أَسْتَغْفِرُ اللَّهَ رَبِّي وَأَتُوبُ إِلَيْه",
+      transliteration: "Astaghfirullaha Rabbi wa Atubu Ilayh",
+      meaning: "I seek forgiveness of Allah, my Lord, and to Him I turn in repentance",
+      limit: 100,
+      color: "text-emerald-300",
+      hadithSource: "Prophetic Sunnah & Classical Traditions",
+      hadithText: "The Holy Prophet (SAWW) said: 'Whoever continuously seeks forgiveness, Allah will make for him from every distress a way out, and from every anxiety relief.'",
+    },
+    arbaah: {
+      title: "Tasbihat al-Arba'ah",
+      arabic: "سُبْحَانَ اللَّهِ وَالْحَمْدُ لِلَّهِ وَلَا إِلَهَ إِلَّا اللَّهُ وَاللَّهُ أَكْبَر",
+      transliteration: "SubhanAllahi wal-Hamdu Lillahi wa La Ilaha Illallah Wallahu Akbar",
+      meaning: "Glory be to Allah, all praise is for Allah, there is no god but Allah, and Allah is the Greatest",
+      limit: 100,
+      color: "text-sky-300",
+      hadithSource: "Essential Daily Tasbihat",
+      hadithText: "The enduring good deeds (Al-Baqiyat al-Salihat) that erase misdeeds and establish light in the heart of the believer.",
+    },
+    yunusiya: {
+      title: "Dhikr Yunus (Ayah al-Yunusiya)",
+      arabic: "لَّا إِلَهَ إِلَّا أَنتَ سُبْحَانَكَ إِنِّي كُنتُ مِنَ الظَّالِمِينَ",
+      transliteration: "La Ilaha Illa Anta Subhanaka Inni Kuntu Minaz-Zalimeen",
+      meaning: "There is no deity except You; exalted are You. Indeed, I have been of the wrongdoers. (Surah Al-Anbiya 21:87)",
+      limit: 40,
+      color: "text-amber-300",
+      hadithSource: "Holy Quran (21:87) & Authentic Prophetic Hadith",
+      hadithText: "The supplication of Prophet Yunus (AS) in the belly of the whale. The Prophet (SAWW) stated: 'No Muslim supplicates with it for any matter except that Allah answers their prayer.'",
+    },
+    free: {
+      title: "Free Counter (Wird-e-Khas / Any Dhikr)",
+      arabic: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+      transliteration: "Bismillahir-Rahmanir-Rahim",
+      meaning: "In the Name of Allah, the Most Gracious, the Most Merciful • Count Without Limit",
+      limit: null,
+      color: "text-amber-200",
+      hadithSource: "Holy Quran — Surah Al-Ahzab (33:41)",
+      hadithText: "'O you who have believed, remember Allah with much remembrance.' Tap freely for any personal wird, wazifa, or post-prayer dhikr.",
+    },
+  }), []);
+
+  // Web Audio click synth
   const playClickSound = () => {
     if (!soundEnabled || typeof window === "undefined") return;
     try {
       const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      const ctx = new AudioCtx();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
+      const audioCtx = new AudioCtx();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
       osc.type = "sine";
-      osc.frequency.setValueAtTime(600, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.04);
-      gain.gain.setValueAtTime(0.12, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+      osc.frequency.setValueAtTime(640, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
       osc.connect(gain);
-      gain.connect(ctx.destination);
+      gain.connect(audioCtx.destination);
       osc.start();
-      osc.stop(ctx.currentTime + 0.04);
+      osc.stop(audioCtx.currentTime + 0.08);
     } catch {
-      // AudioContext fallback
+      // AudioContext unavailable or blocked
     }
   };
 
   const handleTap = () => {
-    setIsPressing(true);
-    setTimeout(() => setIsPressing(false), 120);
-
-    // Haptic feedback
-    if (vibrateEnabled && typeof navigator !== "undefined" && navigator.vibrate) {
-      navigator.vibrate(30);
-    }
-
     playClickSound();
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      try { navigator.vibrate(25); } catch {}
+    }
 
-    const newCount = count + 1;
-    setTotalToday((prev) => prev + 1);
-
-    if (targetLimit > 0 && newCount >= targetLimit) {
-      setCount(0);
-      setCompletedLaps((prev) => prev + 1);
-      if (typeof navigator !== "undefined" && navigator.vibrate) {
-        navigator.vibrate([60, 50, 100]);
+    if (mode === "fatima-zahra") {
+      const currentTarget = fatimaPhases[fatimaPhase].limit;
+      if (counter + 1 < currentTarget) {
+        setCounter(c => c + 1);
+      } else {
+        // Phase transition
+        if (fatimaPhase < 2) {
+          setFatimaPhase((p) => (p + 1) as 1 | 2);
+          setCounter(0);
+          toast.success(`Completed ${fatimaPhases[fatimaPhase].name}! Now: ${fatimaPhases[fatimaPhase + 1].name}`, { icon: "✨" });
+        } else {
+          // Completed entire Tasbeeh Zahra!
+          setFatimaPhase(0);
+          setCounter(0);
+          setTotalCycles(c => c + 1);
+          toast.success("Masha'Allah! Completed 1 Full Tasbeeh of Sayyida Fatima (SA)!", { 
+            icon: "🌸", 
+            duration: 4000 
+          });
+        }
       }
-      toast.success(`Alhamdulillah! Completed lap of ${targetLimit} ${selectedPreset.transliteration}`, {
-        icon: "✨",
-      });
     } else {
-      setCount(newCount);
+      const config = TASBEEH_CONFIG[mode];
+      if (config.limit !== null && counter + 1 >= config.limit) {
+        setCounter(0);
+        setTotalCycles(c => c + 1);
+        toast.success(`Masha'Allah! Completed cycle of ${config.limit} for ${config.title}!`, { icon: "🎉" });
+      } else {
+        setCounter(c => c + 1);
+      }
     }
   };
 
-  const handleReset = () => {
-    if (count > 0) {
-      setCount(0);
-      toast("Tasbeeh counter reset", { icon: "🔄" });
-    }
+  const resetCounter = () => {
+    setCounter(0);
+    setFatimaPhase(0);
+    toast("Tasbeeh counter reset", { icon: "🔄" });
   };
-
-  const selectPreset = (preset: DhikrPreset) => {
-    setSelectedPreset(preset);
-    setTargetLimit(preset.target);
-    setCount(0);
-  };
-
-  const progressPercent = targetLimit > 0 ? Math.min(100, Math.round((count / targetLimit) * 100)) : 0;
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
@@ -145,183 +159,152 @@ export default function DigitalTasbeeh() {
       <div className="text-center space-y-2">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-300 text-xs font-bold tracking-widest uppercase">
           <Sparkles className="w-3.5 h-3.5" />
-          <span>Electronic Misbaha & Dhikr Counter</span>
+          <span>Electronic Misbaha &amp; Dhikr Companion</span>
         </div>
         <h2 className="text-2xl sm:text-4xl font-serif text-white font-bold">
-          Digital Tasbeeh Counter
+          Digital Tasbeeh
         </h2>
-        <p className="text-xs sm:text-sm text-emerald-200/80 max-w-lg mx-auto">
-          Keep your tongue moist with the remembrance of Allah through mindful counting, haptic beats, and daily goals.
+        <p className="text-emerald-100/70 text-xs sm:text-sm max-w-xl mx-auto">
+          Featuring the authentic Tasbih of Sayyida Fatima al-Zahra (SA) and universal Sunnah dhikr with automatic phase advancement, Web Audio click synthesis, and lap tracking.
         </p>
       </div>
 
-      {/* Main Interactive Counter Shell */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Side: Preset Adhkar Selector */}
-        <div className="lg:col-span-5 space-y-3">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-amber-300/90 px-1">
-            Select Dhikr
-          </h3>
-          <div className="space-y-2.5 max-h-[480px] overflow-y-auto pr-1">
-            {PRESETS.map((preset) => {
-              const isSelected = selectedPreset.id === preset.id;
-              return (
-                <button
-                  key={preset.id}
-                  onClick={() => selectPreset(preset)}
-                  className={`w-full text-left p-3.5 rounded-2xl border transition-all flex items-center justify-between cursor-pointer ${
-                    isSelected
-                      ? "bg-amber-400/20 border-amber-400 text-white shadow-lg shadow-amber-400/10"
-                      : "bg-black/30 border-white/10 text-emerald-100/80 hover:bg-white/5 hover:border-white/20"
-                  }`}
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-white">{preset.transliteration}</span>
-                      <span className="text-[10px] bg-emerald-950/80 text-amber-300 px-2 py-0.5 rounded-full border border-amber-400/30 font-semibold">
-                        {preset.target}x
-                      </span>
-                    </div>
-                    <div className="text-xs text-amber-200/90 font-arabic text-right dir-rtl">
-                      {preset.arabic}
-                    </div>
-                    <div className="text-[11px] text-emerald-200/60 line-clamp-1">
-                      {preset.meaning}
-                    </div>
-                  </div>
-                  {isSelected && <Check className="w-5 h-5 text-amber-400 shrink-0 ml-2" />}
-                </button>
-              );
-            })}
-          </div>
+      {/* Main Tasbeeh Card */}
+      <div className="max-w-2xl mx-auto bg-gradient-to-b from-[#032219]/95 via-[#021811]/95 to-[#01100b]/95 border border-white/15 rounded-3xl p-6 sm:p-10 text-center shadow-2xl relative overflow-hidden backdrop-blur-xl">
+        {/* Ambient Golden Glow in background */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full bg-amber-400/10 blur-3xl pointer-events-none -z-0" />
+
+        {/* Mode Selector */}
+        <div className="relative z-10 flex flex-wrap justify-center gap-1.5 sm:gap-2 mb-6">
+          {[
+            { id: "fatima-zahra", label: "Tasbih Fatima Zahra (SA)" },
+            { id: "salawat", label: "Salawat (100)" },
+            { id: "istighfar", label: "Astaghfirullah (100)" },
+            { id: "arbaah", label: "Tasbihat Arba'ah (100)" },
+            { id: "yunusiya", label: "Dhikr Yunus (40)" },
+            { id: "free", label: "Free Counter" },
+          ].map((m) => (
+            <button
+              key={m.id}
+              onClick={() => {
+                setMode(m.id as TasbeehMode);
+                setCounter(0);
+                setFatimaPhase(0);
+              }}
+              className={`text-[11px] sm:text-xs px-3 py-1.5 rounded-full font-bold transition-all cursor-pointer ${
+                mode === m.id
+                  ? "bg-amber-400 text-emerald-950 shadow-xs"
+                  : "bg-white/5 text-emerald-200/70 hover:bg-white/10 hover:text-white border border-white/5"
+              }`}
+            >
+              {m.label}
+            </button>
+          ))}
         </div>
 
-        {/* Right Side: The Interactive Digital Tasbeeh Device */}
-        <div className="lg:col-span-7 flex flex-col items-center">
-          <div className="w-full max-w-sm glass-container rounded-[2.5rem] p-6 sm:p-8 border border-white/20 shadow-2xl relative flex flex-col items-center bg-gradient-to-b from-[#063326]/90 via-[#04241b]/95 to-[#021812]/98">
-            {/* Top Device Controls: Sound / Vibrate / Target */}
-            <div className="w-full flex items-center justify-between pb-4 border-b border-white/10 text-xs">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setSoundEnabled(!soundEnabled)}
-                  title={soundEnabled ? "Mute audio" : "Enable click sound"}
-                  className={`p-2 rounded-xl border transition-colors cursor-pointer ${
-                    soundEnabled
-                      ? "bg-amber-400/20 border-amber-400/50 text-amber-300"
-                      : "bg-black/30 border-white/10 text-emerald-200/50"
-                  }`}
-                >
-                  {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
-                </button>
-
-                <button
-                  onClick={() => setVibrateEnabled(!vibrateEnabled)}
-                  title={vibrateEnabled ? "Disable vibration" : "Enable haptic vibration"}
-                  className={`px-2.5 py-1.5 rounded-xl border font-bold text-[11px] transition-colors cursor-pointer ${
-                    vibrateEnabled
-                      ? "bg-amber-400/20 border-amber-400/50 text-amber-300"
-                      : "bg-black/30 border-white/10 text-emerald-200/50"
-                  }`}
-                >
-                  Vibrate
-                </button>
+        {/* Current Dhikr Display */}
+        <div className="relative z-10 my-4 min-h-[110px] flex flex-col items-center justify-center">
+          {mode === "fatima-zahra" ? (
+            <motion.div
+              key={fatimaPhase}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-col items-center"
+            >
+              <div className="text-xs uppercase tracking-widest text-amber-300 font-bold mb-1">
+                Step {fatimaPhase + 1} of 3 • Recite {fatimaPhases[fatimaPhase].limit} Times
               </div>
-
-              {/* Target Limit Selector */}
-              <div className="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/10 text-[11px] font-bold">
-                {[33, 99, 100, 0].map((tVal) => (
-                  <button
-                    key={tVal}
-                    onClick={() => {
-                      setTargetLimit(tVal);
-                      setCount(0);
-                    }}
-                    className={`px-2 py-0.5 rounded-lg transition-all cursor-pointer ${
-                      targetLimit === tVal
-                        ? "bg-amber-400 text-emerald-950 font-black shadow-xs"
-                        : "text-emerald-200/70 hover:text-white"
-                    }`}
-                  >
-                    {tVal === 0 ? "∞" : tVal}
-                  </button>
-                ))}
+              <div className={`text-3xl sm:text-4xl md:text-5xl font-arabic font-bold ${fatimaPhases[fatimaPhase].color} mb-1 drop-shadow-md`}>
+                {fatimaPhases[fatimaPhase].arabic}
               </div>
-            </div>
-
-            {/* Current Active Dhikr Display */}
-            <div className="my-5 text-center space-y-1.5">
-              <span className="text-xl sm:text-2xl font-arabic font-bold text-amber-300 drop-shadow-[0_2px_8px_rgba(251,191,36,0.3)] block">
-                {selectedPreset.arabic}
-              </span>
-              <span className="text-xs sm:text-sm font-semibold text-white/90 block">
-                {selectedPreset.transliteration}
-              </span>
-              <span className="text-[11px] text-emerald-200/70 block italic">
-                "{selectedPreset.meaning}"
-              </span>
-            </div>
-
-            {/* LCD Digital Display Screen */}
-            <div className="w-full bg-black/60 rounded-2xl p-4 border border-emerald-500/30 shadow-inner flex flex-col items-center justify-center my-2">
-              <div className="text-[10px] uppercase font-mono tracking-widest text-emerald-400/70 flex items-center justify-between w-full px-2 mb-1">
-                <span>LAPS: {completedLaps}</span>
-                <span>{targetLimit > 0 ? `GOAL: ${targetLimit}` : "FREE"}</span>
+              <div className="text-white text-base sm:text-lg font-semibold">
+                {fatimaPhases[fatimaPhase].name}
               </div>
-              <div className="font-mono text-5xl sm:text-6xl font-black text-amber-300 tracking-wider drop-shadow-[0_0_15px_rgba(251,191,36,0.5)]">
-                {String(count).padStart(3, "0")}
+              <div className="text-emerald-200/60 text-xs italic">
+                &ldquo;{fatimaPhases[fatimaPhase].meaning}&rdquo;
               </div>
-              {targetLimit > 0 && (
-                <div className="w-full bg-white/10 h-1.5 rounded-full mt-3 overflow-hidden">
-                  <div
-                    className="bg-gradient-to-r from-amber-500 to-amber-300 h-full rounded-full transition-all duration-200"
-                    style={{ width: `${progressPercent}%` }}
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* The Main Round Tap Button */}
-            <div className="my-6 relative flex items-center justify-center">
-              {/* Pulsing Backlight Ring */}
-              <div className="absolute w-44 h-44 rounded-full bg-amber-400/10 blur-xl pointer-events-none" />
-
-              <button
-                onClick={handleTap}
-                className={`relative w-36 h-36 sm:w-40 sm:h-40 rounded-full border-4 flex flex-col items-center justify-center transition-all duration-150 select-none shadow-2xl cursor-pointer ${
-                  isPressing
-                    ? "scale-95 bg-gradient-to-br from-amber-400 to-amber-600 border-amber-200 shadow-[0_0_35px_rgba(251,191,36,0.8)]"
-                    : "bg-gradient-to-br from-emerald-800/90 via-emerald-900 to-[#04241b] border-amber-400/60 hover:border-amber-400 hover:shadow-[0_0_25px_rgba(251,191,36,0.35)]"
-                }`}
-              >
-                <span className={`text-xs uppercase font-bold tracking-widest transition-colors ${
-                  isPressing ? "text-emerald-950 font-black" : "text-amber-300/80"
-                }`}>
-                  TAP DHIKR
-                </span>
-                <span className={`text-2xl font-bold font-mono transition-colors ${
-                  isPressing ? "text-emerald-950 font-black" : "text-white"
-                }`}>
-                  +1
-                </span>
-              </button>
-            </div>
-
-            {/* Bottom Actions: Reset Counter */}
-            <div className="w-full flex items-center justify-between pt-2">
-              <button
-                onClick={handleReset}
-                className="flex items-center gap-1.5 text-xs text-emerald-200/70 hover:text-amber-300 transition-colors px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 cursor-pointer"
-              >
-                <RotateCcw size={13} />
-                <span>Reset</span>
-              </button>
-
-              <div className="flex items-center gap-1.5 text-xs text-emerald-200/70">
-                <Trophy size={14} className="text-amber-400" />
-                <span>Session Total: <strong className="text-white">{totalToday}</strong></span>
+            </motion.div>
+          ) : (
+            <motion.div
+              key={mode}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-col items-center px-4"
+            >
+              <div className={`text-2xl sm:text-3xl md:text-4xl font-arabic font-bold ${TASBEEH_CONFIG[mode].color} mb-2 drop-shadow-md text-center leading-relaxed`}>
+                {TASBEEH_CONFIG[mode].arabic}
               </div>
-            </div>
+              <div className="text-white text-sm sm:text-base font-semibold text-center mb-1">
+                {TASBEEH_CONFIG[mode].transliteration}
+              </div>
+              <div className="text-emerald-200/70 text-xs italic text-center max-w-lg">
+                &ldquo;{TASBEEH_CONFIG[mode].meaning}&rdquo;
+              </div>
+            </motion.div>
+          )}
+        </div>
+
+        {/* BIG INTERACTIVE CIRCULAR TAP AREA */}
+        <div className="relative z-10 flex flex-col items-center justify-center my-6">
+          <motion.button
+            whileTap={{ scale: 0.94 }}
+            onClick={handleTap}
+            className="relative w-48 h-48 sm:w-56 sm:h-56 rounded-full bg-gradient-to-tr from-emerald-950 via-[#0a382a] to-emerald-900 border-4 border-amber-400/60 shadow-[0_0_50px_rgba(251,191,36,0.25)] flex flex-col items-center justify-center group cursor-pointer transition-all hover:border-amber-400 hover:shadow-[0_0_65px_rgba(251,191,36,0.4)]"
+          >
+            {/* Outer Decorative Dashed Ring */}
+            <div className="absolute inset-1.5 rounded-full border border-dashed border-amber-300/30 animate-spin-slow pointer-events-none" />
+
+            <span className="text-5xl sm:text-6xl font-mono font-black text-amber-300 group-hover:scale-105 transition-transform drop-shadow-lg">
+              {counter}
+            </span>
+            <span className="text-xs uppercase tracking-wider text-emerald-200/70 mt-1 font-bold">
+              {mode === "fatima-zahra"
+                ? `/ ${fatimaPhases[fatimaPhase].limit}`
+                : TASBEEH_CONFIG[mode].limit !== null
+                ? `/ ${TASBEEH_CONFIG[mode].limit}`
+                : "Free Count (∞)"}
+            </span>
+            <span className="text-[11px] text-amber-300/75 mt-2 bg-black/40 px-3 py-0.5 rounded-full border border-amber-400/20">
+              Tap to Count
+            </span>
+          </motion.button>
+        </div>
+
+        {/* Bottom Bar: Sound Toggle, Cycles Completed, Reset */}
+        <div className="relative z-10 flex items-center justify-between pt-6 border-t border-white/10 text-xs text-emerald-200/70">
+          <button
+            onClick={() => setSoundEnabled(!soundEnabled)}
+            className="flex items-center gap-1.5 hover:text-white transition p-2 rounded-lg hover:bg-white/5 cursor-pointer"
+          >
+            {soundEnabled ? <Volume2 size={16} className="text-amber-400" /> : <VolumeX size={16} className="text-red-400" />}
+            <span>{soundEnabled ? "Audio Click On" : "Audio Muted"}</span>
+          </button>
+
+          <div className="flex items-center gap-1.5 bg-black/40 px-3 py-1.5 rounded-full border border-white/10">
+            <Award size={14} className="text-amber-400" />
+            <span>Laps Completed: <strong className="text-white">{totalCycles}</strong></span>
           </div>
+
+          <button
+            onClick={resetCounter}
+            className="flex items-center gap-1.5 hover:text-white transition p-2 rounded-lg hover:bg-white/5 cursor-pointer"
+            title="Reset Counter"
+          >
+            <RotateCcw size={16} className="text-amber-400" />
+            <span>Reset</span>
+          </button>
+        </div>
+
+        {/* Historical / Hadith Note */}
+        <div className="mt-6 text-left bg-emerald-950/60 border border-emerald-500/20 rounded-2xl p-4 text-xs text-emerald-100/80 leading-relaxed">
+          <strong className="text-amber-300 block mb-1">
+            {mode === "fatima-zahra"
+              ? "Authentic Hadith of the Holy Prophet (SAWW):"
+              : `${TASBEEH_CONFIG[mode].hadithSource}:`}
+          </strong>
+          {mode === "fatima-zahra"
+            ? "The Messenger of Allah (SAWW) bestowed this remembrance upon his daughter Sayyida Fatima al-Zahra (SA) as superior to any worldly possession (Sahih Bukhari & Sahih Muslim). Imam Ja'far al-Sadiq (AS) affirmed: 'Reciting Tasbih Fatima Zahra after every obligatory prayer is more beloved to me than offering a thousand units of optional prayer daily.'"
+            : TASBEEH_CONFIG[mode].hadithText}
         </div>
       </div>
     </div>
