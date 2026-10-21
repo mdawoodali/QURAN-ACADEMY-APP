@@ -110,5 +110,24 @@ model Class {
   teacher Profile @relation("TeacherClasses", fields: [teacherId], references: [id])
   student Profile @relation("StudentClasses", fields: [studentId], references: [id])
 
+  @@index([status, startTime, teacherId, studentId])
   @@map("classes")
 }
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  actorId    String?  @map("actor_id")
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  metadata   Json     @default("{}")
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([entityType, entityId])
+  @@index([actorId, createdAt(sort: Desc)])
+  @@index([action, createdAt(sort: Desc)])
+  @@map("audit_logs")
+}
+
