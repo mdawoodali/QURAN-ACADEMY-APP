@@ -63,32 +63,8 @@ export const ACADEMY_PACKAGES: PricingPlan[] = [
     }
   },
   {
-    id: "package-3-five-days",
+    id: "package-3-weekend",
     name: "Package 3",
-    badge: "5 Days / Week",
-    isPopular: false,
-    schedule: "5 Days / Week",
-    classesPerMonth: 20,
-    durationPerClass: "30 Min / Day",
-    description: "Intensive daily learning track. Recommended for fast-track Quran reading, active Hifz students, and daily consistency.",
-    features: [
-      "20 Live 1-on-1 Classes / Month",
-      "30 Minutes Dedicated Class Time",
-      "Quran Reading & Tajweed Rules",
-      "Namaz / Salah Learning & Postures",
-      "Daily Masnoon Duas & 6 Kalmas",
-      "Accelerated Progress & Daily Sabaq"
-    ],
-    prices: {
-      UK: { currency: "GBP", symbol: "£", amount: 40, formatted: "£40" },
-      USA: { currency: "USD", symbol: "$", amount: 65, formatted: "$65" },
-      AUS: { currency: "AUD", symbol: "$", amount: 85, formatted: "$85" },
-      PK: { currency: "PKR", symbol: "PKR ", amount: 9500, formatted: "PKR 9,500" }
-    }
-  },
-  {
-    id: "package-4-weekend",
-    name: "Package 4",
     badge: "Weekend Classes",
     isPopular: true,
     schedule: "Saturday & Sunday",
@@ -108,6 +84,30 @@ export const ACADEMY_PACKAGES: PricingPlan[] = [
       USA: { currency: "USD", symbol: "$", amount: 60, formatted: "$60" },
       AUS: { currency: "AUD", symbol: "$", amount: 70, formatted: "$70" },
       PK: { currency: "PKR", symbol: "PKR ", amount: 8000, formatted: "PKR 8,000" }
+    }
+  },
+  {
+    id: "package-4-five-days",
+    name: "Package 4",
+    badge: "5 Days / Week",
+    isPopular: false,
+    schedule: "5 Days / Week",
+    classesPerMonth: 20,
+    durationPerClass: "30 Min / Day",
+    description: "Intensive daily learning track. Recommended for fast-track Quran reading, active Hifz students, and daily consistency.",
+    features: [
+      "20 Live 1-on-1 Classes / Month",
+      "30 Minutes Dedicated Class Time",
+      "Quran Reading & Tajweed Rules",
+      "Namaz / Salah Learning & Postures",
+      "Daily Masnoon Duas & 6 Kalmas",
+      "Accelerated Progress & Daily Sabaq"
+    ],
+    prices: {
+      UK: { currency: "GBP", symbol: "£", amount: 40, formatted: "£40" },
+      USA: { currency: "USD", symbol: "$", amount: 65, formatted: "$65" },
+      AUS: { currency: "AUD", symbol: "$", amount: 85, formatted: "$85" },
+      PK: { currency: "PKR", symbol: "PKR ", amount: 9500, formatted: "PKR 9,500" }
     }
   }
 ];
@@ -129,4 +129,3 @@ export const DISCOUNT_POLICIES = [
     desc: "Pay every 3 months and enjoy 5% savings on your family tuition plan."
   }
 ];
-

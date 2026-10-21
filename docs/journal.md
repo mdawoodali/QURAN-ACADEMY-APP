@@ -360,3 +360,15 @@ This journal documents the engineering decisions, security defenses, UX design p
   - `pnpm test`: 25 passed across 6 test suites in 673ms.
   - `pnpm lint`: 0 errors, 0 warnings.
   - `pnpm build`: 50 routes compiled cleanly with 0 errors.
+
+
+### 9.12 Package Ordering & Sequential Price Alignment
+- **UX & Financial Hierarchy Optimization**: Re-aligned `ACADEMY_PACKAGES` in `apps/web/src/data/packages.ts` to be strictly sequential in ascending order of price:
+  1. **Package 1**: 2 Days / Week — £25 / $40 / $55 / PKR 6,000 (8 Classes/Mo)
+  2. **Package 2**: 3 Days / Week — £30 / $50 / $65 / PKR 7,000 (12 Classes/Mo)
+  3. **Package 3**: Weekend Classes — £35 / $60 / $70 / PKR 8,000 (8 Classes/Mo, Most Popular)
+  4. **Package 4**: 5 Days / Week — £40 / $65 / $85 / PKR 9,500 (20 Classes/Mo)
+- **Validation**:
+  - `pnpm test`: 25 passed across 6 test suites in 755ms.
+  - `pnpm lint`: 0 errors, 0 warnings.
+  - `pnpm build`: 50 routes compiled cleanly with 0 errors.
