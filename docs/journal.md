@@ -727,3 +727,7 @@ eceipt_uploaded, and payment_verified.
 ### 9.29.1 Objectives & Changes
 - Updated the primary top-level navigation tab label and section heading under Academy Resources (`apps/web/src/app/(public)/resources/page.tsx`) to **"Daily guides and Duas"**.
 - Aligned typography and metadata across both mobile and desktop viewports.
+
+### 9.28.2 Duas & Ziyarat Dataset Integration with Sect Isolation
+- Imported `SHIA_DUAS_ZIYARAT` into `apps/web/src/app/(public)/resources/page.tsx`.
+- Architected sect isolation: when users access via the Sunni portal, Shia Duas remain hidden, displaying only Sunni foundational Tajweed and Masnoon Duas. In Shia and multi-sect modes, the full merged suite is accessible.

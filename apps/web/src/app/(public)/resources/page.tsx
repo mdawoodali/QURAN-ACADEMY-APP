@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Download, BookOpen, FileText, Search, Sparkles, X, Library, Compass, CircleDot, BookMarked } from "lucide-react";
 import { QURAN_PARAS } from "@/data/quranParas";
 import { DAILY_GUIDES_DATA, GuideResource } from "@/data/guidesData";
+import { SHIA_DUAS_ZIYARAT, ShiaDua } from "@/data/shiaToolkitData";
 import ShiaToolkit from "@/components/ShiaToolkit";
 import DigitalTasbeeh from "@/features/resources/components/DigitalTasbeeh";
 import PrayerTimesQibla from "@/features/resources/components/PrayerTimesQibla";
