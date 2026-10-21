@@ -422,3 +422,18 @@ This journal documents the engineering decisions, security defenses, UX design p
   - `pnpm lint`: 0 errors, 0 warnings.
   - `pnpm typecheck`: 0 type errors.
   - `pnpm build`: All 50 routes compiled in 4.2s with 0 errors.
+
+### 9.16 40-Day Production Launch Architecture & Zero-Stripe Strategy
+- **Architectural Directives Locked**:
+  - **Launch Timeline**: Hard 40-day countdown to December 1, 2026.
+  - **Transactional Email**: Locked to **Resend** (React Email component architecture, high-deliverability edge sending).
+  - **Classroom Media**: Locked to **LiveKit Cloud** (`wss://*.livekit.cloud`) with adaptive bitrate and audio-only fallback.
+  - **Zero-Stripe Policy**: Stripe completely cancelled and purged from all architectural modules and adapters.
+- **Engineering Remediation**:
+  - **Adapter Refactoring**: Replaced `StripePaymentAdapter` in `packages/adapters/src/payments.ts` with `DirectInvoicePaymentAdapter`, supporting multi-currency direct wire/IBAN (UK Faster Payments, US ACH, SEPA, Gulf IBAN), Pakistan Raast Instant QR, and direct PayPal/Wise links.
+  - **Config Cleanup**: Purged Stripe secret and publishable environment keys from `.env.example`, replacing them with multi-currency banking identifiers and Raast ID definitions.
+  - **Master Plan Updated**: Synchronized `forty_day_launch_master_plan.md` artifact to reflect the confirmed 5-phase SDLC execution schedule.
+- **Validation**:
+  - `pnpm test`: 25 passed across 6 test suites.
+  - `pnpm lint`: 0 errors, 0 warnings.
+  - `pnpm typecheck`: 0 type errors.

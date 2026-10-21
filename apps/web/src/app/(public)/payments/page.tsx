@@ -23,7 +23,7 @@ export default function PaymentsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
-        {/* Card 1: Direct Card / Stripe */}
+        {/* Card 1: Multi-Currency Digital Payments */}
         <div className="glass-container rounded-3xl p-8 border border-white/15 shadow-xl flex flex-col justify-between pop-hover">
           <div>
             <div className="w-14 h-14 bg-emerald-800/80 border border-amber-400/40 rounded-2xl flex items-center justify-center text-amber-300 mb-6 shadow-md">
