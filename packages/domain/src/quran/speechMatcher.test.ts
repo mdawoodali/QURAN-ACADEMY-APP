@@ -42,6 +42,14 @@ describe("SpeechMatcher & Arabic Normalizer", () => {
     expect(matchSpokenTextToVerse("alameen", verseWords)).toBe(3);
   });
 
+  it("matches Surah Al-Ikhlas words correctly", () => {
+    const ikhlasWords = ["قُلْ", "هُوَ", "ٱللَّهُ", "أَحَدٌ"];
+    expect(matchSpokenTextToVerse("قل", ikhlasWords)).toBe(0);
+    expect(matchSpokenTextToVerse("هو", ikhlasWords)).toBe(1);
+    expect(matchSpokenTextToVerse("الله", ikhlasWords)).toBe(2);
+    expect(matchSpokenTextToVerse("احد", ikhlasWords)).toBe(3);
+  });
+
   it("returns null for empty or non-matching input", () => {
     const verseWords = ["ٱلْحَمْدُ", "لِلَّهِ"];
     expect(matchSpokenTextToVerse("", verseWords)).toBeNull();

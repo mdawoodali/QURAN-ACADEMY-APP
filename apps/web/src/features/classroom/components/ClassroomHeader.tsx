@@ -1,19 +1,26 @@
 "use client";
 
 import React from "react";
-import { ScriptType, LiveKitStatus } from "../types";
+import { BookOpen, Mic, Wifi, PhoneOff, Radio } from "lucide-react";
+import { ScriptType, LiveKitStatus, ClassroomLesson } from "../types";
+import { CURRICULUM_LESSONS } from "../constants";
 
 interface ClassroomHeaderProps {
   surahName: string;
   script: ScriptType;
   tajweedMode: boolean;
   classId: string;
+  activeLessonId?: string;
+  lessons?: ClassroomLesson[];
   livekitStatus: LiveKitStatus | null;
   connectionStatus?: "connected" | "reconnecting" | "offline";
   isVoiceFollowOn: boolean;
   activeSpeechEngine: string | null;
+  isTeacher?: boolean;
+  role?: string;
   onScriptChange: (script: ScriptType) => void;
   onTajweedChange: (mode: boolean) => void;
+  onLessonChange?: (lessonId: string) => void;
   onToggleVoiceFollow: () => void;
   onEndClass: () => void;
 }
@@ -23,118 +30,142 @@ export default function ClassroomHeader({
   script,
   tajweedMode,
   classId,
+  activeLessonId = "fatihah-2",
+  lessons = CURRICULUM_LESSONS,
   livekitStatus,
   connectionStatus = "connected",
   isVoiceFollowOn,
   activeSpeechEngine,
+  isTeacher = true,
+  role = "teacher",
   onScriptChange,
   onTajweedChange,
+  onLessonChange,
   onToggleVoiceFollow,
   onEndClass,
 }: ClassroomHeaderProps) {
   return (
-    <header className="h-16 border-b border-gray-100 flex items-center justify-between px-4 md:px-8 flex-shrink-0 z-10 bg-white">
-      <div className="flex items-center gap-2 md:gap-4">
-        <div className="w-8 h-8 bg-[#0C4A3A] rounded-lg flex items-center justify-center text-white">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="3" y="4" width="18" height="16" rx="2" stroke="white" strokeWidth="2" />
-            <path d="M12 4V20" stroke="white" strokeWidth="2" />
-          </svg>
+    <header className="h-16 border-b border-white/10 flex items-center justify-between px-3 md:px-6 flex-shrink-0 z-20 bg-black/50 backdrop-blur-md text-white">
+      {/* Left: Branding & Lesson Selector */}
+      <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+        <div className="w-9 h-9 bg-emerald-800/80 border border-amber-400/40 rounded-xl flex items-center justify-center text-amber-300 shadow-sm shrink-0">
+          <BookOpen size={18} />
         </div>
-        <div>
-          <h1 className="text-base md:text-lg font-bold text-gray-900 leading-none">Live Interactive Classroom</h1>
-          <p className="text-[10px] md:text-xs text-gray-500 mt-1 hidden sm:block">
-            {surahName} • Script: {script === "uthmani" ? "Uthmani" : "IndoPak"} • Tajweed Active
-          </p>
+
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <h1 className="text-sm sm:text-base font-serif font-bold text-white truncate">
+              Live Quran Classroom
+            </h1>
+            <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-950/80 text-amber-300 border border-amber-400/30 px-2 py-0.5 rounded-full hidden sm:inline-block">
+              {role === "teacher" ? "Teacher Control" : role === "observer" ? "Silent Observer" : "Student View"} • {classId}
+            </span>
+          </div>
+
+          {/* Lesson Selector Dropdown */}
+          <div className="flex items-center gap-1.5 mt-0.5">
+            {isTeacher && onLessonChange ? (
+              <select
+                value={activeLessonId}
+                onChange={(e) => onLessonChange(e.target.value)}
+                className="bg-black/50 border border-white/20 text-amber-300 text-[11px] font-bold rounded-lg px-2 py-0.5 focus:outline-none focus:border-amber-400 max-w-[200px] sm:max-w-[260px] truncate cursor-pointer [&>option]:bg-[#052b20] [&>option]:text-white"
+              >
+                {lessons.map((les) => (
+                  <option key={les.id} value={les.id}>
+                    {les.title}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <span className="text-[11px] text-emerald-100/80 font-medium truncate">
+                {surahName}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
-        {/* Top Controls: Script and Tajweed stacked cleanly */}
-        <div className="hidden md:flex flex-col items-end gap-1">
-          <div className="flex items-center gap-1 bg-gray-100 p-0.5 rounded-lg border border-gray-200">
-            <span className="text-[10px] font-bold text-gray-500 px-1.5 uppercase">Script:</span>
+      {/* Middle & Right: Sync Toggles, Engine Pill & Exit */}
+      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        {/* Script & Tajweed Switchers (Desktop) */}
+        <div className="hidden lg:flex items-center gap-2 bg-black/40 p-1 rounded-xl border border-white/10 text-xs">
+          {/* Script */}
+          <div className="flex items-center gap-1">
             <button
               onClick={() => onScriptChange("uthmani")}
-              className={`text-[10px] font-bold px-2 py-0.5 rounded-md transition ${
-                script === "uthmani" ? "bg-[#0C4A3A] text-white shadow-xs" : "text-gray-600 hover:text-black"
+              className={`px-2.5 py-1 rounded-lg font-bold text-[10px] transition cursor-pointer ${
+                script === "uthmani"
+                  ? "bg-amber-400 text-emerald-950 shadow-xs font-extrabold"
+                  : "text-emerald-100/70 hover:text-white"
               }`}
             >
               Uthmani
             </button>
             <button
               onClick={() => onScriptChange("indopak")}
-              className={`text-[10px] font-bold px-2 py-0.5 rounded-md transition ${
-                script === "indopak" ? "bg-[#0C4A3A] text-white shadow-xs" : "text-gray-600 hover:text-black"
+              className={`px-2.5 py-1 rounded-lg font-bold text-[10px] transition cursor-pointer ${
+                script === "indopak"
+                  ? "bg-amber-400 text-emerald-950 shadow-xs font-extrabold"
+                  : "text-emerald-100/70 hover:text-white"
               }`}
             >
               IndoPak
             </button>
           </div>
 
-          <div className="flex items-center gap-1 bg-gray-100 p-0.5 rounded-lg border border-gray-200">
-            <span className="text-[10px] font-bold text-gray-500 px-1.5 uppercase">Tajweed:</span>
-            <button
-              onClick={() => onTajweedChange(true)}
-              className={`text-[10px] font-bold px-2 py-0.5 rounded-md transition ${
-                tajweedMode ? "bg-emerald-600 text-white shadow-xs" : "text-gray-600 hover:text-black"
-              }`}
-            >
-              Color-Coded
-            </button>
-            <button
-              onClick={() => onTajweedChange(false)}
-              className={`text-[10px] font-bold px-2 py-0.5 rounded-md transition ${
-                !tajweedMode ? "bg-gray-700 text-white shadow-xs" : "text-gray-600 hover:text-black"
-              }`}
-            >
-              Plain
-            </button>
-          </div>
+          <div className="w-px h-4 bg-white/20" />
+
+          {/* Tajweed */}
+          <button
+            onClick={() => onTajweedChange(!tajweedMode)}
+            className={`px-2.5 py-1 rounded-lg font-bold text-[10px] transition cursor-pointer ${
+              tajweedMode
+                ? "bg-emerald-900/80 text-emerald-300 border border-emerald-500/30"
+                : "bg-white/10 text-emerald-100/60"
+            }`}
+          >
+            {tajweedMode ? "Tajweed: Colors ON" : "Tajweed: Plain"}
+          </button>
         </div>
 
-        {/* Connection Resilience Indicator */}
-        {connectionStatus === "reconnecting" && (
-          <div className="flex items-center gap-1.5 bg-amber-50 text-amber-700 border border-amber-300 px-3 py-1 rounded-full text-[10px] font-bold shadow-xs">
-            <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
-            <span>Reconnecting Sync...</span>
+        {/* AI Recitation Follow Button */}
+        <button
+          onClick={onToggleVoiceFollow}
+          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm ${
+            isVoiceFollowOn
+              ? "bg-emerald-600 hover:bg-emerald-500 text-white ring-2 ring-amber-300"
+              : "bg-black/40 hover:bg-black/60 border border-white/15 text-emerald-100"
+          }`}
+          title="Toggle Real-Time AI Speech Recognition & Voice-Following Highlights"
+        >
+          <Mic size={14} className={isVoiceFollowOn ? "animate-pulse text-amber-300" : ""} />
+          <span className="hidden sm:inline">
+            {isVoiceFollowOn ? `AI Following (${activeSpeechEngine || "Active"})` : "AI Voice Follow"}
+          </span>
+        </button>
+
+        {/* Connection Status Pill */}
+        {connectionStatus === "reconnecting" ? (
+          <div className="flex items-center gap-1.5 bg-amber-400/20 text-amber-300 border border-amber-400/40 px-2.5 py-1 rounded-xl text-[10px] font-bold animate-pulse">
+            <Radio size={12} className="animate-spin" />
+            <span className="hidden sm:inline">Reconnecting...</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 bg-emerald-950/80 text-emerald-300 border border-emerald-500/30 px-2.5 py-1 rounded-xl text-[10px] font-bold">
+            <Wifi size={12} className="text-emerald-400" />
+            <span className="hidden md:inline">
+              {livekitStatus?.mode === "live" ? "LiveKit 48kHz HD" : "P2P WebRTC"}
+            </span>
           </div>
         )}
 
-        {/* LiveKit Server Pairing Indicator */}
-        <div className="hidden sm:flex items-center gap-1.5 bg-emerald-50 text-[#0C4A3A] border border-emerald-300 px-3 py-1 rounded-full text-[10px] font-bold shadow-xs">
-          <span
-            className={`w-2 h-2 rounded-full ${
-              livekitStatus?.mode === "live" ? "bg-emerald-600 animate-pulse" : "bg-emerald-500"
-            }`}
-          />
-          <span>{livekitStatus?.mode === "live" ? `LiveKit Cloud: Room ${classId}` : `LiveKit WebRTC: Room ${classId}`}</span>
-        </div>
-
-        <button
-          onClick={onToggleVoiceFollow}
-          className={`text-[10px] md:text-xs font-bold tracking-wider uppercase px-3.5 py-1.5 rounded-full transition flex items-center gap-1.5 shadow-xs ${
-            isVoiceFollowOn ? "bg-emerald-600 text-white animate-pulse" : "bg-[#D1EBE1] text-[#0C4A3A] hover:bg-[#bce0d0]"
-          }`}
-        >
-          <span className={`w-2 h-2 rounded-full ${isVoiceFollowOn ? "bg-white" : "bg-emerald-600"}`} />
-          {isVoiceFollowOn
-            ? activeSpeechEngine
-              ? `Voice Follow: ON (${activeSpeechEngine})`
-              : "Voice Follow: ON"
-            : "Voice Follow: OFF"}
-        </button>
-
-        <div className="bg-red-50 text-red-700 text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-          Live
-        </div>
-
+        {/* End / Leave Session Button */}
         <button
           onClick={onEndClass}
-          className="bg-[#b94a48] text-white px-3 md:px-5 py-1.5 rounded-lg font-bold hover:bg-red-800 transition text-xs md:text-sm"
+          className="bg-red-600/90 hover:bg-red-500 text-white px-3.5 py-1.5 rounded-xl font-bold text-xs transition shadow-md flex items-center gap-1.5 cursor-pointer"
         >
-          End class
+          <PhoneOff size={13} />
+          <span className="hidden sm:inline">{isTeacher ? "End Class" : "Leave Room"}</span>
         </button>
       </div>
     </header>

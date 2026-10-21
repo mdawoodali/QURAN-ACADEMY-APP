@@ -7,5 +7,6 @@ export { default as ClassroomVideoBubble } from "./components/ClassroomVideoBubb
 export { default as LetterPracticeTray } from "./components/LetterPracticeTray";
 export { default as MushafBoard } from "./components/MushafBoard";
 export { default as ClassroomToolbar } from "./components/ClassroomToolbar";
+export { default as DeviceCheckModal } from "./components/DeviceCheckModal";
 export { useClassroomSync } from "./hooks/useClassroomSync";
 export { useVoiceFollow } from "./hooks/useVoiceFollow";
