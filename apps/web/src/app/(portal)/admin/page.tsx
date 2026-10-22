@@ -93,6 +93,11 @@ export default function AdminOverview() {
           </div>
 
           <div className="flex gap-4 text-xs font-bold text-emerald-200/80 mt-4 flex-wrap pt-3 border-t border-white/10">
+            <Link href="/admin/resources" className="hover:text-amber-300 transition flex items-center gap-1">
+              <span>PDF &amp; Content Desk</span>
+              <ArrowUpRight size={12} />
+            </Link>
+            <span>•</span>
             <Link href="/admin/scheduling" className="hover:text-amber-300 transition flex items-center gap-1">
               <span>Master Calendar</span>
               <ArrowUpRight size={12} />

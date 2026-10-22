@@ -889,3 +889,21 @@ eceipt_uploaded, and payment_verified.
   - `pnpm test`: 15/15 test files passed, 106/106 tests passed (100% pass rate).
   - `pnpm tsc --noEmit`: 0 TypeScript errors.
   - `pnpm lint`: 0 ESLint errors and 0 warnings.
+
+---
+
+## 9.40 Admin Portal Curriculum & PDF Data Upload Desk
+- **Objective**:
+  - Implement an official data and curriculum upload desk in the Admin Portal accepting PDF format documents.
+- **Implementation**:
+  - **`apps/web/src/app/(portal)/admin/resources/page.tsx`**:
+    - Created an interactive drag-and-drop file ingestion zone with strict PDF format validation (`application/pdf`, `.pdf`).
+    - Integrated curriculum metadata capture: Document Title, Category (`Duas & Ziyarat`, `Classical Texts`, `Tajweed & Qaida`, `Ahkam Fiqh`, `Curriculum`), Sect Association (`universal`, `shia`, `sunni`), and teacher/student notes.
+    - Added instant Data URL local reading for in-browser PDF preview modal (`<iframe src={fileDataUrl} />`) and download capability.
+    - Implemented localStorage persistence (`academy_admin_uploaded_pdfs`) to retain uploaded materials across admin sessions.
+    - Pre-populated initial canonical academy PDF resources.
+  - **Admin Navigation**:
+    - Added `{ href: "/admin/resources", label: "PDF & Content", icon: FileUp }` to `ADMIN_LINKS` in `Sidebar.tsx`.
+    - Added shortcut link on the Admin Cockpit (`/admin/page.tsx`).
+- **Validation**:
+  - `pnpm typecheck`: Passed with 0 errors.
