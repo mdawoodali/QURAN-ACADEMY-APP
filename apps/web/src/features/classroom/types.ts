@@ -47,6 +47,8 @@ export interface ClassroomToolState {
   script: ScriptType;
   tajweedMode: boolean;
   activeLessonId?: string;
+  highlightedIndex?: number | null;
+  splitIndex?: number | null;
   laserPointer?: LaserPointerState;
   activePenRule?: TajweedRuleType;
   bandwidthMode?: "auto" | "audio_only";
