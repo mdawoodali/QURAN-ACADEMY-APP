@@ -816,7 +816,7 @@ eceipt_uploaded, and payment_verified.
 
 ## 9.35 Vercel Production Portal Routing & Quick Access Handler
 - **Problem**:
-  - In production deployments on Vercel, clicking the "Quick Portal Access (Demo & Evaluation)" links on the `/login` screen bounced users back to `/login` for Student and Teacher portals.
+  - In production deployments on Vercel, clicking the "Quick Portal Access (Demo and Evaluation)" links on the `/login` screen bounced users back to `/login` for Student and Teacher portals.
   - Plain Next.js `<Link>` elements did not persist the evaluation session cookies (`demo_role`), causing strict Next.js middleware to reject unauthenticated requests.
   - Real database logins fell back to heuristic email string matching rather than reading `profiles.role` from Supabase PostgreSQL.
 - **Implementation**:
@@ -824,3 +824,16 @@ eceipt_uploaded, and payment_verified.
   - Updated `/login` Quick Portal Access links to route through `/api/demo-access`.
   - Refactored `login/actions.ts` to query `profiles.role` from Supabase upon successful `signInWithPassword` and route users to their actual database-assigned portal.
   - Enhanced `Sidebar.tsx` sign-out logic to clear demo cookies upon logout.
+
+---
+
+## 9.36 Next.js Security Upgrade: 16.4.0 -> 16.4.2
+- **Objective**: Remediate published Next.js security advisory and upgrade to Next.js 16.4.2.
+- **Implementation**:
+  - Upgraded Next.js in `apps/web/package.json` from `16.4.0` to `16.4.2` alongside `eslint-config-next@16.4.2`.
+  - Configured `experimental.agentUpgrade = "security"` in `apps/web/next.config.ts`.
+  - Updated workspace lockfile via `pnpm install`.
+- **Validation**:
+  - `next --version`: Verified `Next.js v16.4.2`.
+  - `pnpm --filter frontend build`: All 54 routes compiled cleanly in Turbopack without SecurityFatalError.
+  - `pnpm test`: 53/53 tests passed across 11 test suites.
