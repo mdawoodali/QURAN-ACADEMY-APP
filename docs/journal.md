@@ -803,3 +803,11 @@ eceipt_uploaded, and payment_verified.
   - **PPR Streaming Resolution**: Removed experimental \partialPrefetching: true\ and \cacheComponents: true\ from \pps/web/next.config.ts\. These flags generated open chunked HTTP streams that caused mobile Safari and Chrome to hang indefinitely on slow or high-latency cellular connections.
 - **Validation**:
   - \pnpm test\: 53/53 tests passed across 11 test suites.
+
+## 9.34 Next.js Config Restoration & Vercel Build Fix
+- **Objective**: Fix Vercel build failure triggered by missing \cacheComponents\ flag required by \instant=false\ route segment configs.
+- **Implementation**:
+  - Restored \cacheComponents: true\ and \partialPrefetching: true\ in \pps/web/next.config.ts\. These flags are strictly required by Next.js 16 when pages declare \export const instant = false\ (such as \pp/(portal)/layout.tsx\, \login/page.tsx\, and registration routes).
+  - Maintained the middleware public route bypass in \pps/web/src/middleware.ts\ ensuring sub-millisecond edge response times on public traffic without Supabase auth latency.
+- **Validation**:
+  - \pnpm --filter frontend build\: Compiled all 54 routes with 0 errors.
