@@ -8,6 +8,7 @@ This file tracks all completed changes and upcoming planned roadmap tasks for **
 
 | Commit ID | Timestamp (PKT) | Author | Summary of Changes |
 | :--- | :--- | :--- | :--- |
+| 8fa42c4 | 2026-10-22 20:55:00 | **Isbah** | Purged .gitignore and .env.example from repository and configured local exclude rules. |
 | `4aa17fe` | 2026-10-22 01:30:00 | **Isbah** | Universally promoted Digital Tasbeeh for Shia and Sunni and decoupled from Shia Classical Library. |
 | `ba3b499` | 2026-10-22 01:29:00 | **Isbah** | Upgraded top-level Digital Tasbeeh with Tasbih Fatima Zahra (SA) auto-advancement engine. |
 | `c253910` | 2026-10-22 01:28:00 | **Isbah** | Decoupled Duas & Ziyarat from Shia Classical Library sub-navbar into 4-item layout. |
@@ -169,6 +170,7 @@ As upcoming changes are executed by **Isbah** or **Areeb**, update the table bel
 
 | Task / Feature | Planned Scope | Assigned To | Status | Commit ID | Completed At |
 | :--- | :--- | :--- | :--- | :--- | :--- |
+| 8fa42c4 | 2026-10-22 20:55:00 | **Isbah** | Purged .gitignore and .env.example from repository and configured local exclude rules. |
 | **API Keys & Production Credentials Integration** | Connect production Supabase project, LiveKit Cloud credentials, and verify Deepgram STT key in `.env.local` | Isbah / Areeb | Planned | — | — |
 | **Stripe Live Webhook & Billing Verification** | Verify Stripe checkout sessions and recurring subscription invoice generation with real webhooks | Isbah / Areeb | Planned | — | — |
 | **Admin Teacher Assignment Toggle** | Add admin setting `teacher_choice_enabled` (default false) to toggle between admin-assigned vs. student-selected teachers | Isbah / Areeb | Planned | — | — |

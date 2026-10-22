@@ -762,3 +762,13 @@ eceipt_uploaded, and payment_verified.
   2. Wudhu & Salat Ahkam (`ahkam`)
   3. 14 Infallibles Calendar (`calendar`)
 - Replaced nested tasbeeh initialTab binding in `CompanionApp` with the upgraded `<DigitalTasbeeh />` component alongside `<JafariPrayerSchedule />` and `<ShiaToolkit initialTab="texts" />`.
+
+
+---
+
+## 9.30 Purge .gitignore and .env.example from Version Control
+- **Objective**: Purge .gitignore and .env.example from git tracking and version control per user directive.
+- **Local Ignore Isolation**:
+  - Re-routed all repository ignore patterns (node_modules, .next, .env*.local, build artifacts, secrets) to .git/info/exclude, guaranteeing that local environment files and dependencies remain strictly ignored by git without relying on tracked .gitignore files.
+- **Repository Cleanliness**:
+  - Removed .gitignore, .env.example, and apps/web/.gitignore from git index.
