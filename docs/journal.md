@@ -979,3 +979,13 @@ eceipt_uploaded, and payment_verified.
   - `pnpm test`: 16/16 test files passed, 112/112 tests passed (100% pass rate).
   - `pnpm tsc --noEmit`: 0 TypeScript errors.
   - `pnpm lint`: 0 ESLint errors and 0 warnings.
+---
+
+## 9.45 Strict Null Checks & Turbopack Production Build Resilience
+- **Objective**: Ensure 100% clean type-checking under Next.js 16.4.2 `strictNullChecks` and Turbopack compiler.
+- **Implementation**:
+  - In `useClassroomSync.ts`: Added strict presence guards for `data.index`, `data.lessonId`, and numeric coordinates (`typeof data.x === "number"`), eliminating potential undefined assignment errors during static site generation.
+  - In `package.json`: Retained `experimental.agentUpgrade = "security"`.
+- **Validation**:
+  - `pnpm --filter frontend build`: Compiled 56/56 routes successfully with 0 build errors.
+  - `pnpm test`: All 112 tests passed across 16 test suites.

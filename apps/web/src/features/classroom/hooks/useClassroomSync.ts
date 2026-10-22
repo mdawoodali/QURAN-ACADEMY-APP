@@ -222,18 +222,18 @@ export function useClassroomSync({
       }
 
       // 4. Word Highlighting
-      if (data.type === "highlight") {
+      if (data.type === "highlight" && data.index !== undefined) {
         setHighlightedIndex(data.index);
         highlightedIndexRef.current = data.index;
       }
       // 5. Letter / Phoneme Split
-      else if (data.type === "split") {
+      else if (data.type === "split" && data.index !== undefined) {
         setSplitIndex(data.index);
       } else if (data.type === "close_split") {
         setSplitIndex(null);
       }
       // 6. Lesson Change (strictly restricted to teacher authority)
-      else if (data.type === "change_lesson") {
+      else if (data.type === "change_lesson" && data.lessonId) {
         if (data.senderRole && data.senderRole !== "teacher") {
           console.warn("[Sync Shield] Ignored unauthorized change_lesson from non-teacher role");
           return;
@@ -247,8 +247,8 @@ export function useClassroomSync({
         setColorHighlights({});
       }
       // 7. Laser Pointer
-      else if (data.type === "laser") {
-        setLaserPointer({ x: data.x, y: data.y, active: data.active });
+      else if (data.type === "laser" && typeof data.x === "number" && typeof data.y === "number") {
+        setLaserPointer({ x: data.x, y: data.y, active: Boolean(data.active) });
       }
       // 8. Moderation Actions (strictly restricted to teacher authority)
       else if (data.type === "moderation") {
