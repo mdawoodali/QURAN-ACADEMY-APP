@@ -63,6 +63,8 @@ export default function Sidebar({ onClose, role, userName, initials }: { onClose
   }
 
   const handleSignOut = async () => {
+    document.cookie = "demo_role=; path=/; max-age=0";
+    document.cookie = "demo_user=; path=/; max-age=0";
     await supabase.auth.signOut();
     router.push('/login');
     router.refresh();

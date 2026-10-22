@@ -22,9 +22,27 @@ export async function login(formData: FormData) {
   if (!isDummyConfig) {
     try {
       const supabase = await createClient()
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      const { data: authData, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) {
         redirect('/login?error=' + encodeURIComponent(error.message))
+      }
+
+      if (authData?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role, first_name, last_name')
+          .eq('id', authData.user.id)
+          .single()
+
+        const userRole = profile?.role || 'student'
+        const userName = `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || email
+        cookieStore.set('demo_role', userRole, { path: '/' })
+        cookieStore.set('demo_user', userName, { path: '/' })
+
+        if (userRole === 'admin') redirect('/admin')
+        if (userRole === 'teacher') redirect('/teacher')
+        if (userRole === 'parent') redirect('/parent')
+        redirect('/student')
       }
     } catch (err: unknown) {
       const errorObj = err as { digest?: string; message?: string }
@@ -74,9 +92,27 @@ export async function signup(formData: FormData) {
   if (!isDummyConfig) {
     try {
       const supabase = await createClient()
-      const { error } = await supabase.auth.signUp({ email, password })
+      const { data: authData, error } = await supabase.auth.signUp({ email, password })
       if (error) {
         redirect('/login?error=' + encodeURIComponent(error.message))
+      }
+
+      if (authData?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role, first_name, last_name')
+          .eq('id', authData.user.id)
+          .single()
+
+        const userRole = profile?.role || 'student'
+        const userName = `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || email
+        cookieStore.set('demo_role', userRole, { path: '/' })
+        cookieStore.set('demo_user', userName, { path: '/' })
+
+        if (userRole === 'admin') redirect('/admin')
+        if (userRole === 'teacher') redirect('/teacher')
+        if (userRole === 'parent') redirect('/parent')
+        redirect('/student')
       }
     } catch (err: unknown) {
       const errorObj = err as { digest?: string }

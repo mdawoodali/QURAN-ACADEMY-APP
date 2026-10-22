@@ -799,15 +799,28 @@ eceipt_uploaded, and payment_verified.
 ## 9.33 Edge Middleware Performance Fast-Path & PPR Streaming Hang Resolution
 - **Objective**: Resolve infinite loading bar / streaming hang on mobile devices when requesting the live website.
 - **Implementation**:
-  - **Public Route Middleware Fast-Path**: Refactored \pps/web/src/middleware.ts\ so that all public non-auth, non-portal routes immediately exit before creating the Supabase SSR client. Previously, every request to \/\ executed \wait supabase.auth.getUser()\ across the network, blocking mobile requests on external database roundtrips and edge cold starts.
-  - **PPR Streaming Resolution**: Removed experimental \partialPrefetching: true\ and \cacheComponents: true\ from \pps/web/next.config.ts\. These flags generated open chunked HTTP streams that caused mobile Safari and Chrome to hang indefinitely on slow or high-latency cellular connections.
+  - **Public Route Middleware Fast-Path**: Refactored `apps/web/src/middleware.ts` so that all public non-auth, non-portal routes immediately exit before creating the Supabase SSR client. Previously, every request to `/` executed `await supabase.auth.getUser()` across the network, blocking mobile requests on external database roundtrips and edge cold starts.
+  - **PPR Streaming Resolution**: Removed experimental `partialPrefetching: true` and `cacheComponents: true` from `apps/web/next.config.ts`. These flags generated open chunked HTTP streams that caused mobile Safari and Chrome to hang indefinitely on slow or high-latency cellular connections.
 - **Validation**:
-  - \pnpm test\: 53/53 tests passed across 11 test suites.
+  - `pnpm test`: 53/53 tests passed across 11 test suites.
 
 ## 9.34 Next.js Config Restoration & Vercel Build Fix
-- **Objective**: Fix Vercel build failure triggered by missing \cacheComponents\ flag required by \instant=false\ route segment configs.
+- **Objective**: Fix Vercel build failure triggered by missing `cacheComponents` flag required by `instant=false` route segment configs.
 - **Implementation**:
-  - Restored \cacheComponents: true\ and \partialPrefetching: true\ in \pps/web/next.config.ts\. These flags are strictly required by Next.js 16 when pages declare \export const instant = false\ (such as \pp/(portal)/layout.tsx\, \login/page.tsx\, and registration routes).
-  - Maintained the middleware public route bypass in \pps/web/src/middleware.ts\ ensuring sub-millisecond edge response times on public traffic without Supabase auth latency.
+  - Restored `cacheComponents: true` and `partialPrefetching: true` in `apps/web/next.config.ts`. These flags are strictly required by Next.js 16 when pages declare `export const instant = false` (such as `app/(portal)/layout.tsx`, `login/page.tsx`, and registration routes).
+  - Maintained the middleware public route bypass in `apps/web/src/middleware.ts` ensuring sub-millisecond edge response times on public traffic without Supabase auth latency.
 - **Validation**:
-  - \pnpm --filter frontend build\: Compiled all 54 routes with 0 errors.
+  - `pnpm --filter frontend build`: Compiled all 54 routes with 0 errors.
+
+---
+
+## 9.35 Vercel Production Portal Routing & Quick Access Handler
+- **Problem**:
+  - In production deployments on Vercel, clicking the "Quick Portal Access (Demo & Evaluation)" links on the `/login` screen bounced users back to `/login` for Student and Teacher portals.
+  - Plain Next.js `<Link>` elements did not persist the evaluation session cookies (`demo_role`), causing strict Next.js middleware to reject unauthenticated requests.
+  - Real database logins fell back to heuristic email string matching rather than reading `profiles.role` from Supabase PostgreSQL.
+- **Implementation**:
+  - Implemented `/api/demo-access/route.ts` HTTP GET handler that sets secure `demo_role` and `demo_user` session cookies and safely redirects to the chosen target portal (`/admin`, `/teacher`, `/student`).
+  - Updated `/login` Quick Portal Access links to route through `/api/demo-access`.
+  - Refactored `login/actions.ts` to query `profiles.role` from Supabase upon successful `signInWithPassword` and route users to their actual database-assigned portal.
+  - Enhanced `Sidebar.tsx` sign-out logic to clear demo cookies upon logout.

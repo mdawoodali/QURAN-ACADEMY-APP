@@ -70,19 +70,19 @@ export default async function LoginPage(props: { searchParams: Promise<{ error?:
           </span>
           <div className="grid grid-cols-3 gap-2 text-xs font-bold">
             <Link
-              href="/admin"
+              href="/api/demo-access?role=admin"
               className="py-2.5 px-1 bg-amber-400/20 hover:bg-amber-400 text-amber-300 hover:text-emerald-950 border border-amber-400/40 rounded-xl transition-all shadow-sm text-center"
             >
               Admin
             </Link>
             <Link
-              href="/teacher"
+              href="/api/demo-access?role=teacher"
               className="py-2.5 px-1 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl transition-all shadow-sm text-center"
             >
               Teacher
             </Link>
             <Link
-              href="/student"
+              href="/api/demo-access?role=student"
               className="py-2.5 px-1 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl transition-all shadow-sm text-center"
             >
               Student
