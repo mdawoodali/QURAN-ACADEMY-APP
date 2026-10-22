@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Download, BookOpen, FileText, Search, Sparkles, X, Library, Compass, CircleDot, BookMarked, Copy, Check } from "lucide-react";
+import { Download, BookOpen, FileText, Search, Sparkles, X, Library, Compass, CircleDot, BookMarked, Copy, Check, Shield, Calendar } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { QURAN_PARAS } from "@/data/quranParas";
 import { DAILY_GUIDES_DATA, GuideResource } from "@/data/guidesData";
@@ -18,7 +18,9 @@ import toast from "react-hot-toast";
 type ResourceTab =
   | "quran"
   | "guides"
-  | "shia-library"
+  | "texts"
+  | "ahkam"
+  | "calendar"
   | "tasbeeh"
   | "prayer-times"
   | "asma-ul-husna"
@@ -49,12 +51,15 @@ export default function ResourcesPage() {
       const tabParam = urlParams.get("tab");
       const subParam = urlParams.get("sub");
 
-      if (
-        subParam === "texts" ||
-        subParam === "ahkam" ||
-        subParam === "calendar"
-      ) {
-        setShiaInitialTab(subParam);
+      if (subParam === "texts" || tabParam === "texts") {
+        setActiveTab("texts");
+        return;
+      } else if (subParam === "ahkam" || tabParam === "ahkam") {
+        setActiveTab("ahkam");
+        return;
+      } else if (subParam === "calendar" || tabParam === "calendar") {
+        setActiveTab("calendar");
+        return;
       } else if (subParam === "duas" || tabParam === "duas") {
         setActiveTab("guides");
         setGuidesFilter("duas");
@@ -66,33 +71,34 @@ export default function ResourcesPage() {
 
       if (isShia) {
         if (
+          tabParam === "texts" ||
+          tabParam === "ahkam" ||
+          tabParam === "calendar" ||
+          tabParam === "quran" ||
+          tabParam === "guides" ||
+          tabParam === "tasbeeh" ||
+          tabParam === "prayer-times" ||
+          tabParam === "asma-ul-husna" ||
+          tabParam === "seerat"
+        ) {
+          setActiveTab(tabParam as ResourceTab);
+        } else if (
           tabParam === "shia-library" ||
           tabParam === "shia" ||
           tabParam === "shia-toolkit" ||
           tabParam === "toolkit"
         ) {
-          setActiveTab("shia-library");
-          if (tabParam === "shia-toolkit" || tabParam === "toolkit") {
-            setShiaInitialTab("texts");
-          }
-        } else if (tabParam === "guides") {
-          setActiveTab("guides");
-        } else if (tabParam === "tasbeeh") {
-          setActiveTab("tasbeeh");
-        } else if (tabParam === "prayer-times") {
-          setActiveTab("prayer-times");
-        } else if (tabParam === "asma-ul-husna") {
-          setActiveTab("asma-ul-husna");
-        } else if (tabParam === "seerat") {
-          setActiveTab("seerat");
+          setActiveTab("texts");
         } else if (!tabParam) {
-          // Default to Shia Classical Library when entering in Shia mode
-          setActiveTab("shia-library");
+          setActiveTab("quran");
         }
       } else {
         // Sunni mode: strict protection against Shia tab access
         if (
           tabParam &&
+          tabParam !== "texts" &&
+          tabParam !== "ahkam" &&
+          tabParam !== "calendar" &&
           tabParam !== "shia-library" &&
           tabParam !== "shia" &&
           tabParam !== "shia-toolkit" &&
@@ -110,7 +116,7 @@ export default function ResourcesPage() {
 
   // Safety guard: if switched to Sunni while on Shia tab, bounce to Quran
   useEffect(() => {
-    if (isSunni && activeTab === "shia-library") {
+    if (isSunni && (activeTab === "texts" || activeTab === "ahkam" || activeTab === "calendar")) {
       setActiveTab("quran");
     }
   }, [isSunni, activeTab]);
@@ -274,7 +280,7 @@ https://quranlearnacademy.com/resources
         </h1>
         <p className="text-emerald-100/85 text-base sm:text-lg leading-relaxed">
           {isShia
-            ? "Explore the complete 30 Paras of the Noble Quran, daily Tajweed guides, and our unified Shia Classical Library uniting primary manuscripts with daily spiritual companions."
+            ? "Explore the complete 30 Paras of the Noble Quran, daily Tajweed guides, Classical Reference Texts, Ahkam companions, and authentic Islamic tools."
             : "Explore the complete 30 Paras of the Noble Quran, foundational daily Tajweed guides & Masnoon Duas, and interactive Islamic lifestyle tools with instant in-app readers."}
         </p>
       </div>
@@ -312,22 +318,54 @@ https://quranlearnacademy.com/resources
             <span>Daily guides and Duas</span>
           </button>
 
-          {/* Unified Shia Classical Library Tab - Exclusively visible in Shia mode */}
+          {/* Classical Reference Texts, Ahkam & Calendar Tabs - Directly in Academy Resources */}
           {isShia && (
-            <button
-              onClick={() => {
-                setActiveTab("shia-library");
-                setSearchQuery("");
-              }}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                activeTab === "shia-library"
-                  ? "bg-amber-400 text-emerald-950 shadow-md"
-                  : "text-emerald-100/80 hover:text-white hover:bg-white/10"
-              }`}
-            >
-              <Library size={16} />
-              <span>Shia Classical Library</span>
-            </button>
+            <>
+              <button
+                onClick={() => {
+                  setActiveTab("texts");
+                  setSearchQuery("");
+                }}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                  activeTab === "texts"
+                    ? "bg-amber-400 text-emerald-950 shadow-md"
+                    : "text-emerald-100/80 hover:text-white hover:bg-white/10"
+                }`}
+              >
+                <Library size={16} />
+                <span>Classical Reference Texts</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setActiveTab("ahkam");
+                  setSearchQuery("");
+                }}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                  activeTab === "ahkam"
+                    ? "bg-amber-400 text-emerald-950 shadow-md"
+                    : "text-emerald-100/80 hover:text-white hover:bg-white/10"
+                }`}
+              >
+                <Shield size={16} />
+                <span>Wudhu &amp; Salat Ahkam</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setActiveTab("calendar");
+                  setSearchQuery("");
+                }}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                  activeTab === "calendar"
+                    ? "bg-amber-400 text-emerald-950 shadow-md"
+                    : "text-emerald-100/80 hover:text-white hover:bg-white/10"
+                }`}
+              >
+                <Calendar size={16} />
+                <span>14 Infallibles Calendar</span>
+              </button>
+            </>
           )}
 
           <button
@@ -578,7 +616,7 @@ https://quranlearnacademy.com/resources
               </div>
             ))}
 
-            {/* Render Merged Duas & Ziyarat (from Shia Classical Library) */}
+            {/* Render Merged Duas & Ziyarat */}
             {filteredShiaDuas.map((dua) => (
               <div
                 key={dua.id}
@@ -641,8 +679,8 @@ https://quranlearnacademy.com/resources
         </section>
       )}
 
-      {/* MERGED SHIA CLASSICAL LIBRARY */}
-      {activeTab === "shia-library" && isShia && (
+      {/* TAB: CLASSICAL REFERENCE TEXTS */}
+      {activeTab === "texts" && isShia && (
         <section className="mb-16">
           <div className="text-center max-w-3xl mx-auto mb-8">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-300 text-xs font-semibold mb-3">
@@ -650,15 +688,54 @@ https://quranlearnacademy.com/resources
               <span>Ahl al-Bayt (AS) Theological & Spiritual Heritage</span>
             </div>
             <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white mb-3">
-              Shia Classical Library
+              Classical Reference Texts
             </h2>
             <p className="text-sm sm:text-base text-emerald-100/80 max-w-2xl mx-auto">
-              Complete unified repository combining primary classical manuscripts with essential canonical companions: Wudhu &amp; Salat Ahkam and the 14 Infallibles Historical Calendar.
+              Primary classical manuscripts including Nahj al-Balagha, Al-Sahifa al-Sajjadiyya, and Al-Kafi with verified English translations and downloadable texts.
             </p>
           </div>
 
-          {/* Unified Shia Toolkit containing 3 co-located resources in its sub-navbar */}
-          <ShiaToolkit initialTab={shiaInitialTab} />
+          <ShiaToolkit initialTab="texts" hideSubNavbar />
+        </section>
+      )}
+
+      {/* TAB: WUDHU & SALAT AHKAM */}
+      {activeTab === "ahkam" && isShia && (
+        <section className="mb-16">
+          <div className="text-center max-w-3xl mx-auto mb-8">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-300 text-xs font-semibold mb-3">
+              <Shield size={14} />
+              <span>Ja&apos;fari Jurisprudence & Practical Rulings</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white mb-3">
+              Wudhu &amp; Salat Ahkam
+            </h2>
+            <p className="text-sm sm:text-base text-emerald-100/80 max-w-2xl mx-auto">
+              Authentic step-by-step guidance on Ja&apos;fari Wudhu, Sajdah upon pure earth (Turbah), and canonical prayer postures with Ayatullah Sistani &amp; classical rulings.
+            </p>
+          </div>
+
+          <ShiaToolkit initialTab="ahkam" hideSubNavbar />
+        </section>
+      )}
+
+      {/* TAB: 14 INFALLIBLES CALENDAR */}
+      {activeTab === "calendar" && isShia && (
+        <section className="mb-16">
+          <div className="text-center max-w-3xl mx-auto mb-8">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-300 text-xs font-semibold mb-3">
+              <Calendar size={14} />
+              <span>Chahardah Masoomeen (AS) Historical Timeline</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white mb-3">
+              14 Infallibles Calendar
+            </h2>
+            <p className="text-sm sm:text-base text-emerald-100/80 max-w-2xl mx-auto">
+              Chronological commemorations, births, and martyrdoms across the sacred Hijri calendar with shrine locations and historical titles.
+            </p>
+          </div>
+
+          <ShiaToolkit initialTab="calendar" hideSubNavbar />
         </section>
       )}
 

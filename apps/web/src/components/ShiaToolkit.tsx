@@ -26,12 +26,22 @@ import {
 
 interface ShiaToolkitProps {
   initialTab?: "texts" | "ahkam" | "calendar";
+  hideSubNavbar?: boolean;
 }
 
-export default function ShiaToolkit({ initialTab = "texts" }: ShiaToolkitProps) {
+export default function ShiaToolkit({ 
+  initialTab = "texts",
+  hideSubNavbar = false 
+}: ShiaToolkitProps) {
   const [activeSubTab, setActiveSubTab] = useState<"texts" | "ahkam" | "calendar">(
     (initialTab as string) === "duas" || (initialTab as string) === "tasbeeh" ? "texts" : initialTab
   );
+
+  useEffect(() => {
+    if (initialTab && (initialTab === "texts" || initialTab === "ahkam" || initialTab === "calendar")) {
+      setActiveSubTab(initialTab);
+    }
+  }, [initialTab]);
   // -------------------------------------------------------------
   // 0. CLASSICAL REFERENCE TEXTS STATE
   // -------------------------------------------------------------
@@ -263,7 +273,8 @@ https://quranlearnacademy.com/resources
   return (
     <div className="w-full">
       {/* UNIFIED 3-ITEM SUB-NAVBAR (Classical Manuscripts & Canonical Guides) */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-8 bg-black/40 border border-white/10 p-2 rounded-2xl backdrop-blur-md max-w-4xl mx-auto shadow-xl">
+      {!hideSubNavbar && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-8 bg-black/40 border border-white/10 p-2 rounded-2xl backdrop-blur-md max-w-4xl mx-auto shadow-xl">
         {[
           { key: "texts", label: "Classical Reference Texts", icon: Library },
           { key: "ahkam", label: "Wudhu & Salat Ahkam", icon: Shield },
@@ -283,6 +294,7 @@ https://quranlearnacademy.com/resources
           </button>
         ))}
       </div>
+      )}
 
       {/* ========================================================= */}
       {/* 0. CLASSICAL REFERENCE TEXTS (CANONICAL MANUSCRIPTS)      */}
@@ -386,7 +398,7 @@ https://quranlearnacademy.com/resources
           {/* Catalog Note */}
           <div className="text-center bg-black/30 border border-white/10 rounded-2xl p-5 max-w-2xl mx-auto">
             <p className="text-xs text-emerald-200/70 leading-relaxed">
-              <strong className="text-amber-300">Academy Catalog Note:</strong> The Shia Classical Library manuscripts are expandable by Academy Administrators through the Admin Portal, supporting digital transcription, translation verification, and downloadable offline bundles.
+              <strong className="text-amber-300">Academy Catalog Note:</strong> The Classical Reference manuscripts are expandable by Academy Administrators through the Admin Portal, supporting digital transcription, translation verification, and downloadable offline bundles.
             </p>
           </div>
         </div>

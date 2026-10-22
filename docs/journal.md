@@ -837,3 +837,24 @@ eceipt_uploaded, and payment_verified.
   - `next --version`: Verified `Next.js v16.4.2`.
   - `pnpm --filter frontend build`: All 54 routes compiled cleanly in Turbopack without SecurityFatalError.
   - `pnpm test`: 53/53 tests passed across 11 test suites.
+
+---
+
+## 9.37 Decentralize Classical Reference Texts, Ahkam & Calendar into Academy Resources
+- **Objective**:
+  - Remove "Shia Classical Library" container completely.
+  - Promote its individual modules—"Classical Reference Texts", "Wudhu & Salat Ahkam", and "14 Infallibles Calendar"—directly to first-class tabs under "Academy Resources".
+- **Implementation**:
+  - **`ShiaToolkit.tsx` Refactoring**:
+    - Added `hideSubNavbar` prop to allow direct standalone rendering of `"texts"`, `"ahkam"`, or `"calendar"` views without nested sub-navbars.
+    - Updated catalog note text to refer to "Classical Reference manuscripts" rather than library branding.
+  - **`resources/page.tsx` Architecture**:
+    - Removed `shia-library` tab from `ResourceTab` enum and completely excised the "Shia Classical Library" container component.
+    - Added 3 distinct top-level tabs in the Academy Resources navigation bar:
+      1. `Classical Reference Texts` (icon: `Library`, key: `"texts"`)
+      2. `Wudhu & Salat Ahkam` (icon: `Shield`, key: `"ahkam"`)
+      3. `14 Infallibles Calendar` (icon: `Calendar`, key: `"calendar"`)
+    - Updated URL query parameter matching and Sunni sect switch guard to seamlessly support direct navigation to `/resources?tab=texts`, `/resources?tab=ahkam`, and `/resources?tab=calendar`.
+- **Validation**:
+  - `pnpm typecheck`: Clean compilation with 0 TypeScript errors.
+  - Verified 0 remaining occurrences of "Shia Classical Library" across `apps/web/src`.
