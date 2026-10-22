@@ -907,3 +907,24 @@ eceipt_uploaded, and payment_verified.
     - Added shortcut link on the Admin Cockpit (`/admin/page.tsx`).
 - **Validation**:
   - `pnpm typecheck`: Passed with 0 errors.
+
+---
+
+## 9.39 Complete 10 Authentic Shia Canonical Duas Corpus
+- **Objective**:
+  - Clear legacy partial supplications and replace with the 10 authentic, complete, unabridged Shia Duas in full Arabic with parallel English translations.
+- **Implementation**:
+  - Re-engineered `apps/web/src/data/shiaToolkitData.ts` to host the canonical texts for:
+    1. *Dua Mashlool* (Supplication of the Youth Afflicted for His Sin)
+    2. *Dua Sabah (Dua al-Sabah)* (Imam Ali's morning supplication)
+    3. *Dua Kumayl* (Complete multi-paragraph supplication of Khidr and Imam Ali)
+    4. *Dua Nudba* (Supplication of Lamentation for Imam al-Mahdi AJTF)
+    5. *Dua Tawassul* (Complete 14 Infallibles intercessions)
+    6. *Dua Faraj (Allahumma Kun Li-Waliyyik)* (Prayer for the safety of Imam al-Zaman)
+    7. *Dua Faraj (Ilahi Azuma'l Bala)* (Urgent prayer of deliverance from adversity)
+    8. *Dua Allahumma Kunle* (Extended Munajat for the Living Proof)
+    9. *Dua Marefat e Imam (atfs)* (Supplication during the Major Occultation)
+    10. *Dua Ahad* (Pledge of allegiance renewed every 40 dawns)
+  - All 10 Duas feature complete Arabic orthography and diacritics (Harakat) with verified English translations.
+- **Validation**:
+  - `pnpm typecheck`: Clean compilation with 0 errors.
