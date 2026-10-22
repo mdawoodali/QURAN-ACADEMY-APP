@@ -105,11 +105,18 @@ export type ClassroomEvent = z.infer<typeof ClassroomEventSchema>;
 /**
  * Phase 3 Transactional Email & Messaging Contracts (Resend)
  */
+export const SafeUrlSchema = z
+  .string()
+  .url()
+  .refine((val) => /^https?:\/\//i.test(val), {
+    message: "URL must use http or https protocol",
+  });
+
 export const WelcomeEmailSchema = z.object({
   type: z.literal("welcome"),
   to: z.string().email(),
   studentName: z.string().min(1),
-  portalUrl: z.string().url().default("https://quranacademyapp.vercel.app/student"),
+  portalUrl: SafeUrlSchema.default("https://quranacademyapp.vercel.app/student"),
   temporaryPassword: z.string().optional(),
 });
 export type WelcomeEmailPayload = z.infer<typeof WelcomeEmailSchema>;
@@ -121,7 +128,7 @@ export const ClassReminderSchema = z.object({
   subject: z.string().min(1),
   teacherName: z.string().min(1),
   startTime: z.string(),
-  classroomUrl: z.string().url(),
+  classroomUrl: SafeUrlSchema,
   reminderWindow: z.enum(["24h", "30m"]),
 });
 export type ClassReminderPayload = z.infer<typeof ClassReminderSchema>;
@@ -135,7 +142,7 @@ export const ReceiptConfirmationSchema = z.object({
   currency: z.string().min(1),
   transactionRef: z.string().min(1),
   planName: z.string().min(1),
-  downloadUrl: z.string().url().optional(),
+  downloadUrl: SafeUrlSchema.optional(),
 });
 export type ReceiptConfirmationPayload = z.infer<typeof ReceiptConfirmationSchema>;
 
@@ -146,7 +153,7 @@ export const ClassMissedSchema = z.object({
   studentName: z.string().min(1),
   subject: z.string().min(1),
   scheduledTime: z.string(),
-  rescheduleUrl: z.string().url(),
+  rescheduleUrl: SafeUrlSchema,
 });
 export type ClassMissedPayload = z.infer<typeof ClassMissedSchema>;
 

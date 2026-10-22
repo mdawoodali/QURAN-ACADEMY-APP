@@ -41,7 +41,11 @@ export function checkRateLimit(
   // Determine threshold based on endpoint sensitivity
   let limit = customLimit || 60; // 60 req/min default for general APIs
   if (!customLimit) {
-    if (pathname.includes("/api/email/") || pathname.includes("/api/livekit/")) {
+    if (
+      pathname.includes("/api/email/") ||
+      pathname.includes("/api/livekit/") ||
+      pathname.includes("/api/speech/")
+    ) {
       limit = 15; // 15 req/min for token minting and transactional messaging
     } else if (pathname.includes("/api/health")) {
       limit = 120; // High limit for uptime monitoring

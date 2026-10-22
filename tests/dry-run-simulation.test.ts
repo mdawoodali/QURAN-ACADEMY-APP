@@ -13,7 +13,7 @@ interface MockFamily {
   studentName: string;
   age: number;
   country: string;
-  currency: "PKR" | "GBP" | "USD";
+  currency: "PKR" | "GBP" | "USD" | "EUR";
   tuitionAmount: string;
   paymentRail: string;
   transactionRef: string;
@@ -80,6 +80,66 @@ const SIMULATED_FAMILIES: MockFamily[] = [
     paymentRail: "Chase ACH",
     transactionRef: "ACH-CHAS-774012",
   },
+  {
+    familyId: "FAM-106",
+    parentName: "Dr. Murtaza Abbas",
+    parentEmail: "murtaza.abbas@example.com.au",
+    studentName: "Ali Abbas",
+    age: 9,
+    country: "Australia",
+    currency: "USD",
+    tuitionAmount: "65.00",
+    paymentRail: "Commonwealth Bank PayID",
+    transactionRef: "CBA-OSKO-662910",
+  },
+  {
+    familyId: "FAM-107",
+    parentName: "Khadija Kazmi",
+    parentEmail: "khadija.kazmi@example.ca",
+    studentName: "Kumail Kazmi",
+    age: 13,
+    country: "Canada",
+    currency: "USD",
+    tuitionAmount: "65.00",
+    paymentRail: "TD Bank Interac / Wire",
+    transactionRef: "TD-INT-891042",
+  },
+  {
+    familyId: "FAM-108",
+    parentName: "Sajjad Naqvi",
+    parentEmail: "sajjad.naqvi@example.de",
+    studentName: "Zehra Naqvi",
+    age: 10,
+    country: "Germany",
+    currency: "EUR",
+    tuitionAmount: "50.00",
+    paymentRail: "Deutsche Bank SEPA Instant",
+    transactionRef: "SEPA-DE-910283",
+  },
+  {
+    familyId: "FAM-109",
+    parentName: "Imran Zaidi",
+    parentEmail: "imran.zaidi@example.ae",
+    studentName: "Raza Zaidi",
+    age: 11,
+    country: "United Arab Emirates",
+    currency: "USD",
+    tuitionAmount: "70.00",
+    paymentRail: "Emirates NBD Wire",
+    transactionRef: "ENBD-WIRE-551093",
+  },
+  {
+    familyId: "FAM-110",
+    parentName: "Syed Baqir Al-Musawi",
+    parentEmail: "baqir.musawi@example.org",
+    studentName: "Mohammad Musawi",
+    age: 14,
+    country: "United Kingdom",
+    currency: "GBP",
+    tuitionAmount: "40.00",
+    paymentRail: "Monzo Faster Payments",
+    transactionRef: "MNZO-FPS-771920",
+  },
 ];
 
 const MOCK_TEACHERS = [
@@ -89,7 +149,7 @@ const MOCK_TEACHERS = [
 ];
 
 describe("Phase 5: 48-Hour Live Academy Simulation (Dry Run)", () => {
-  it("executes the full 7-step student lifecycle for 5 mock families across 3 vetted tutors", async () => {
+  it("executes the full 7-step student lifecycle for 10 mock families across 3 vetted tutors", async () => {
     const paymentProvider = getPaymentProvider();
     const emailService = getEmailService();
 
@@ -101,7 +161,7 @@ describe("Phase 5: 48-Hour Live Academy Simulation (Dry Run)", () => {
       // Step 1: Student Registration Validation
       // -------------------------------------------------------------
       const studentPayload = {
-        id: "123e4567-e89b-12d3-a456-42661417400" + i,
+        id: `123e4567-e89b-12d3-a456-4266141740${i.toString().padStart(2, "0")}`,
         father_name: family.parentName,
         age: family.age,
         country: family.country,
@@ -229,8 +289,8 @@ describe("Phase 5: 48-Hour Live Academy Simulation (Dry Run)", () => {
       telemetry.captureMessage(`[Simulation] Lifecycle verified for ${family.studentName} (${family.familyId})`);
     }
 
-    // Verify analytics logged all 5 families * 5 events = 25 events
+    // Verify analytics logged all 10 families * 5 events = 50 events
     const logs = analytics.getRecentEvents();
-    expect(logs.length).toBeGreaterThanOrEqual(25);
+    expect(logs.length).toBeGreaterThanOrEqual(50);
   });
 });
