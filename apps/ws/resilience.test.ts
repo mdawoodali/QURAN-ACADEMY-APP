@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { server, wss, broker } from "../apps/ws/index";
+import { server, wss, broker } from "./index";
 import WebSocket from "ws";
 import * as http from "http";
 import type { AddressInfo } from "net";

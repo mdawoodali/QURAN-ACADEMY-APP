@@ -17,8 +17,6 @@ export default defineConfig({
       "@quran/domain": path.resolve(__dirname, "./packages/domain/src"),
       "@quran/contracts": path.resolve(__dirname, "./packages/contracts/src"),
       "@quran/adapters": path.resolve(__dirname, "./packages/adapters/src"),
-      "next/server": path.resolve(__dirname, "./apps/web/node_modules/next/server.js"),
-      next: path.resolve(__dirname, "./apps/web/node_modules/next"),
     },
   },
 });
