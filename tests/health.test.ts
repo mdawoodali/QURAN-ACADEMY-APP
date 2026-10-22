@@ -17,7 +17,7 @@ describe("Health API Route", () => {
   });
 
   it("verifies Deepgram speech token endpoint successfully with configured API key", async () => {
-    process.env.DEEPGRAM_API_KEY = "5d6b86e07b415db4cdd9d41b76e0d5892f0268c9";
+    process.env.DEEPGRAM_API_KEY = process.env.DEEPGRAM_API_KEY || "mock-test-key";
     const res = await getDeepgramToken();
     expect(res.status).toBe(200);
 

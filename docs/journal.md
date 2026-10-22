@@ -772,3 +772,15 @@ eceipt_uploaded, and payment_verified.
   - Re-routed all repository ignore patterns (node_modules, .next, .env*.local, build artifacts, secrets) to .git/info/exclude, guaranteeing that local environment files and dependencies remain strictly ignored by git without relying on tracked .gitignore files.
 - **Repository Cleanliness**:
   - Removed .gitignore, .env.example, and apps/web/.gitignore from git index.
+
+
+---
+
+## 9.31 Security Audit & Test Secret Sanitization
+- **Security Audit Summary**:
+  - Conducted full commit and tree audit for API keys and database credentials.
+  - Verified `SUPABASE_SERVICE_ROLE_KEY` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` were **never committed or leaked** in git history.
+  - Identified that collaborator commit `b43e1d2` by Areeb Iqbal previously hardcoded a live `DEEPGRAM_API_KEY` token inside `tests/health.test.ts`.
+- **Remediation**:
+  - Sanitized `tests/health.test.ts` to utilize fallback/mock credentials (`process.env.DEEPGRAM_API_KEY || "mock-test-key"`), preventing static analysis leaks and test credential exposure.
+  - Advised project administrators to rotate the compromised Deepgram key at `console.deepgram.com`.
