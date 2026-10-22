@@ -858,3 +858,17 @@ eceipt_uploaded, and payment_verified.
 - **Validation**:
   - `pnpm typecheck`: Clean compilation with 0 TypeScript errors.
   - Verified 0 remaining occurrences of "Shia Classical Library" across `apps/web/src`.
+
+---
+
+## 9.38 Repository Purge & Dead Code Elimination
+- **Objective**: Purge redundant files, legacy prototypes, dead state, and unused imports to achieve zero ESLint warnings and optimal repository hygiene.
+- **Implementation**:
+  - **Purged Obsolete Backend & Artifacts**: Removed abandoned `backend/` FastAPI prototype (`main.py`, `__pycache__`), `apps/web/LiveClassroomBackup.txt`, `apps/web/fix_classroom.js`, root duplicate `journal.md`, and redundant `apps/web/supabase/` subfolder.
+  - **Refactored ShiaToolkit (`ShiaToolkit.tsx`)**: Removed ~170 lines of orphaned prayer calculation code and 24 unused icons/helpers superseded by `JafariPrayerSchedule.tsx`.
+  - **Cleaned Unused Variables**: Removed unused `sect` and `Clock` bindings across `PublicNavbar.tsx`, `resources/page.tsx`, `JafariPrayerSchedule.tsx`, and `PrayerTimesQibla.tsx`.
+  - **Eliminated Cascading Render Warnings**: Refactored synchronous `setState` invocations inside `useEffect` across `SectContext.tsx` and `resources/page.tsx` using `queueMicrotask`.
+  - **Updated ESLint Config**: Removed obsolete `fix_classroom.js` ignore rule from `apps/web/eslint.config.mjs`.
+- **Validation**:
+  - `pnpm --filter frontend lint`: Passed with 0 errors and 0 warnings (100% clean).
+  - `pnpm test`: All 53 tests passed across 11 test suites.

@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function PublicNavbar() {
   const { language, setLanguage, t } = useLanguage();
-  const { sect, setSect, isSunni, isShia } = useSect();
+  const { setSect, isSunni, isShia } = useSect();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const closeMenu = () => setMobileMenuOpen(false);

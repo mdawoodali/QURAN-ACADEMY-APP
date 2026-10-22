@@ -20,14 +20,10 @@ export function SectProvider({ children }: { children: React.ReactNode }) {
     if (typeof window === "undefined") return;
     try {
       const stored = localStorage.getItem("user_sect") as Sect | null;
-      if (stored === "sunni" || stored === "shia") {
-        setSectState(stored);
-      } else {
-        // Default to sunni if unselected
-        setSectState("sunni");
-      }
+      const initialSect = (stored === "sunni" || stored === "shia") ? stored : "sunni";
+      queueMicrotask(() => setSectState(initialSect));
     } catch {
-      setSectState("sunni");
+      queueMicrotask(() => setSectState("sunni"));
     }
   }, []);
 

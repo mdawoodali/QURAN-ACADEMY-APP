@@ -27,7 +27,7 @@ type ResourceTab =
   | "seerat";
 
 export default function ResourcesPage() {
-  const { sect, isSunni, isShia } = useSect();
+  const { isSunni, isShia } = useSect();
   const [activeTab, setActiveTab] = useState<ResourceTab>("quran");
   const [shiaInitialTab, setShiaInitialTab] = useState<
     "texts" | "ahkam" | "calendar"
@@ -51,64 +51,66 @@ export default function ResourcesPage() {
       const tabParam = urlParams.get("tab");
       const subParam = urlParams.get("sub");
 
-      if (subParam === "texts" || tabParam === "texts") {
-        setActiveTab("texts");
-        return;
-      } else if (subParam === "ahkam" || tabParam === "ahkam") {
-        setActiveTab("ahkam");
-        return;
-      } else if (subParam === "calendar" || tabParam === "calendar") {
-        setActiveTab("calendar");
-        return;
-      } else if (subParam === "duas" || tabParam === "duas") {
-        setActiveTab("guides");
-        setGuidesFilter("duas");
-        return;
-      } else if (subParam === "tasbeeh" || tabParam === "tasbeeh") {
-        setActiveTab("tasbeeh");
-        return;
-      }
-
-      if (isShia) {
-        if (
-          tabParam === "texts" ||
-          tabParam === "ahkam" ||
-          tabParam === "calendar" ||
-          tabParam === "quran" ||
-          tabParam === "guides" ||
-          tabParam === "tasbeeh" ||
-          tabParam === "prayer-times" ||
-          tabParam === "asma-ul-husna" ||
-          tabParam === "seerat"
-        ) {
-          setActiveTab(tabParam as ResourceTab);
-        } else if (
-          tabParam === "shia-library" ||
-          tabParam === "shia" ||
-          tabParam === "shia-toolkit" ||
-          tabParam === "toolkit"
-        ) {
+      queueMicrotask(() => {
+        if (subParam === "texts" || tabParam === "texts") {
           setActiveTab("texts");
-        } else if (!tabParam) {
-          setActiveTab("quran");
+          return;
+        } else if (subParam === "ahkam" || tabParam === "ahkam") {
+          setActiveTab("ahkam");
+          return;
+        } else if (subParam === "calendar" || tabParam === "calendar") {
+          setActiveTab("calendar");
+          return;
+        } else if (subParam === "duas" || tabParam === "duas") {
+          setActiveTab("guides");
+          setGuidesFilter("duas");
+          return;
+        } else if (subParam === "tasbeeh" || tabParam === "tasbeeh") {
+          setActiveTab("tasbeeh");
+          return;
         }
-      } else {
-        // Sunni mode: strict protection against Shia tab access
-        if (
-          tabParam &&
-          tabParam !== "texts" &&
-          tabParam !== "ahkam" &&
-          tabParam !== "calendar" &&
-          tabParam !== "shia-library" &&
-          tabParam !== "shia" &&
-          tabParam !== "shia-toolkit" &&
-          tabParam !== "toolkit"
-        ) {
-          setActiveTab(tabParam as ResourceTab);
+
+        if (isShia) {
+          if (
+            tabParam === "texts" ||
+            tabParam === "ahkam" ||
+            tabParam === "calendar" ||
+            tabParam === "quran" ||
+            tabParam === "guides" ||
+            tabParam === "tasbeeh" ||
+            tabParam === "prayer-times" ||
+            tabParam === "asma-ul-husna" ||
+            tabParam === "seerat"
+          ) {
+            setActiveTab(tabParam as ResourceTab);
+          } else if (
+            tabParam === "shia-library" ||
+            tabParam === "shia" ||
+            tabParam === "shia-toolkit" ||
+            tabParam === "toolkit"
+          ) {
+            setActiveTab("texts");
+          } else if (!tabParam) {
+            setActiveTab("quran");
+          }
         } else {
-          setActiveTab("quran");
+          // Sunni mode: strict protection against Shia tab access
+          if (
+            tabParam &&
+            tabParam !== "texts" &&
+            tabParam !== "ahkam" &&
+            tabParam !== "calendar" &&
+            tabParam !== "shia-library" &&
+            tabParam !== "shia" &&
+            tabParam !== "shia-toolkit" &&
+            tabParam !== "toolkit"
+          ) {
+            setActiveTab(tabParam as ResourceTab);
+          } else {
+            setActiveTab("quran");
+          }
         }
-      }
+      });
     } catch {
       // safe fallback
     }
@@ -117,7 +119,7 @@ export default function ResourcesPage() {
   // Safety guard: if switched to Sunni while on Shia tab, bounce to Quran
   useEffect(() => {
     if (isSunni && (activeTab === "texts" || activeTab === "ahkam" || activeTab === "calendar")) {
-      setActiveTab("quran");
+      queueMicrotask(() => setActiveTab("quran"));
     }
   }, [isSunni, activeTab]);
 

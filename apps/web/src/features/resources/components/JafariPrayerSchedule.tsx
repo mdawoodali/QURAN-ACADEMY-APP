@@ -4,7 +4,6 @@ import React, { useState, useEffect, useMemo } from "react";
 import {
   Compass,
   MapPin,
-  Clock,
   Navigation,
   Crosshair,
   Bell,
