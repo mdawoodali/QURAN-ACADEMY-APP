@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   BookOpen, Library, Search, Download, X, Shield, Calendar 
@@ -27,7 +27,7 @@ export default function ShiaToolkit({
 
   useEffect(() => {
     if (initialTab && (initialTab === "texts" || initialTab === "ahkam" || initialTab === "calendar")) {
-      setActiveSubTab(initialTab);
+      queueMicrotask(() => setActiveSubTab(initialTab));
     }
   }, [initialTab]);
   // -------------------------------------------------------------

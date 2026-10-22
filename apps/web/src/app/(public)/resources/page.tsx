@@ -29,9 +29,6 @@ type ResourceTab =
 export default function ResourcesPage() {
   const { isSunni, isShia } = useSect();
   const [activeTab, setActiveTab] = useState<ResourceTab>("quran");
-  const [shiaInitialTab, setShiaInitialTab] = useState<
-    "texts" | "ahkam" | "calendar"
-  >("texts");
   const [searchQuery, setSearchQuery] = useState("");
 
   // Daily guides and Duas Category & Search State

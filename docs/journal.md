@@ -872,3 +872,4 @@ eceipt_uploaded, and payment_verified.
 - **Validation**:
   - `pnpm --filter frontend lint`: Passed with 0 errors and 0 warnings (100% clean).
   - `pnpm test`: All 53 tests passed across 11 test suites.
+  - **Typecheck & Dead State Cleanup**: Added missing `useEffect` import in `ShiaToolkit.tsx` and excised orphaned `shiaInitialTab` state in `resources/page.tsx`, achieving 100% clean `tsc --noEmit`.
