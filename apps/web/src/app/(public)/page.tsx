@@ -10,13 +10,33 @@ import TestimonialsCarousel from "@/components/TestimonialsCarousel";
 
 export default function Home() {
   const { t } = useLanguage();
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        return sessionStorage.getItem("welcome_dismissed") !== "true";
+      } catch {
+        return true;
+      }
+    }
+    return true;
+  });
+
+  const handleDismiss = () => {
+    setShowSplash(false);
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem("welcome_dismissed", "true");
+      } catch {
+        // safe fallback
+      }
+    }
+  };
 
   return (
     <>
       <AnimatePresence>
         {showSplash && (
-          <WelcomeSplash onGetStarted={() => setShowSplash(false)} />
+          <WelcomeSplash onGetStarted={handleDismiss} />
         )}
       </AnimatePresence>
 
