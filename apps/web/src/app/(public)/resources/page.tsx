@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Download, BookOpen, FileText, Search, Sparkles, X, Library, Compass, CircleDot, BookMarked, Copy, Check, Shield, Calendar } from "lucide-react";
+import { Download, BookOpen, FileText, Search, Sparkles, X, Library, Compass, CircleDot, BookMarked, Copy, Check, Shield, Calendar, Bookmark, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { QURAN_PARAS } from "@/data/quranParas";
 import { DAILY_GUIDES_DATA, GuideResource } from "@/data/guidesData";
@@ -26,6 +26,16 @@ type ResourceTab =
   | "asma-ul-husna"
   | "seerat";
 
+export interface SavedItem {
+  id: string;
+  type: "dua" | "quran" | "guide" | "text" | "ahkam";
+  title: string;
+  arabicTitle?: string;
+  subtitle?: string;
+  category: string;
+  dateAdded: string;
+}
+
 export default function ResourcesPage() {
   const { isSunni, isShia } = useSect();
   const [activeTab, setActiveTab] = useState<ResourceTab>("quran");
@@ -39,6 +49,41 @@ export default function ResourcesPage() {
   const [selectedGuide, setSelectedGuide] = useState<GuideResource | null>(null);
   const [selectedDua, setSelectedDua] = useState<ShiaDua | null>(null);
   const [copiedDuaId, setCopiedDuaId] = useState<string | null>(null);
+  const [duaViewMode, setDuaViewMode] = useState<"arabic" | "english" | "both">("both");
+  const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
+
+  // Load saved items from localStorage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("academy_saved_bookmarks");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) setSavedItems(parsed);
+      }
+    } catch {}
+  }, []);
+
+  const toggleSaveItem = (item: Omit<SavedItem, "dateAdded">) => {
+    const exists = savedItems.some((s) => s.id === item.id);
+    let updated: SavedItem[];
+    if (exists) {
+      updated = savedItems.filter((s) => s.id !== item.id);
+      toast.success(`Removed "${item.title}" from Saved`);
+    } else {
+      const newItem: SavedItem = {
+        ...item,
+        dateAdded: new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short" })
+      };
+      updated = [newItem, ...savedItems];
+      toast.success(`Saved "${item.title}" to bookmarks!`);
+    }
+    setSavedItems(updated);
+    try {
+      localStorage.setItem("academy_saved_bookmarks", JSON.stringify(updated));
+    } catch {}
+  };
+
+  const isItemSaved = (id: string) => savedItems.some((s) => s.id === id);
 
   // Sync tab with URL query parameters and active sect
   useEffect(() => {
@@ -615,56 +660,58 @@ https://quranlearnacademy.com/resources
               </div>
             ))}
 
-            {/* Render Merged Duas & Ziyarat */}
+            {/* Render Clean 10 Canonical Duas (Name-Only Focused Cards with Save Action) */}
             {filteredShiaDuas.map((dua) => (
               <div
                 key={dua.id}
-                className="glass-container rounded-3xl p-6 sm:p-8 border border-white/15 shadow-xl flex flex-col justify-between pop-hover"
+                className="glass-container rounded-2xl p-4 sm:p-5 border border-white/15 shadow-md hover:border-amber-400/40 transition-all flex items-center justify-between gap-4 group"
               >
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 bg-amber-400/20 border border-amber-400/40 rounded-xl flex items-center justify-center text-amber-300 shadow-sm">
-                      <BookOpen size={24} />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold px-3 py-1 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-300">
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-11 h-11 rounded-xl bg-amber-400/15 border border-amber-400/30 text-amber-300 flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+                    <BookOpen size={20} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <h3 className="font-serif font-bold text-white text-base sm:text-lg truncate group-hover:text-amber-300 transition-colors">
+                        {dua.title}
+                      </h3>
+                      <span className="hidden sm:inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/10 text-amber-300 border border-white/10 shrink-0">
                         {dua.occasion}
                       </span>
-                      <span className="font-arabic text-lg text-emerald-300" dir="rtl">
-                        {dua.arabicTitle}
-                      </span>
                     </div>
+                    <span className="font-arabic text-emerald-300 text-sm block" dir="rtl">
+                      {dua.arabicTitle}
+                    </span>
                   </div>
-                  <h3 className="text-xl font-serif font-bold text-white mb-1.5">{dua.title}</h3>
-                  <p className="text-xs text-emerald-200/60 mb-2 font-mono">{dua.source}</p>
-                  <p className="text-emerald-100/75 text-sm leading-relaxed mb-6">{dua.shortDesc}</p>
                 </div>
 
-                <div className="pt-4 border-t border-white/10 flex items-center justify-between gap-2">
-                  <span className="text-xs text-amber-300/80 font-semibold">Duas &amp; Ziyarat</span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleCopyDua(dua)}
-                      className="bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-xl transition cursor-pointer"
-                      title="Copy Recitation"
-                    >
-                      {copiedDuaId === dua.id ? <Check size={16} className="text-emerald-400" /> : <Copy size={16} />}
-                    </button>
-                    <button
-                      onClick={() => setSelectedDua(dua)}
-                      className="flex items-center gap-1.5 bg-emerald-800/80 hover:bg-emerald-700 text-amber-300 border border-amber-400/30 px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer"
-                    >
-                      <BookOpen size={14} />
-                      <span>Read Recitation</span>
-                    </button>
-                    <button
-                      onClick={() => handleDownloadDua(dua)}
-                      className="bg-amber-400 hover:bg-amber-300 text-emerald-950 p-2.5 rounded-xl transition shadow-md cursor-pointer"
-                      title="Download Offline Text"
-                    >
-                      <Download size={16} />
-                    </button>
-                  </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => toggleSaveItem({
+                      id: dua.id,
+                      type: "dua",
+                      title: dua.title,
+                      arabicTitle: dua.arabicTitle,
+                      subtitle: dua.occasion,
+                      category: "Duas & Ziyarat"
+                    })}
+                    className={`p-2.5 rounded-xl border transition-all cursor-pointer ${
+                      isItemSaved(dua.id)
+                        ? "bg-amber-400 text-emerald-950 border-amber-300 shadow-sm"
+                        : "bg-white/10 hover:bg-white/20 text-white/80 hover:text-white border-white/10"
+                    }`}
+                    title={isItemSaved(dua.id) ? "Saved in Bookmarks" : "Save to Bookmarks"}
+                  >
+                    <Bookmark size={16} className={isItemSaved(dua.id) ? "fill-emerald-950" : ""} />
+                  </button>
+
+                  <button
+                    onClick={() => setSelectedDua(dua)}
+                    className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 bg-emerald-800/80 hover:bg-emerald-700 text-amber-300 border border-amber-400/30 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer"
+                  >
+                    <span>Open Dua</span>
+                    <ArrowRight size={14} />
+                  </button>
                 </div>
               </div>
             ))}

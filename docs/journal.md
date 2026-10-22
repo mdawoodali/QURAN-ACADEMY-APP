@@ -928,3 +928,22 @@ eceipt_uploaded, and payment_verified.
   - All 10 Duas feature complete Arabic orthography and diacritics (Harakat) with verified English translations.
 - **Validation**:
   - `pnpm typecheck`: Clean compilation with 0 errors.
+
+---
+
+## 9.40 Name-Focused Duas Interface, View Mode Switcher & Universal Bookmark System
+- **Objective**:
+  - Replace bulky Dua cards with a sleek, name-only list showing English & Arabic titles.
+  - Implement full modal reading with selectable display modes: **Complete Arabic**, **English Translation**, or **Parallel (Both)**.
+  - Add universal Bookmark/Save functionality across all academy resources (Quran Paras, Daily Guides, Duas).
+- **Implementation**:
+  - **`resources/page.tsx`**:
+    - Refactored Duas list into compact, high-density cards displaying title, Arabic title, occasion badge, Save toggle, and "Open Dua" trigger.
+    - Upgraded Dua Recitation Modal with a dedicated 3-button view mode switcher:
+      - `Complete Arabic`: Continuous, unobstructed Arabic script with full Harakat.
+      - `English Translation`: Full, clean English translation.
+      - `Parallel (Both)`: Verse-by-verse breakdown with Arabic, transliteration, and English.
+    - Integrated `toggleSaveItem` & `isItemSaved` with persistent `localStorage` storage (`academy_saved_bookmarks`) and toast alerts.
+    - Added bookmark action buttons to all 30 Quran Paras, Daily Guides, and Dua cards/modals.
+- **Validation**:
+  - `pnpm typecheck`: 0 TypeScript errors.
