@@ -247,6 +247,35 @@ export class ResendEmailAdapter implements EmailService {
       if (!res.ok) {
         const errorText = await res.text();
         console.error(`[Resend Error ${res.status}]`, errorText);
+
+        // If custom domain is not yet verified in Resend (HTTP 403), fallback automatically to Resend default onboarding sender
+        if (res.status === 403 && this.fromEmail !== "Quran Learn Academy <onboarding@resend.dev>") {
+          console.warn("[Resend Notice] Custom domain not yet verified in Resend dashboard. Falling back to onboarding@resend.dev for reliable delivery.");
+          const retryRes = await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${this.apiKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              from: "Quran Learn Academy <onboarding@resend.dev>",
+              to: [payload.to],
+              subject,
+              html,
+              text,
+            }),
+          });
+          if (retryRes.ok) {
+            const retryData = (await retryRes.json()) as { id: string };
+            console.log(`[Resend Live Dispatch (Fallback)] Successfully sent email to ${payload.to} (ID: ${retryData.id})`);
+            return {
+              success: true,
+              id: retryData.id,
+              mode: "live",
+            };
+          }
+        }
+
         return {
           success: false,
           id: "",

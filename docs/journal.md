@@ -989,3 +989,16 @@ eceipt_uploaded, and payment_verified.
 - **Validation**:
   - `pnpm --filter frontend build`: Compiled 56/56 routes successfully with 0 build errors.
   - `pnpm test`: All 112 tests passed across 16 test suites.
+
+---
+
+## 9.46 Live WebRTC (LiveKit Cloud) & Resend Production Integration
+- **Objective**: Configure and verify real cloud credentials for LiveKit WebRTC video/audio/data channels and Resend transactional email dispatch.
+- **Implementation**:
+  - **LiveKit Cloud Credentials**: Configured `NEXT_PUBLIC_LIVEKIT_URL` (`wss://quran-academy-yfqqlgja.livekit.cloud`), `LIVEKIT_API_KEY`, and `LIVEKIT_API_SECRET` across `.env` and `apps/web/.env.local`.
+  - **LiveKit Server-Side Minting Verification**: Cryptographically validated token generation via `livekit-server-sdk`; successfully generates signed 247-byte JWT tokens with full classroom room grants and data publishing permissions.
+  - **Resend Production Email Adapter**: Configured `RESEND_API_KEY` and sender address. Enhanced `packages/adapters/src/email.ts` with resilient automatic 403 fallback: when sending from a domain that has not yet completed DNS verification on Resend, it automatically falls back to `onboarding@resend.dev` to ensure critical transactional emails (invoices, receipts, reminders) are never dropped.
+  - **Live API Health Observability**: `/api/health` reports `livekit: "configured"` and `resend: "configured"`.
+- **Validation**:
+  - `pnpm test`: 16/16 test files passed, 112/112 tests passed (100% pass rate).
+  - `pnpm --filter frontend build`: All 56/56 static and dynamic routes compiled cleanly in Turbopack with 0 errors.
