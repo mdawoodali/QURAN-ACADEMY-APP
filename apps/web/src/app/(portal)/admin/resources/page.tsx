@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { 
-  FileUp, FileText, CheckCircle2, Trash2, Download, Search, 
-  UploadCloud, AlertCircle, FileCheck, Eye, X, BookOpen, Sparkles
+  FileUp, FileText, Trash2, Download, Search, 
+  UploadCloud, FileCheck, Eye, X
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -91,7 +91,7 @@ export default function AdminResourcesPage() {
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          setDocuments(parsed);
+          queueMicrotask(() => setDocuments(parsed));
         }
       }
     } catch {}

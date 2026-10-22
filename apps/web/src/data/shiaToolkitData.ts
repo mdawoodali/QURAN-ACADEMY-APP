@@ -43,6 +43,8 @@ export interface MasoomeenDate {
   keyCommemoration: string;
 }
 
+export { SHIA_ZIYARAT_DATA, type ShiaZiyarat } from "./ziyaratData";
+
 export const SHIA_DUAS_ZIYARAT: ShiaDua[] = [
   {
     "id": "dua-mashlool",
@@ -335,6 +337,8 @@ export const SHIA_DUAS_ZIYARAT: ShiaDua[] = [
     ]
   }
 ];
+
+export const SHIA_DUAS = SHIA_DUAS_ZIYARAT;
 
 export const SHIA_AHKAM_GUIDES: AhkamGuide[] = [
   {

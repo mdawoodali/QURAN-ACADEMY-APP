@@ -1002,3 +1002,32 @@ eceipt_uploaded, and payment_verified.
 - **Validation**:
   - `pnpm test`: 16/16 test files passed, 112/112 tests passed (100% pass rate).
   - `pnpm --filter frontend build`: All 56/56 static and dynamic routes compiled cleanly in Turbopack with 0 errors.
+
+---
+
+## 9.47 Duas & Ziaraat Harmonization, 10 Authentic Ziaraat Corpus & Streamlined Duas Desk
+- **Objective**:
+  - Replace the "Daily guides and Duas" label with "Duas".
+  - Remove "Noorani Qaida (Color Coded Tajweed)" and the other 3 beginner guides from "Duas" so the section exclusively contains the 10 Canonical Duas.
+  - Implement a dedicated "Ziaraat" tab and section containing the 10 authentic, unabridged Shia canonical Ziaraat with complete Arabic (Harakat) and English translations.
+- **Implementation**:
+  - **10 Authentic Ziaraat Corpus (`apps/web/src/data/ziyaratData.ts`)**:
+    1. *Ziarat e Ashura* (Imam al-Baqir & Imam al-Sadiq)
+    2. *Ziarat e Arbaeen* (Imam al-Sadiq via Safwan al-Jammal)
+    3. *Ziarat e Waritha (Waris)* (Imam al-Sadiq)
+    4. *Ziarat e Ameenullah* (Imam Zayn al-Abidin at the shrine of Imam Ali)
+    5. *Ziarat e Aale-Yasin* (Imam al-Mahdi AJTF)
+    6. *Ziarat e Nahiya (Ziarat al-Nahiya al-Muqaddasa)* (Imam al-Mahdi AJTF)
+    7. *Ziarat-e-Jamea Kabeer* (Imam Ali al-Hadi AS)
+    8. *Ziarat-e-Jamea Sagheer* (Shaykh al-Tusi & Shaykh al-Mufid)
+    9. *Ziarat Rasool Allah (sawaw)* (The Holy Prophet in Madinah)
+    10. *Ziarat Imam Ali Ibn Abi Talib (as) - General* (Amir al-Mu'minin in Najaf)
+  - **Academy Resources Navigation (`apps/web/src/app/(public)/resources/page.tsx`)**:
+    - Renamed tab and section from "Daily guides and Duas" to **"Duas"**.
+    - Removed `DAILY_GUIDES_DATA` (Noorani Qaida, Daily Masnoon Duas, Tajweed Chart, Juz Amma Practice Reader) from "Duas" so only the 10 Duas are presented.
+    - Added a top-level **"Ziaraat"** tab with dedicated search and compact, name-only cards.
+    - Unified in-app recitation modal for both Duas and Ziaraat supporting **Complete Arabic**, **English Translation**, and **Parallel (Both)** view modes, along with copying, text downloading, and bookmarking.
+    - Updated the "Saved" collection hub to support category filtering for `Ziaraat` and direct one-click modal launching.
+- **Validation**:
+  - `pnpm typecheck`: Clean compilation with 0 errors across workspace packages.
+  - `pnpm --filter frontend lint`: 0 errors and 0 warnings.
