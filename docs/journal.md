@@ -795,3 +795,11 @@ eceipt_uploaded, and payment_verified.
 - **Validation**:
   - `pnpm test`: 53/53 tests passed across 11 test suites.
   - `pnpm build`: 54/54 routes successfully compiled with Turbopack.
+
+## 9.33 Edge Middleware Performance Fast-Path & PPR Streaming Hang Resolution
+- **Objective**: Resolve infinite loading bar / streaming hang on mobile devices when requesting the live website.
+- **Implementation**:
+  - **Public Route Middleware Fast-Path**: Refactored \pps/web/src/middleware.ts\ so that all public non-auth, non-portal routes immediately exit before creating the Supabase SSR client. Previously, every request to \/\ executed \wait supabase.auth.getUser()\ across the network, blocking mobile requests on external database roundtrips and edge cold starts.
+  - **PPR Streaming Resolution**: Removed experimental \partialPrefetching: true\ and \cacheComponents: true\ from \pps/web/next.config.ts\. These flags generated open chunked HTTP streams that caused mobile Safari and Chrome to hang indefinitely on slow or high-latency cellular connections.
+- **Validation**:
+  - \pnpm test\: 53/53 tests passed across 11 test suites.

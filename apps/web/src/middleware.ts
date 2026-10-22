@@ -65,6 +65,20 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
+  const isAuthRoute =
+    url.pathname.startsWith("/login") || url.pathname.startsWith("/register");
+  const isProtectedRoute =
+    url.pathname.startsWith("/student") ||
+    url.pathname.startsWith("/teacher") ||
+    url.pathname.startsWith("/admin") ||
+    url.pathname.startsWith("/parent");
+
+  // Fast-path for public marketing and content pages (/, /about-us, /resources, etc.)
+  // Never block public page rendering on external Supabase auth round-trips
+  if (!isAuthRoute && !isProtectedRoute) {
+    return response;
+  }
+
   const supabase = createServerClient(supabaseUrl, supabaseKey, {
     cookies: {
       getAll() {
@@ -87,14 +101,6 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const isAuthRoute =
-    url.pathname.startsWith("/login") || url.pathname.startsWith("/register");
-  const isProtectedRoute =
-    url.pathname.startsWith("/student") ||
-    url.pathname.startsWith("/teacher") ||
-    url.pathname.startsWith("/admin") ||
-    url.pathname.startsWith("/parent");
 
   if (!user && isProtectedRoute) {
     url.pathname = "/login";
