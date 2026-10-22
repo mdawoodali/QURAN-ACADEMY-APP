@@ -24,7 +24,8 @@ type ResourceTab =
   | "tasbeeh"
   | "prayer-times"
   | "asma-ul-husna"
-  | "seerat";
+  | "seerat"
+  | "saved";
 
 export interface SavedItem {
   id: string;
@@ -51,6 +52,7 @@ export default function ResourcesPage() {
   const [copiedDuaId, setCopiedDuaId] = useState<string | null>(null);
   const [duaViewMode, setDuaViewMode] = useState<"arabic" | "english" | "both">("both");
   const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
+  const [savedFilter, setSavedFilter] = useState<string>("all");
 
   // Load saved items from localStorage
   useEffect(() => {
@@ -471,6 +473,21 @@ https://quranlearnacademy.com/resources
             <BookMarked size={16} />
             <span>Seerat un Nabi (S.A.W)</span>
           </button>
+
+          <button
+            onClick={() => {
+              setActiveTab("saved");
+              setSearchQuery("");
+            }}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+              activeTab === "saved"
+                ? "bg-amber-400 text-emerald-950 shadow-md"
+                : "text-emerald-100/80 hover:text-white hover:bg-white/10"
+            }`}
+          >
+            <Bookmark size={16} className={savedItems.length > 0 ? "fill-current" : ""} />
+            <span>Saved {savedItems.length > 0 && `(${savedItems.length})`}</span>
+          </button>
         </div>
       </div>
 
@@ -810,6 +827,159 @@ https://quranlearnacademy.com/resources
       {activeTab === "seerat" && (
         <section className="mb-16">
           <SeeratView />
+        </section>
+      )}
+
+      {/* TAB 8: SAVED RESOURCES SECTION */}
+      {activeTab === "saved" && (
+        <section className="mb-16 animate-in fade-in duration-300">
+          <div className="text-center max-w-3xl mx-auto mb-10">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-300 text-xs font-semibold mb-3">
+              <Bookmark size={14} className="fill-amber-300" />
+              <span>Personal Saved Collection</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white mb-3">
+              Saved Resources
+            </h2>
+            <p className="text-sm sm:text-base text-emerald-100/80 max-w-2xl mx-auto">
+              Your personalized collection of bookmarked Duas, Holy Quran Paras, Classical texts, and Daily Guides for instant offline and daily recitation.
+            </p>
+          </div>
+
+          {/* Saved Category Filter Pills & Clear All */}
+          {savedItems.length > 0 && (
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8 max-w-5xl mx-auto">
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { key: "all", label: `All (${savedItems.length})` },
+                  { key: "dua", label: `Duas (${savedItems.filter(s => s.type === "dua").length})` },
+                  { key: "quran", label: `Quran Paras (${savedItems.filter(s => s.type === "quran").length})` },
+                  { key: "guide", label: `Guides (${savedItems.filter(s => s.type === "guide").length})` },
+                ].map(({ key, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => setSavedFilter(key)}
+                    className={`text-xs font-bold px-4 py-2 rounded-xl transition cursor-pointer ${
+                      savedFilter === key
+                        ? "bg-amber-400 text-emerald-950 shadow-md"
+                        : "bg-black/40 text-emerald-100/70 hover:text-white border border-white/10"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => {
+                  if (confirm("Are you sure you want to clear all saved bookmarks?")) {
+                    setSavedItems([]);
+                    localStorage.removeItem("academy_saved_bookmarks");
+                    toast.success("Saved collection cleared.");
+                  }
+                }}
+                className="text-xs text-red-300 hover:text-red-200 transition font-bold px-3 py-1.5 rounded-lg border border-red-500/30 bg-red-950/40 cursor-pointer"
+              >
+                Clear All Saved
+              </button>
+            </div>
+          )}
+
+          {/* Saved Items Grid */}
+          {savedItems.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+              {savedItems
+                .filter((item) => savedFilter === "all" || item.type === savedFilter)
+                .map((item) => (
+                  <div
+                    key={item.id}
+                    className="glass-container rounded-2xl p-5 border border-white/15 shadow-xl flex flex-col justify-between hover:border-amber-400/40 transition-all"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-300">
+                          {item.category}
+                        </span>
+                        <span className="text-[10px] text-emerald-200/60 font-mono">
+                          {item.dateAdded}
+                        </span>
+                      </div>
+
+                      <h3 className="text-lg font-serif font-bold text-white mb-1 leading-tight">
+                        {item.title}
+                      </h3>
+
+                      {item.arabicTitle && (
+                        <p className="font-arabic text-emerald-300 text-sm mb-2" dir="rtl">
+                          {item.arabicTitle}
+                        </p>
+                      )}
+
+                      {item.subtitle && (
+                        <p className="text-xs text-emerald-100/70 mb-4 line-clamp-2">
+                          {item.subtitle}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="pt-3 border-t border-white/10 flex items-center justify-between gap-2">
+                      <button
+                        onClick={() => {
+                          if (item.type === "dua") {
+                            const found = SHIA_DUAS_ZIYARAT.find((d) => d.id === item.id);
+                            if (found) setSelectedDua(found);
+                          } else if (item.type === "guide") {
+                            const found = DAILY_GUIDES_DATA.find((g) => g.id === item.id);
+                            if (found) setSelectedGuide(found);
+                          } else if (item.type === "quran") {
+                            setActiveTab("quran");
+                          }
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-800/80 hover:bg-emerald-700 text-amber-300 border border-amber-400/30 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer"
+                      >
+                        <BookOpen size={14} />
+                        <span>Open &amp; Read</span>
+                      </button>
+
+                      <button
+                        onClick={() => toggleSaveItem(item)}
+                        className="p-1.5 rounded-xl bg-white/10 hover:bg-red-950/60 text-white/70 hover:text-red-300 transition cursor-pointer"
+                        title="Remove from Saved"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          ) : (
+            <div className="max-w-md mx-auto text-center py-16 px-6 glass-container rounded-3xl border border-white/15 shadow-xl">
+              <div className="w-16 h-16 rounded-2xl bg-amber-400/15 border border-amber-400/30 text-amber-300 flex items-center justify-center mx-auto mb-4">
+                <Bookmark size={32} />
+              </div>
+              <h3 className="text-xl font-serif font-bold text-white mb-2">No Saved Resources Yet</h3>
+              <p className="text-xs text-emerald-100/70 mb-6 leading-relaxed">
+                Click the bookmark icon on any of the 10 Canonical Duas, Holy Quran Paras, or Daily Guides to save them here for quick daily access.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                <button
+                  onClick={() => {
+                    setActiveTab("guides");
+                    setGuidesFilter("duas");
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-emerald-950 font-bold text-xs transition shadow-md cursor-pointer"
+                >
+                  Browse 10 Canonical Duas
+                </button>
+                <button
+                  onClick={() => setActiveTab("quran")}
+                  className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition border border-white/15 cursor-pointer"
+                >
+                  Explore Quran Paras
+                </button>
+              </div>
+            </div>
+          )}
         </section>
       )}
 

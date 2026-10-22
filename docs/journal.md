@@ -910,7 +910,7 @@ eceipt_uploaded, and payment_verified.
 
 ---
 
-## 9.39 Complete 10 Authentic Shia Canonical Duas Corpus
+## 9.41 Complete 10 Authentic Shia Canonical Duas Corpus
 - **Objective**:
   - Clear legacy partial supplications and replace with the 10 authentic, complete, unabridged Shia Duas in full Arabic with parallel English translations.
 - **Implementation**:
@@ -931,7 +931,7 @@ eceipt_uploaded, and payment_verified.
 
 ---
 
-## 9.40 Name-Focused Duas Interface, View Mode Switcher & Universal Bookmark System
+## 9.42 Name-Focused Duas Interface, View Mode Switcher & Universal Bookmark System
 - **Objective**:
   - Replace bulky Dua cards with a sleek, name-only list showing English & Arabic titles.
   - Implement full modal reading with selectable display modes: **Complete Arabic**, **English Translation**, or **Parallel (Both)**.
@@ -947,3 +947,20 @@ eceipt_uploaded, and payment_verified.
     - Added bookmark action buttons to all 30 Quran Paras, Daily Guides, and Dua cards/modals.
 - **Validation**:
   - `pnpm typecheck`: 0 TypeScript errors.
+
+---
+
+## 9.43 Dedicated "Saved" Resources Section in Academy Resources
+- **Objective**:
+  - Add a dedicated "Saved" tab and view in `/resources` collecting all bookmarked Duas, Quran Paras, and Daily Guides.
+- **Implementation**:
+  - **`resources/page.tsx`**:
+    - Added `"saved"` to `ResourceTab` enum.
+    - Added a top-level **`Saved`** navigation tab displaying a dynamic count of saved bookmarks and icon indicator.
+    - Implemented the full **Saved Collection Hub**:
+      - Category filter pills: `All`, `Duas`, `Quran Paras`, and `Guides`.
+      - Interactive cards with direct "Open & Read" shortcuts to immediately launch the corresponding modal reader or tab.
+      - One-click removal toggle and "Clear All Saved" action with confirmation.
+      - Responsive empty state providing one-click routing to explore the 10 Canonical Duas or Quran Paras.
+- **Validation**:
+  - `pnpm typecheck`: Clean compilation with 0 TypeScript errors.
