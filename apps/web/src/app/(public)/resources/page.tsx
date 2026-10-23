@@ -234,7 +234,7 @@ ${p.translation}
   .join("\n")}
 
 ======================================================
-Downloaded from Quran Learn Academy Resources
+Downloaded from Quran Learn Resources
 https://quranlearnacademy.com/resources
 ======================================================`;
 
@@ -286,7 +286,7 @@ https://quranlearnacademy.com/resources
           </span>
         </div>
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-white mb-4 leading-tight">
-          Academy Resources
+          Resources
         </h1>
         <p className="text-emerald-100/85 text-base sm:text-lg leading-relaxed">
           {isShia

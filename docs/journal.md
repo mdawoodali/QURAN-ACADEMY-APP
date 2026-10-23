@@ -1278,3 +1278,16 @@ eceipt_uploaded, and payment_verified.
   - `pnpm typecheck`: 0 TypeScript errors across the repository.
   - `pnpm --filter frontend lint`: 0 ESLint errors.
   - Domain tests passing.
+
+---
+
+## 9.57 Resources Page Title Streamlining (Task 1 of 4)
+
+- **Objective**:
+  - Update the main heading in the resources section from "Academy Resources" / "Academic Resources" to simply "Resources".
+- **Implementation**:
+  - **Public Resources Page (`apps/web/src/app/(public)/resources/page.tsx`)**:
+    - Renamed the primary hero heading to `"Resources"`.
+    - Updated recitation export text attribution to reflect the streamlined naming.
+- **Validation**:
+  - Verified with `pnpm typecheck` (0 errors).
