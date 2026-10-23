@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.quranlearnacademy.app",
+      "sha256_cert_fingerprints": [
+        "14:6D:E9:7D:0F:52:AB:AC:61:5A:6F:04:8D:18:61:0D:39:69:B8:31:84:88:80:FF:E3:64:1F:B4:42:06:56:56"
+      ]
+    }
+  }
+]

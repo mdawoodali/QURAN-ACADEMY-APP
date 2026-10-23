@@ -1082,3 +1082,27 @@ eceipt_uploaded, and payment_verified.
 - **Validation**:
   - `pnpm test`: 18/18 test files passed, 123/123 tests passing with 100% success rate.
   - `pnpm --filter frontend build`: All 58/58 static and dynamic routes compiled cleanly in Turbopack with 0 TypeScript errors.
+
+
+---
+
+## 9.50 Native Mobile App Architecture: iOS & Android Platforms, Capacitor Bridge & Deep Linking
+- **Objective**: Deliver complete, production-ready native iOS and Android application platforms for public distribution on the Apple App Store and Google Play Store.
+- **Architectural Implementation**:
+  1. **Capacitor Mobile Bridge (`apps/web/capacitor.config.ts`)**:
+     - Configured native mobile container (`com.quranlearnacademy.app`) binding the responsive Next.js frontend with native device capabilities.
+     - Enforced native dark status bar styling (`#021811`) and emerald splash screen launch duration.
+  2. **Native Android Platform (`apps/web/android/`)**:
+     - Added full Android Studio Gradle project structure.
+     - Configured `AndroidManifest.xml` with LiveKit WebRTC video and audio permissions (`CAMERA`, `RECORD_AUDIO`, `MODIFY_AUDIO_SETTINGS`, `INTERNET`, `ACCESS_NETWORK_STATE`, and optional hardware camera features).
+  3. **Native iOS Platform (`apps/web/ios/`)**:
+     - Added full Apple Xcode project structure with modern Swift package dependencies.
+     - Configured `Info.plist` with required App Store review keys: `NSCameraUsageDescription` and `NSMicrophoneUsageDescription` detailing 1-on-1 live Quran recitation and Tajweed assessment.
+  4. **Digital Asset Links & Universal Links (`apps/web/public/.well-known/`)**:
+     - Authored `assetlinks.json` enabling Google Play Trusted Web Activity (TWA) verification and deep linking.
+     - Authored `apple-app-site-association` routing web URLs directly into mobile classroom and portal views (`/classroom/*`, `/student/*`, `/parent/*`).
+  5. **NPM Mobile Scripts (`apps/web/package.json`)**:
+     - Added `cap:sync`, `cap:android`, and `cap:ios` convenience commands for single-command builds.
+- **Validation**:
+  - `pnpm test`: 18/18 test suites passed, 123/123 tests passing with 100% success rate.
+  - `pnpm exec cap sync`: Successfully synced web assets, plugins, and configuration across Android and iOS platforms.
