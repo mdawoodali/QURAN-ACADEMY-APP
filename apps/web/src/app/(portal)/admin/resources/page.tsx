@@ -373,14 +373,14 @@ export default function AdminResourcesPage() {
 
             <div>
               <label className="block text-xs font-bold text-emerald-100/80 uppercase tracking-wider mb-2">
-                Curriculum Category (All Schools)
+                Curriculum Category
               </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-400"
               >
-                {RESOURCE_CATEGORIES.map((cat) => (
+                {RESOURCE_CATEGORIES.filter((cat) => (sect === "sunni" ? !cat.toLowerCase().includes("ziar") : true)).map((cat) => (
                   <option key={cat} value={cat} className="bg-emerald-950 text-white">
                     {cat}
                   </option>
@@ -394,7 +394,13 @@ export default function AdminResourcesPage() {
               </label>
               <select
                 value={sect}
-                onChange={(e) => setSect(e.target.value as UploadedDocument["sect"])}
+                onChange={(e) => {
+                  const newSect = e.target.value as UploadedDocument["sect"];
+                  setSect(newSect);
+                  if (newSect === "sunni" && category.toLowerCase().includes("ziar")) {
+                    setCategory(RESOURCE_CATEGORIES[0]);
+                  }
+                }}
                 className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-400"
               >
                 <option value="universal" className="bg-emerald-950 text-white">
@@ -465,7 +471,9 @@ export default function AdminResourcesPage() {
             className="bg-black/40 border border-white/20 text-emerald-100 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-amber-400 cursor-pointer"
           >
             <option value="All">All Categories</option>
-            {RESOURCE_CATEGORIES.map((cat) => (
+            {RESOURCE_CATEGORIES.filter((cat) =>
+              selectedSectFilter === "sunni" ? !cat.toLowerCase().includes("ziar") : true
+            ).map((cat) => (
               <option key={cat} value={cat}>
                 {cat}
               </option>

@@ -91,7 +91,7 @@ export default function ResourcesPage() {
   const matchingDbDocs = useMemo(() => {
     return dbResources.filter((doc) => {
       if (isShia && doc.sect === "sunni") return false;
-      if (isSunni && doc.sect === "shia") return false;
+      if (isSunni && (doc.sect === "shia" || doc.category.toLowerCase().includes("ziar"))) return false;
       if (activeTab === "duas") return doc.category.toLowerCase().includes("dua");
       if (activeTab === "ziaraat") return doc.category.toLowerCase().includes("ziar");
       if (activeTab === "texts") return doc.category.toLowerCase().includes("classical") || doc.category.toLowerCase().includes("hadith");
@@ -198,7 +198,7 @@ export default function ResourcesPage() {
 
   // Safety guard: if switched to Sunni while on specialized Shia tabs, bounce to Quran
   useEffect(() => {
-    if (isSunni && (activeTab === "texts" || activeTab === "ahkam" || activeTab === "calendar")) {
+    if (isSunni && (activeTab === "texts" || activeTab === "ahkam" || activeTab === "calendar" || activeTab === "ziaraat")) {
       queueMicrotask(() => setActiveTab("quran"));
     }
   }, [isSunni, activeTab]);
@@ -332,7 +332,7 @@ https://quranlearnacademy.com/resources
         <p className="text-emerald-100/85 text-base sm:text-lg leading-relaxed">
           {isShia
             ? "Explore the complete 30 Paras of the Noble Quran, Sacred Duas, Infallible Ziaraat, Classical Reference Texts, Ahkam companions, and authentic Islamic tools."
-            : "Explore the complete 30 Paras of the Noble Quran, sacred supplications & Ziaraat, and interactive Islamic lifestyle tools with instant in-app readers."}
+            : "Explore the complete 30 Paras of the Noble Quran, authentic supplications, and interactive Islamic lifestyle tools with instant in-app readers."}
         </p>
       </div>
 
@@ -370,25 +370,25 @@ https://quranlearnacademy.com/resources
             <span>Duas</span>
           </button>
 
-          {/* Ziaraat Tab */}
-          <button
-            onClick={() => {
-              setActiveTab("ziaraat");
-              setSearchQuery("");
-            }}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-              activeTab === "ziaraat"
-                ? "bg-amber-400 text-emerald-950 shadow-md"
-                : "text-emerald-100/80 hover:text-white hover:bg-white/10"
-            }`}
-          >
-            <BookMarked size={16} />
-            <span>Ziaraat</span>
-          </button>
-
-          {/* Classical Reference Texts, Ahkam & Calendar Tabs */}
+          {/* Shia-Specific Tabs: Ziaraat, Classical Texts, Ahkam & Calendar */}
           {isShia && (
             <>
+              {/* Ziaraat Tab (Exclusively for Shia panel) */}
+              <button
+                onClick={() => {
+                  setActiveTab("ziaraat");
+                  setSearchQuery("");
+                }}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                  activeTab === "ziaraat"
+                    ? "bg-amber-400 text-emerald-950 shadow-md"
+                    : "text-emerald-100/80 hover:text-white hover:bg-white/10"
+                }`}
+              >
+                <BookMarked size={16} />
+                <span>Ziaraat</span>
+              </button>
+
               <button
                 onClick={() => {
                   setActiveTab("texts");
@@ -706,8 +706,8 @@ https://quranlearnacademy.com/resources
         </section>
       )}
 
-      {/* TAB 3: ZIARAAT (10 Canonical Authentic Shia Visitations - Name-only cards) */}
-      {activeTab === "ziaraat" && (
+      {/* TAB 3: ZIARAAT (10 Canonical Authentic Shia Visitations - Name-only cards, Shia Panel Only) */}
+      {activeTab === "ziaraat" && isShia && (
         <section className="mb-16">
           <div className="text-center max-w-3xl mx-auto mb-8">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-300 text-xs font-semibold mb-3">
@@ -900,18 +900,22 @@ https://quranlearnacademy.com/resources
               Saved Resources
             </h2>
             <p className="text-sm sm:text-base text-emerald-100/80 max-w-2xl mx-auto">
-              Your personalized collection of bookmarked Duas, Ziaraat, and Holy Quran Paras for instant offline and daily recitation.
+              {isShia
+                ? "Your personalized collection of bookmarked Duas, Ziaraat, and Holy Quran Paras for instant offline and daily recitation."
+                : "Your personalized collection of bookmarked Duas and Holy Quran Paras for instant offline and daily recitation."}
             </p>
           </div>
 
           {/* Saved Category Filter Pills & Clear All */}
-          {savedItems.length > 0 && (
+          {savedItems.filter((s) => isShia || s.type !== "ziarat").length > 0 && (
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8 max-w-5xl mx-auto">
               <div className="flex flex-wrap gap-2">
                 {[
-                  { key: "all", label: `All (${savedItems.length})` },
+                  { key: "all", label: `All (${savedItems.filter((s) => isShia || s.type !== "ziarat").length})` },
                   { key: "dua", label: `Duas (${savedItems.filter((s) => s.type === "dua").length})` },
-                  { key: "ziarat", label: `Ziaraat (${savedItems.filter((s) => s.type === "ziarat").length})` },
+                  ...(isShia
+                    ? [{ key: "ziarat", label: `Ziaraat (${savedItems.filter((s) => s.type === "ziarat").length})` }]
+                    : []),
                   { key: "quran", label: `Quran Paras (${savedItems.filter((s) => s.type === "quran").length})` }
                 ].map(({ key, label }) => (
                   <button
@@ -944,9 +948,10 @@ https://quranlearnacademy.com/resources
           )}
 
           {/* Saved Items Grid */}
-          {savedItems.length > 0 ? (
+          {savedItems.filter((s) => isShia || s.type !== "ziarat").length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
               {savedItems
+                .filter((item) => isShia || item.type !== "ziarat")
                 .filter((item) => savedFilter === "all" || item.type === savedFilter)
                 .map((item) => (
                   <div
@@ -1026,7 +1031,9 @@ https://quranlearnacademy.com/resources
               </div>
               <h3 className="text-xl font-serif font-bold text-white mb-2">No Saved Resources Yet</h3>
               <p className="text-xs text-emerald-100/70 mb-6 leading-relaxed">
-                Click the bookmark icon on any of the 10 Canonical Duas, 10 Authentic Ziaraat, or Holy Quran Paras to save them here for quick daily access.
+                {isShia
+                  ? "Click the bookmark icon on any of the 10 Canonical Duas, 10 Authentic Ziaraat, or Holy Quran Paras to save them here for quick daily access."
+                  : "Click the bookmark icon on any of the Holy Quran Paras or Duas to save them here for quick daily access."}
               </p>
               <div className="flex flex-col sm:flex-row gap-2 justify-center">
                 <button
@@ -1035,12 +1042,14 @@ https://quranlearnacademy.com/resources
                 >
                   Browse Duas
                 </button>
-                <button
-                  onClick={() => setActiveTab("ziaraat")}
-                  className="px-4 py-2.5 rounded-xl bg-emerald-800 hover:bg-emerald-700 text-amber-300 font-bold text-xs transition border border-amber-400/30 cursor-pointer"
-                >
-                  Browse Ziaraat
-                </button>
+                {isShia && (
+                  <button
+                    onClick={() => setActiveTab("ziaraat")}
+                    className="px-4 py-2.5 rounded-xl bg-emerald-800 hover:bg-emerald-700 text-amber-300 font-bold text-xs transition border border-amber-400/30 cursor-pointer"
+                  >
+                    Browse Ziaraat
+                  </button>
+                )}
                 <button
                   onClick={() => setActiveTab("quran")}
                   className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition border border-white/15 cursor-pointer"

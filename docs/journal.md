@@ -1425,3 +1425,28 @@ eceipt_uploaded, and payment_verified.
 - **Validation**:
   - `pnpm typecheck`: 0 TypeScript errors.
   - `pnpm --filter frontend lint`: 0 errors.
+
+---
+
+## 9.63 Sect Isolation: Exclusive Ziaraat Placement in Shia Panel
+
+- **Objective**:
+  - Strictly isolate Ziaraat to the Shia panel and completely remove all Ziaraat references, tabs, cards, and categories from the Sunni panel.
+- **Implementation Details**:
+  1. **Public Resources Navigation & Tabs (`apps/web/src/app/(public)/resources/page.tsx`)**:
+     - Moved the **Ziaraat** tab button entirely inside the `{isShia && (...)}` block, preventing it from ever rendering in the Sunni panel.
+     - Updated the safety redirection hook so that if a user switches to Sunni while on the `ziaraat` tab, they are immediately and safely bounced back to `quran`.
+     - Guarded the tab content section with `{activeTab === "ziaraat" && isShia && (...)}`.
+     - Updated the public page hero subtitle for Sunni users to remove any mention of Ziaraat.
+     - Added strict filter in `matchingDbDocs` ensuring that any document matching `"ziar"` is rejected when `isSunni` is active.
+  2. **Personal Saved Resources Clean-Up (`apps/web/src/app/(public)/resources/page.tsx`)**:
+     - Filtered `savedItems` so that Sunni users never see bookmarked Ziaraat records.
+     - Dynamically hid the `Ziaraat` filter pill in Saved Resources when `isSunni`.
+     - Removed the "Browse Ziaraat" quick-action button from the empty state in the Sunni view.
+  3. **Admin Resource Management Desk (`apps/web/src/app/(portal)/admin/resources/page.tsx`)**:
+     - Dynamic category exclusion: When `sect === "sunni"`, `"Ziaraat (Sacred Visitations)"` is stripped from the curriculum category select dropdown.
+     - Added automatic category reset: If an admin selects `sunni` while "Ziaraat" was selected, the category resets to `RESOURCE_CATEGORIES[0]`.
+     - Filter refinement: In the documents table filter, selecting the `sunni` sect filter excludes "Ziaraat" from the category filter dropdown.
+- **Validation**:
+  - `pnpm typecheck`: 0 TypeScript errors.
+  - `pnpm --filter frontend lint`: 0 errors.
