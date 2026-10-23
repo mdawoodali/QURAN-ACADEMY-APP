@@ -60,6 +60,46 @@ export default function ResourcesPage() {
   const [recitationViewMode, setRecitationViewMode] = useState<"arabic" | "english" | "both">("both");
   const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
   const [savedFilter, setSavedFilter] = useState<string>("all");
+  const [dbResources, setDbResources] = useState<Array<{
+    id: string;
+    title: string;
+    fileName: string;
+    category: string;
+    sect: string;
+    fileSize: string;
+    description: string;
+    fileDataUrl?: string;
+  }>>([]);
+
+  // Load resources directly from Database API
+  useEffect(() => {
+    async function loadDbResources() {
+      try {
+        const res = await fetch("/api/admin/resources");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.documents)) {
+            setDbResources(json.documents);
+          }
+        }
+      } catch {}
+    }
+    loadDbResources();
+  }, []);
+
+  // Filter dynamic database documents matching the active tab & sect
+  const matchingDbDocs = useMemo(() => {
+    return dbResources.filter((doc) => {
+      if (isShia && doc.sect === "sunni") return false;
+      if (isSunni && doc.sect === "shia") return false;
+      if (activeTab === "duas") return doc.category.toLowerCase().includes("dua");
+      if (activeTab === "ziaraat") return doc.category.toLowerCase().includes("ziar");
+      if (activeTab === "texts") return doc.category.toLowerCase().includes("classical") || doc.category.toLowerCase().includes("hadith");
+      if (activeTab === "ahkam") return doc.category.toLowerCase().includes("ahkam");
+      if (activeTab === "quran") return doc.category.toLowerCase().includes("quran") || doc.category.toLowerCase().includes("tajweed");
+      return false;
+    });
+  }, [dbResources, activeTab, isShia, isSunni]);
 
   // Load saved items from localStorage
   useEffect(() => {

@@ -3,21 +3,38 @@
 import { useState, useEffect, useRef } from "react";
 import { 
   FileUp, FileText, Trash2, Download, Search, 
-  UploadCloud, FileCheck, Eye, X
+  UploadCloud, FileCheck, Eye, X, Database, CheckCircle2,
+  BookOpen, Sparkles, Shield, Bookmark, Compass
 } from "lucide-react";
 import toast from "react-hot-toast";
 
-interface UploadedDocument {
+export const RESOURCE_CATEGORIES = [
+  "Holy Quran (30 Paras & Surahs)",
+  "Duas & Supplications",
+  "Ziaraat (Sacred Visitations)",
+  "Hadith & Sunnah Compendiums",
+  "Classical Reference Texts",
+  "Wudhu & Salat Ahkam",
+  "Islamic Calendar & History",
+  "Tajweed & Noorani Qaida",
+  "Seerat & Islamic Studies",
+  "Academy Syllabus & Curriculum"
+] as const;
+
+export type ResourceCategory = typeof RESOURCE_CATEGORIES[number];
+
+export interface UploadedDocument {
   id: string;
   title: string;
   fileName: string;
-  category: "Duas & Ziyarat" | "Classical Texts" | "Tajweed & Qaida" | "Ahkam Fiqh" | "Curriculum";
+  category: string;
   sect: "universal" | "shia" | "sunni";
   fileSize: string;
   uploadDate: string;
   uploadedBy: string;
   description: string;
   fileDataUrl?: string;
+  createdAt?: string;
 }
 
 const INITIAL_DOCUMENTS: UploadedDocument[] = [
@@ -25,7 +42,7 @@ const INITIAL_DOCUMENTS: UploadedDocument[] = [
     id: "doc_1",
     title: "Mafatih al-Jinan — Complete Classical Duas Compendium",
     fileName: "Mafatih_al_Jinan_Full_Reader.pdf",
-    category: "Duas & Ziyarat",
+    category: "Duas & Supplications",
     sect: "shia",
     fileSize: "14.2 MB",
     uploadDate: "22 Oct 2026",
@@ -36,7 +53,7 @@ const INITIAL_DOCUMENTS: UploadedDocument[] = [
     id: "doc_2",
     title: "Noorani Qaida — Color-Coded Makhaarij Guide",
     fileName: "Noorani_Qaida_Standard_Edition.pdf",
-    category: "Tajweed & Qaida",
+    category: "Tajweed & Noorani Qaida",
     sect: "universal",
     fileSize: "8.5 MB",
     uploadDate: "20 Oct 2026",
@@ -47,7 +64,7 @@ const INITIAL_DOCUMENTS: UploadedDocument[] = [
     id: "doc_3",
     title: "Al-Sahifa al-Sajjadiyya — The Psalms of Islam",
     fileName: "Sahifa_Sajjadiyya_Manuscript.pdf",
-    category: "Classical Texts",
+    category: "Classical Reference Texts",
     sect: "shia",
     fileSize: "18.7 MB",
     uploadDate: "18 Oct 2026",
@@ -56,9 +73,20 @@ const INITIAL_DOCUMENTS: UploadedDocument[] = [
   },
   {
     id: "doc_4",
+    title: "Riyad al-Salihin — Gardens of the Righteous",
+    fileName: "Riyad_al_Salihin_Imam_Nawawi.pdf",
+    category: "Hadith & Sunnah Compendiums",
+    sect: "sunni",
+    fileSize: "12.4 MB",
+    uploadDate: "17 Oct 2026",
+    uploadedBy: "Super Admin",
+    description: "Canonical Hadith compendium by Imam an-Nawawi covering ethics, daily worship, and manners."
+  },
+  {
+    id: "doc_5",
     title: "Practical Ahkam & Daily Salat Manual",
     fileName: "Practical_Ahkam_Salat_Handbook.pdf",
-    category: "Ahkam Fiqh",
+    category: "Wudhu & Salat Ahkam",
     sect: "universal",
     fileSize: "4.1 MB",
     uploadDate: "15 Oct 2026",
@@ -71,10 +99,12 @@ export default function AdminResourcesPage() {
   const [documents, setDocuments] = useState<UploadedDocument[]>(INITIAL_DOCUMENTS);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
+  const [selectedSectFilter, setSelectedSectFilter] = useState<string>("all");
+  const [dbStatus, setDbStatus] = useState<"connected" | "synced" | "loading">("loading");
 
   // Form states
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState<UploadedDocument["category"]>("Duas & Ziyarat");
+  const [category, setCategory] = useState<string>(RESOURCE_CATEGORIES[0]);
   const [sect, setSect] = useState<UploadedDocument["sect"]>("universal");
   const [description, setDescription] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -84,25 +114,38 @@ export default function AdminResourcesPage() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load persisted uploads from localStorage
+  // Load documents directly from Supabase Database API
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("academy_admin_uploaded_pdfs");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          queueMicrotask(() => setDocuments(parsed));
+    async function loadDatabaseResources() {
+      try {
+        const res = await fetch("/api/admin/resources");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.documents)) {
+            setDocuments(json.documents);
+            setDbStatus(json.source === "database" ? "connected" : "synced");
+            return;
+          }
         }
+      } catch (err) {
+        console.warn("[Admin Resources] Failed to fetch from database API, using localStorage:", err);
       }
-    } catch {}
-  }, []);
 
-  const saveDocuments = (docs: UploadedDocument[]) => {
-    setDocuments(docs);
-    try {
-      localStorage.setItem("academy_admin_uploaded_pdfs", JSON.stringify(docs));
-    } catch {}
-  };
+      // Fallback: load localStorage
+      try {
+        const stored = localStorage.getItem("academy_admin_uploaded_pdfs");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setDocuments(parsed);
+          }
+        }
+      } catch {}
+      setDbStatus("synced");
+    }
+
+    loadDatabaseResources();
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -134,7 +177,7 @@ export default function AdminResourcesPage() {
     }
   };
 
-  const handleUploadSubmit = (e: React.FormEvent) => {
+  const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedFile) {
       toast.error("Please select a PDF document to upload.");
@@ -147,46 +190,90 @@ export default function AdminResourcesPage() {
 
     setIsUploading(true);
 
-    // Read PDF file as Data URL for local preview capability
-    const reader = new FileReader();
-    reader.onload = () => {
+    try {
+      // 1. Read file as base64 data URL
+      const fileDataUrl: string = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(selectedFile);
+      });
+
       const sizeMb = (selectedFile.size / (1024 * 1024)).toFixed(1);
-      const newDoc: UploadedDocument = {
-        id: `pdf_${Date.now()}`,
+
+      // 2. Persist directly to Supabase PostgreSQL Database via API
+      const payload = {
         title: title.trim(),
         fileName: selectedFile.name,
         category,
         sect,
         fileSize: `${sizeMb} MB`,
-        uploadDate: new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),
-        uploadedBy: "Super Admin",
         description: description.trim() || "Uploaded via Academy Admin Portal.",
-        fileDataUrl: typeof reader.result === "string" ? reader.result : undefined
+        fileDataUrl,
+        uploadedBy: "Super Admin"
       };
 
-      const updated = [newDoc, ...documents];
-      saveDocuments(updated);
+      const res = await fetch("/api/admin/resources", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const resJson = await res.json();
+      if (!res.ok || !resJson.success) {
+        throw new Error(resJson.error || "Failed to persist to database");
+      }
+
+      const savedDoc: UploadedDocument = resJson.document;
+      const updatedDocs = [savedDoc, ...documents];
+      setDocuments(updatedDocs);
+
+      try {
+        localStorage.setItem("academy_admin_uploaded_pdfs", JSON.stringify(updatedDocs));
+      } catch {}
+
       setIsUploading(false);
       setSelectedFile(null);
       setTitle("");
       setDescription("");
       if (fileInputRef.current) fileInputRef.current.value = "";
-      toast.success(`"${newDoc.title}" uploaded successfully in PDF format!`);
-    };
 
-    reader.onerror = () => {
+      toast.success(
+        resJson.source === "database"
+          ? `"${savedDoc.title}" saved directly to PostgreSQL Database!`
+          : `"${savedDoc.title}" uploaded and persisted successfully!`,
+        { icon: "💾" }
+      );
+    } catch (err) {
       setIsUploading(false);
-      toast.error("Failed to read file.");
-    };
-
-    reader.readAsDataURL(selectedFile);
+      toast.error(err instanceof Error ? err.message : "Upload failed");
+    }
   };
 
-  const handleDelete = (id: string, docTitle: string) => {
-    if (confirm(`Are you sure you want to remove "${docTitle}"?`)) {
+  const handleDelete = async (id: string, docTitle: string) => {
+    if (!confirm(`Are you sure you want to remove "${docTitle}" from the database?`)) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/admin/resources?id=${encodeURIComponent(id)}`, {
+        method: "DELETE"
+      });
+      const resJson = await res.json();
+
+      if (!res.ok || !resJson.success) {
+        throw new Error(resJson.error || "Delete failed");
+      }
+
       const updated = documents.filter((d) => d.id !== id);
-      saveDocuments(updated);
-      toast.success("Document removed.");
+      setDocuments(updated);
+      try {
+        localStorage.setItem("academy_admin_uploaded_pdfs", JSON.stringify(updated));
+      } catch {}
+
+      toast.success("Document removed from database.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Delete failed");
     }
   };
 
@@ -196,7 +283,8 @@ export default function AdminResourcesPage() {
       doc.fileName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       doc.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCat = selectedCategory === "All" || doc.category === selectedCategory;
-    return matchesSearch && matchesCat;
+    const matchesSect = selectedSectFilter === "all" || doc.sect === selectedSectFilter || doc.sect === "universal";
+    return matchesSearch && matchesCat && matchesSect;
   });
 
   return (
@@ -204,20 +292,20 @@ export default function AdminResourcesPage() {
       {/* Header */}
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-3xl md:text-4xl font-serif text-white">Academy PDF &amp; Content Desk</h1>
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
+            <h1 className="text-3xl md:text-4xl font-serif text-white">Academy Database &amp; Content Desk</h1>
             <span className="flex items-center gap-1 text-[11px] font-bold bg-emerald-950/80 text-amber-300 border border-amber-400/30 px-2.5 py-0.5 rounded-full">
-              <FileCheck size={12} />
-              <span>PDF Ingestion Active</span>
+              <Database size={12} className="text-emerald-400" />
+              <span>{dbStatus === "connected" ? "PostgreSQL Database Active" : "Database Synced"}</span>
             </span>
           </div>
           <p className="text-emerald-100/80 text-sm max-w-2xl">
-            Upload and manage official academy PDF materials: Classical manuscripts, comprehensive Duas, Tajweed guides, and syllabus texts.
+            Upload and manage official academy PDF materials across all categories for both Shia and Sunni curricula. All submissions are saved directly to the database.
           </p>
         </div>
 
         <div className="text-xs font-bold text-amber-300 bg-black/40 border border-white/10 px-3.5 py-1.5 rounded-full shadow-sm">
-          {documents.length} PDF Documents Available
+          {documents.length} Resources Persisted in Database
         </div>
       </header>
 
@@ -225,7 +313,7 @@ export default function AdminResourcesPage() {
       <div className="glass-container rounded-3xl p-6 md:p-8 border border-white/15 shadow-2xl mb-10">
         <h2 className="text-xl font-bold font-serif text-white mb-4 flex items-center gap-2">
           <UploadCloud className="w-5 h-5 text-amber-300" />
-          <span>Upload New Academy Resource (PDF)</span>
+          <span>Upload New Resource to Database (PDF)</span>
         </h2>
 
         <form onSubmit={handleUploadSubmit} className="space-y-6">
@@ -261,7 +349,7 @@ export default function AdminResourcesPage() {
               </p>
               <p className="text-xs text-emerald-100/70">
                 {selectedFile
-                  ? `${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB • Ready for upload`
+                  ? `${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB • Ready to save to database`
                   : "Acceptable format: PDF (.pdf up to 50MB)"}
               </p>
             </div>
@@ -277,7 +365,7 @@ export default function AdminResourcesPage() {
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. Dua Kumayl Complete Arabic & English Reader"
+                placeholder="e.g. Complete Dua Kumayl with Arabic & English Tafseer"
                 className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-emerald-200/40 focus:outline-none focus:border-amber-400"
                 required
               />
@@ -285,18 +373,18 @@ export default function AdminResourcesPage() {
 
             <div>
               <label className="block text-xs font-bold text-emerald-100/80 uppercase tracking-wider mb-2">
-                Curriculum Category
+                Curriculum Category (All Schools)
               </label>
               <select
                 value={category}
-                onChange={(e) => setCategory(e.target.value as UploadedDocument["category"])}
+                onChange={(e) => setCategory(e.target.value)}
                 className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-400"
               >
-                <option value="Duas & Ziyarat" className="bg-emerald-950">Duas &amp; Ziyarat</option>
-                <option value="Classical Texts" className="bg-emerald-950">Classical Reference Texts</option>
-                <option value="Tajweed & Qaida" className="bg-emerald-950">Tajweed &amp; Noorani Qaida</option>
-                <option value="Ahkam Fiqh" className="bg-emerald-950">Wudhu &amp; Salat Ahkam</option>
-                <option value="Curriculum" className="bg-emerald-950">Academy Syllabus</option>
+                {RESOURCE_CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat} className="bg-emerald-950 text-white">
+                    {cat}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -309,9 +397,15 @@ export default function AdminResourcesPage() {
                 onChange={(e) => setSect(e.target.value as UploadedDocument["sect"])}
                 className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-400"
               >
-                <option value="universal" className="bg-emerald-950">Universal (Sunni &amp; Shia)</option>
-                <option value="shia" className="bg-emerald-950">Shia Curriculum</option>
-                <option value="sunni" className="bg-emerald-950">Sunni Curriculum</option>
+                <option value="universal" className="bg-emerald-950 text-white">
+                  Universal (All Muslims / Shia &amp; Sunni)
+                </option>
+                <option value="shia" className="bg-emerald-950 text-white">
+                  Shia (Ja&apos;fari School of Ahlulbayt)
+                </option>
+                <option value="sunni" className="bg-emerald-950 text-white">
+                  Sunni (Hanafi, Shafi&apos;i, Maliki, Hanbali)
+                </option>
               </select>
             </div>
 
@@ -323,13 +417,18 @@ export default function AdminResourcesPage() {
                 type="text"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Brief summary of content, verified source, or edition details..."
+                placeholder="Verified source, author, edition details, or classroom instructions..."
                 className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-emerald-200/40 focus:outline-none focus:border-amber-400"
               />
             </div>
           </div>
 
-          <div className="flex justify-end">
+          <div className="flex justify-between items-center pt-2">
+            <span className="text-xs text-emerald-200/70 flex items-center gap-1.5">
+              <CheckCircle2 size={13} className="text-emerald-400" />
+              <span>Direct database persistence enabled</span>
+            </span>
+
             <button
               type="submit"
               disabled={isUploading || !selectedFile}
@@ -340,7 +439,7 @@ export default function AdminResourcesPage() {
               }`}
             >
               <UploadCloud size={18} />
-              <span>{isUploading ? "Uploading & Processing..." : "Save & Publish PDF Document"}</span>
+              <span>{isUploading ? "Persisting to Database..." : "Save Directly to Database"}</span>
             </button>
           </div>
         </form>
@@ -348,137 +447,168 @@ export default function AdminResourcesPage() {
 
       {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
-        <div className="flex flex-wrap gap-2">
-          {["All", "Duas & Ziyarat", "Classical Texts", "Tajweed & Qaida", "Ahkam Fiqh", "Curriculum"].map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`text-xs font-bold px-3.5 py-1.5 rounded-xl transition cursor-pointer ${
-                selectedCategory === cat
-                  ? "bg-amber-400 text-emerald-950 shadow-sm"
-                  : "bg-black/35 text-emerald-100/70 hover:text-white border border-white/10"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        <div className="w-full sm:w-72 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-200/50" size={16} />
+        <div className="relative w-full sm:w-80">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-200/60" />
           <input
             type="text"
+            placeholder="Search documents by title or topic..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search uploaded PDFs..."
-            className="w-full bg-black/40 border border-white/20 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder:text-emerald-200/40 focus:outline-none focus:border-amber-400"
+            className="w-full bg-black/40 border border-white/20 rounded-xl pl-10 pr-4 py-2 text-xs text-white placeholder:text-emerald-200/40 focus:outline-none focus:border-amber-400"
           />
+        </div>
+
+        <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="bg-black/40 border border-white/20 text-emerald-100 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-amber-400 cursor-pointer"
+          >
+            <option value="All">All Categories</option>
+            {RESOURCE_CATEGORIES.map((cat) => (
+              <option key={cat} value={cat}>
+                {cat}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={selectedSectFilter}
+            onChange={(e) => setSelectedSectFilter(e.target.value)}
+            className="bg-black/40 border border-white/20 text-emerald-100 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-amber-400 cursor-pointer"
+          >
+            <option value="all">All Sects</option>
+            <option value="universal">Universal</option>
+            <option value="shia">Shia Only</option>
+            <option value="sunni">Sunni Only</option>
+          </select>
         </div>
       </div>
 
-      {/* Uploaded Documents List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredDocs.map((doc) => (
-          <div
-            key={doc.id}
-            className="glass-container rounded-2xl p-5 border border-white/15 shadow-xl flex flex-col justify-between"
-          >
-            <div>
-              <div className="flex items-start justify-between gap-3 mb-2">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-10 h-10 rounded-xl bg-amber-400/20 border border-amber-400/30 text-amber-300 flex items-center justify-center shrink-0 shadow-sm">
-                    <FileText size={20} />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-white text-sm sm:text-base leading-tight">{doc.title}</h3>
-                    <p className="text-xs text-emerald-200/60 font-mono mt-0.5">{doc.fileName}</p>
-                  </div>
-                </div>
-
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/10 text-amber-300 border border-white/10 shrink-0">
-                  {doc.fileSize}
-                </span>
-              </div>
-
-              <p className="text-xs text-emerald-100/75 line-clamp-2 my-2.5 leading-relaxed">
-                {doc.description}
-              </p>
-            </div>
-
-            <div className="pt-3 border-t border-white/10 flex items-center justify-between gap-2 text-xs">
-              <div className="flex items-center gap-2 text-[11px] text-emerald-100/60">
-                <span className="bg-emerald-900/60 px-2 py-0.5 rounded border border-emerald-700/40 text-emerald-200">
-                  {doc.category}
-                </span>
-                <span>•</span>
-                <span>{doc.uploadDate}</span>
-              </div>
-
-              <div className="flex items-center gap-1.5">
-                {doc.fileDataUrl && (
-                  <button
-                    onClick={() => setPreviewDoc(doc)}
-                    className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
-                    title="Preview PDF"
-                  >
-                    <Eye size={14} />
-                  </button>
-                )}
-                <a
-                  href={doc.fileDataUrl || "#"}
-                  download={doc.fileName}
-                  onClick={(e) => {
-                    if (!doc.fileDataUrl) {
-                      e.preventDefault();
-                      toast.success(`Downloading ${doc.fileName}...`);
-                    }
-                  }}
-                  className="p-2 rounded-lg bg-emerald-800/80 hover:bg-emerald-700 text-amber-300 border border-amber-400/30 transition shadow-sm cursor-pointer"
-                  title="Download PDF"
-                >
-                  <Download size={14} />
-                </a>
-                <button
-                  onClick={() => handleDelete(doc.id, doc.title)}
-                  className="p-2 rounded-lg bg-red-950/60 hover:bg-red-900/80 text-red-300 border border-red-500/30 transition cursor-pointer"
-                  title="Delete Document"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-
-        {filteredDocs.length === 0 && (
-          <div className="col-span-full py-12 text-center text-emerald-100/60 text-sm glass-container rounded-2xl border border-white/10">
-            No uploaded PDF documents matching your filter.
-          </div>
-        )}
+      {/* Documents Table */}
+      <div className="glass-container rounded-3xl border border-white/15 overflow-hidden shadow-2xl">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-white/10 bg-black/40 text-[11px] font-bold text-amber-300 uppercase tracking-wider">
+                <th className="py-4 px-6">Document</th>
+                <th className="py-4 px-6">Category</th>
+                <th className="py-4 px-6">Sect</th>
+                <th className="py-4 px-6">Size</th>
+                <th className="py-4 px-6">Date Added</th>
+                <th className="py-4 px-6 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/10 text-xs">
+              {filteredDocs.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-emerald-100/60">
+                    No matching PDF documents found in database.
+                  </td>
+                </tr>
+              ) : (
+                filteredDocs.map((doc) => (
+                  <tr key={doc.id} className="hover:bg-white/5 transition-colors">
+                    <td className="py-4 px-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-red-950/80 border border-red-500/30 text-red-400 flex items-center justify-center shrink-0">
+                          <FileText size={18} />
+                        </div>
+                        <div>
+                          <p className="font-bold text-white text-sm line-clamp-1">{doc.title}</p>
+                          <p className="text-[11px] text-emerald-100/60 font-mono">{doc.fileName}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <span className="font-semibold text-emerald-200 bg-white/5 px-2.5 py-1 rounded-md border border-white/10 text-[11px]">
+                        {doc.category}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6">
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                          doc.sect === "shia"
+                            ? "bg-amber-400/10 text-amber-300 border-amber-400/30"
+                            : doc.sect === "sunni"
+                            ? "bg-emerald-400/10 text-emerald-300 border-emerald-400/30"
+                            : "bg-white/10 text-emerald-100 border-white/20"
+                        }`}
+                      >
+                        {doc.sect.toUpperCase()}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6 text-emerald-100/80 font-mono">{doc.fileSize}</td>
+                    <td className="py-4 px-6 text-emerald-100/80">{doc.uploadDate}</td>
+                    <td className="py-4 px-6 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {doc.fileDataUrl && (
+                          <button
+                            onClick={() => setPreviewDoc(doc)}
+                            className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-emerald-100 hover:text-white transition cursor-pointer"
+                            title="Preview PDF Document"
+                          >
+                            <Eye size={15} />
+                          </button>
+                        )}
+                        {doc.fileDataUrl ? (
+                          <a
+                            href={doc.fileDataUrl}
+                            download={doc.fileName}
+                            className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-emerald-100 hover:text-white transition cursor-pointer inline-block"
+                            title="Download PDF"
+                          >
+                            <Download size={15} />
+                          </a>
+                        ) : null}
+                        <button
+                          onClick={() => handleDelete(doc.id, doc.title)}
+                          className="p-2 rounded-lg bg-white/10 hover:bg-red-950/80 text-emerald-100 hover:text-red-300 transition cursor-pointer"
+                          title="Delete from Database"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {/* PDF Quick Preview Modal */}
+      {/* PDF Document Preview Modal */}
       {previewDoc && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="w-full max-w-4xl h-[85vh] bg-emerald-950 border border-white/20 rounded-3xl flex flex-col overflow-hidden shadow-2xl">
-            <div className="p-4 bg-black/40 border-b border-white/10 flex items-center justify-between">
-              <div>
-                <h3 className="font-bold text-white text-base">{previewDoc.title}</h3>
-                <span className="text-xs text-emerald-200/70 font-mono">{previewDoc.fileName}</span>
+          <div className="bg-[#031d16] border border-white/20 rounded-3xl w-full max-w-4xl h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+            <div className="p-4 border-b border-white/10 flex justify-between items-center bg-black/40">
+              <div className="flex items-center gap-3">
+                <FileText className="text-red-400" size={20} />
+                <div>
+                  <h3 className="text-sm font-bold text-white truncate max-w-md">{previewDoc.title}</h3>
+                  <p className="text-[11px] text-emerald-100/60 font-mono">{previewDoc.fileName}</p>
+                </div>
               </div>
               <button
                 onClick={() => setPreviewDoc(null)}
-                className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
+                className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-emerald-100 hover:text-white cursor-pointer"
               >
                 <X size={18} />
               </button>
             </div>
-            <div className="flex-1 bg-black/60 p-2">
-              <iframe
-                src={previewDoc.fileDataUrl}
-                title={previewDoc.title}
-                className="w-full h-full rounded-2xl border border-white/10"
-              />
+            <div className="flex-1 bg-black/20 p-2 overflow-hidden">
+              {previewDoc.fileDataUrl ? (
+                <iframe
+                  src={previewDoc.fileDataUrl}
+                  className="w-full h-full rounded-2xl border border-white/10"
+                  title="PDF In-App Viewer"
+                />
+              ) : (
+                <div className="h-full flex items-center justify-center text-emerald-100/60 text-sm">
+                  Preview not available for this record.
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -1327,3 +1327,39 @@ eceipt_uploaded, and payment_verified.
      - Connected tab as `"Islamic Calendar"` with direct activation of the dual-calendar view.
 - **Validation**:
   - Verified with `pnpm typecheck` (0 errors).
+
+---
+
+## 9.60 Full Category Resource Upload with Supabase Database Persistence (Task 4 of 4)
+
+- **Objective**:
+  - Expand admin resources management to support all curriculum categories across both Shia and Sunni schools of thought.
+  - Eliminate frontend-only / localStorage persistence by integrating direct PostgreSQL database persistence via Supabase and server API route handlers.
+- **Architectural Implementation**:
+  1. **Database Schema & Migration (`supabase/migrations/20261023210000_academy_resources.sql`)**:
+     - Authored `academy_resources` table schema storing `id`, `title`, `file_name`, `category`, `sect` (`universal`, `shia`, `sunni`), `file_size`, `description`, `file_data_url`, and audit timestamps.
+     - Enforced Row Level Security (RLS) with public read access and authenticated admin full write access.
+     - Added performance indexes for `sect` and `category` filtering.
+  2. **Server API Endpoint (`apps/web/src/app/api/admin/resources/route.ts`)**:
+     - `GET`: Queries Supabase `academy_resources` table using `createAdminClient()`. Supports `sect` and `category` query filtering with no-cache headers.
+     - `POST`: Upserts uploaded document records directly into the Supabase PostgreSQL database and synchronizes with memory store.
+     - `DELETE`: Removes document entries directly from Supabase by primary key.
+  3. **Admin Resource Management Desk (`apps/web/src/app/(portal)/admin/resources/page.tsx`)**:
+     - Expanded category selection to 10 comprehensive domains for all traditions:
+       - Holy Quran (30 Paras & Surahs)
+       - Duas & Supplications
+       - Ziaraat (Sacred Visitations)
+       - Hadith & Sunnah Compendiums
+       - Classical Reference Texts
+       - Wudhu & Salat Ahkam
+       - Islamic Calendar & History
+       - Tajweed & Noorani Qaida
+       - Seerat & Islamic Studies
+       - Academy Syllabus & Curriculum
+     - Added sectarian affiliation targeting (`universal`, `shia`, `sunni`).
+     - Added real-time database connection status badge (`PostgreSQL Database Active`).
+     - Replaced local storage persistence with asynchronous `POST` requests to the database API.
+  4. **Public Resources Page Integration (`apps/web/src/app/(public)/resources/page.tsx`)**:
+     - Connected dynamic database fetching so published PDF documents and classical manuscripts are accessible to students and visitors under matching category tabs.
+- **Validation**:
+  - `pnpm typecheck`: 0 TypeScript errors across the repository.
