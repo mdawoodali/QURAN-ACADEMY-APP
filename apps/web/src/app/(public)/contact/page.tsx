@@ -1,10 +1,48 @@
 "use client";
 
-import { Phone, Mail, MapPin, Send } from "lucide-react";
+import { useState } from "react";
+import { Phone, Mail, MapPin, Send, CheckCircle2, AlertCircle } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 
 export default function ContactPage() {
   const { t } = useLanguage();
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    message: ""
+  });
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStatus("submitting");
+    setErrorMessage("");
+
+    try {
+      const res = await fetch("/api/inquiries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formData,
+          source: "contact_page"
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Failed to submit message.");
+      }
+
+      setStatus("success");
+      setFormData({ name: "", email: "", phone: "", message: "" });
+      setTimeout(() => setStatus("idle"), 8000);
+    } catch (err: unknown) {
+      setStatus("error");
+      setErrorMessage(err instanceof Error ? err.message : "Error submitting message.");
+    }
+  };
 
   return (
     <main className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 py-12 md:py-20 text-white">
@@ -105,27 +143,25 @@ export default function ContactPage() {
             Fill out the form below and an academic coordinator will respond within 2-4 hours.
           </p>
 
-          <form 
-            onSubmit={(e) => {
-              e.preventDefault();
-              alert("Your message has been received! We will be in touch shortly.");
-            }}
-            className="space-y-4"
-          >
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-emerald-100 mb-1.5">{t("namePlaceholder")}</label>
+              <label className="block text-xs font-semibold text-emerald-100 mb-1.5">{t("namePlaceholder")} *</label>
               <input 
                 type="text" 
                 required 
+                value={formData.name}
+                onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
                 className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-3 text-white placeholder:text-emerald-200/40 focus:outline-none focus:border-amber-400 text-sm transition"
                 placeholder="Your full name"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-emerald-100 mb-1.5">{t("emailPlaceholder")}</label>
+              <label className="block text-xs font-semibold text-emerald-100 mb-1.5">{t("emailPlaceholder")} *</label>
               <input 
                 type="email" 
                 required 
+                value={formData.email}
+                onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
                 className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-3 text-white placeholder:text-emerald-200/40 focus:outline-none focus:border-amber-400 text-sm transition"
                 placeholder="you@example.com"
               />
@@ -134,27 +170,54 @@ export default function ContactPage() {
               <label className="block text-xs font-semibold text-emerald-100 mb-1.5">{t("phonePlaceholder")}</label>
               <input 
                 type="tel" 
-                required 
+                value={formData.phone}
+                onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
                 className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-3 text-white placeholder:text-emerald-200/40 focus:outline-none focus:border-amber-400 text-sm transition"
                 placeholder="+1 / +44 ..."
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-emerald-100 mb-1.5">Message / Inquiries</label>
+              <label className="block text-xs font-semibold text-emerald-100 mb-1.5">Message / Inquiries *</label>
               <textarea 
                 rows={4} 
                 required 
+                value={formData.message}
+                onChange={(e) => setFormData((prev) => ({ ...prev, message: e.target.value }))}
                 className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-3 text-white placeholder:text-emerald-200/40 focus:outline-none focus:border-amber-400 text-sm transition"
                 placeholder="Tell us about your learning goals or ask any question..."
               />
             </div>
 
+            {status === "success" && (
+              <div className="flex items-center gap-2 text-emerald-300 text-xs font-bold bg-emerald-950/80 border border-emerald-400/40 p-3 rounded-xl">
+                <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />
+                <span>Thank you! Your message has been received. Our team will contact you shortly.</span>
+              </div>
+            )}
+
+            {status === "error" && (
+              <div className="flex items-center gap-2 text-red-300 text-xs font-bold bg-red-950/80 border border-red-500/40 p-3 rounded-xl">
+                <AlertCircle size={16} className="text-red-400 shrink-0" />
+                <span>{errorMessage || "Failed to send message. Please try again."}</span>
+              </div>
+            )}
+
             <button 
               type="submit" 
-              className="w-full bg-amber-400 hover:bg-amber-300 text-emerald-950 font-bold py-3.5 rounded-xl transition shadow-lg flex items-center justify-center gap-2 cursor-pointer text-base"
+              disabled={status === "submitting"}
+              className="w-full bg-amber-400 hover:bg-amber-300 disabled:opacity-60 text-emerald-950 font-bold py-3.5 rounded-xl transition shadow-lg flex items-center justify-center gap-2 cursor-pointer text-base"
             >
-              <Send size={18} />
-              <span>{t("send")}</span>
+              {status === "submitting" ? (
+                <>
+                  <span className="w-5 h-5 border-2 border-emerald-950 border-t-transparent rounded-full animate-spin" />
+                  <span>Sending Message...</span>
+                </>
+              ) : (
+                <>
+                  <Send size={18} />
+                  <span>{t("send")}</span>
+                </>
+              )}
             </button>
           </form>
         </div>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Home, PlaySquare, Book, TrendingUp, CreditCard, User, HelpCircle, BookOpen, X, LogOut, FileUp, Activity } from "lucide-react";
+import { Home, PlaySquare, Book, TrendingUp, CreditCard, User, HelpCircle, BookOpen, X, LogOut, FileUp, Activity, Mail } from "lucide-react";
 import { createBrowserClient } from '@supabase/ssr'
 import { useLanguage } from './LanguageContext';
 import { APP_VERSION } from '@quran/contracts';
@@ -25,6 +25,7 @@ const TEACHER_LINKS = [
 
 const ADMIN_LINKS = [
   { href: "/admin", label: "Overview", icon: Home },
+  { href: "/admin/inquiries", label: "Inquiries", icon: Mail },
   { href: "/admin/resources", label: "PDF & Content", icon: FileUp },
   { href: "/admin/enrolments", label: "Enrolments", icon: Book },
   { href: "/admin/scheduling", label: "Scheduling", icon: PlaySquare },

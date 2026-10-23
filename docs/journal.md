@@ -1388,3 +1388,40 @@ eceipt_uploaded, and payment_verified.
 - **Validation**:
   - `pnpm typecheck`: 0 TypeScript errors across the repository.
   - `pnpm --filter frontend lint`: 0 errors.
+
+---
+
+## 9.62 Navigation Simplification & Admin Inquiries Desk Implementation
+
+- **Objective**:
+  - Remove redundant "Contact" link from the top navigation bar and mobile drawer (as contact options and WhatsApp badges are permanently accessible in the footer).
+  - Add "Message / Inquiries" multi-line text input to the consultation form at the bottom of the page (in `Footer.tsx`).
+  - Implement full backend persistence and a dedicated management desk in the Admin Portal (`/admin/inquiries`) to display, track, and reply to all submitted inquiries.
+- **Architectural Implementation**:
+  1. **Top Bar & Navigation Clean-Up (`apps/web/src/components/PublicNavbar.tsx`)**:
+     - Removed `{ href: "/contact", key: "contact" }` from desktop navbar navigation array.
+     - Removed the mobile drawer Contact link.
+  2. **Footer Consultation Form Enhancement (`apps/web/src/components/Footer.tsx`)**:
+     - Expanded consultation form to capture: Full Name, Email, Phone Number, and Message / Inquiries.
+     - Added asynchronous form submission to `/api/inquiries` with animated loading state, success validation banner, and error handling.
+     - Updated `LanguageContext.tsx` with English and Urdu translations for `messagePlaceholder` and `messagePlaceholderDesc`.
+  3. **Contact Page Submission Alignment (`apps/web/src/app/(public)/contact/page.tsx`)**:
+     - Connected the standalone contact page message form to `/api/inquiries` with live state feedback.
+  4. **Database Schema & Migration (`supabase/migrations/20261024000000_contact_inquiries.sql`)**:
+     - Authored `contact_inquiries` table with `id`, `name`, `email`, `phone`, `message`, `status` (`new`, `contacted`, `resolved`, `archived`), `source`, and audit timestamps.
+     - Configured Row Level Security (RLS) allowing anonymous/public inserts and authenticated admin read/write permissions.
+     - Created indexes for `status`, `created_at DESC`, and `email`.
+  5. **Inquiries Server API Handler (`apps/web/src/app/api/inquiries/route.ts`)**:
+     - `GET`: Queries Supabase `contact_inquiries` with status filtering and text search, falling back gracefully to memory store.
+     - `POST`: Validates incoming payload using Zod, inserts into PostgreSQL via `createAdminClient()`, and updates the in-memory store.
+     - `PATCH`: Allows administrators to update status (e.g. from 'new' to 'contacted' or 'resolved') and admin notes.
+     - `DELETE`: Allows administrators to delete inquiry records.
+  6. **Admin Portal Inquiries Desk (`apps/web/src/app/(portal)/admin/inquiries/page.tsx`)**:
+     - Created full-featured administration desk with real-time KPI metrics (Total, New/Pending, Contacted, Resolved).
+     - Added search filtering by name, email, phone, and message content.
+     - Added status selector to immediately update inquiries.
+     - Added direct one-click action buttons: **Reply via WhatsApp** (with pre-filled greeting) and **Reply via Email**.
+     - Integrated into portal navigation (`Sidebar.tsx`) and the main admin overview action queue (`/admin/page.tsx`).
+- **Validation**:
+  - `pnpm typecheck`: 0 TypeScript errors.
+  - `pnpm --filter frontend lint`: 0 errors.

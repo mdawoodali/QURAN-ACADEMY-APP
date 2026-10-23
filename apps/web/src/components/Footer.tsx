@@ -1,12 +1,51 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Phone, Mail, MapPin, Send } from "lucide-react";
+import { Phone, Mail, MapPin, Send, CheckCircle2, AlertCircle } from "lucide-react";
 import { useLanguage } from "./LanguageContext";
 
 export default function Footer() {
   const { t } = useLanguage();
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    message: ""
+  });
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const handleSubmitInquiry = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStatus("submitting");
+    setErrorMessage("");
+
+    try {
+      const res = await fetch("/api/inquiries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formData,
+          source: "footer_inquiry"
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Failed to submit inquiry.");
+      }
+
+      setStatus("success");
+      setFormData({ name: "", email: "", phone: "", message: "" });
+      setTimeout(() => setStatus("idle"), 8000);
+    } catch (err: unknown) {
+      setStatus("error");
+      setErrorMessage(err instanceof Error ? err.message : "Network error submitting inquiry.");
+    }
+  };
 
   return (
     <footer className="w-full bg-[#031d15]/95 border-t border-white/10 text-white relative z-20 backdrop-blur-md">
@@ -46,39 +85,110 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Quick Consultation Form */}
+          {/* Quick Consultation & Inquiries Form */}
           <div className="mt-8 pt-8 border-t border-white/10">
-            <form 
-              onSubmit={(e) => {
-                e.preventDefault();
-                alert("Thank you! Your inquiry has been received. Our team will contact you shortly.");
-              }}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
-            >
-              <input 
-                type="text" 
-                required 
-                placeholder={t("namePlaceholder")}
-                className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-3 text-white placeholder:text-emerald-200/40 focus:outline-none focus:border-amber-400 text-sm transition"
-              />
-              <input 
-                type="email" 
-                required 
-                placeholder={t("emailPlaceholder")}
-                className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-3 text-white placeholder:text-emerald-200/40 focus:outline-none focus:border-amber-400 text-sm transition"
-              />
-              <input 
-                type="tel" 
-                placeholder={t("phonePlaceholder")}
-                className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-3 text-white placeholder:text-emerald-200/40 focus:outline-none focus:border-amber-400 text-sm transition"
-              />
-              <button 
-                type="submit" 
-                className="w-full bg-amber-400 hover:bg-amber-300 text-emerald-950 font-bold py-3 px-6 rounded-xl transition shadow-lg flex items-center justify-center gap-2 cursor-pointer text-sm"
-              >
-                <Send size={16} />
-                <span>{t("send")}</span>
-              </button>
+            <div className="mb-4">
+              <h4 className="text-lg font-serif font-bold text-white mb-1">
+                {t("messagePlaceholder")}
+              </h4>
+              <p className="text-xs text-emerald-100/70">
+                Have a question regarding courses, class timings, or admissions? Send us an inquiry and our team will get back to you promptly.
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmitInquiry} className="space-y-4">
+              {/* Row 1: Name, Email, Phone */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-emerald-100/80 mb-1">
+                    {t("namePlaceholder")} *
+                  </label>
+                  <input 
+                    type="text" 
+                    required 
+                    value={formData.name}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+                    placeholder="Your full name"
+                    className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder:text-emerald-200/40 focus:outline-none focus:border-amber-400 text-sm transition"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-emerald-100/80 mb-1">
+                    {t("emailPlaceholder")} *
+                  </label>
+                  <input 
+                    type="email" 
+                    required 
+                    value={formData.email}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+                    placeholder="name@example.com"
+                    className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder:text-emerald-200/40 focus:outline-none focus:border-amber-400 text-sm transition"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-emerald-100/80 mb-1">
+                    {t("phonePlaceholder")}
+                  </label>
+                  <input 
+                    type="tel" 
+                    value={formData.phone}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
+                    placeholder="+1 / +44 / +92 ..."
+                    className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder:text-emerald-200/40 focus:outline-none focus:border-amber-400 text-sm transition"
+                  />
+                </div>
+              </div>
+
+              {/* Row 2: Message / Inquiries Textarea */}
+              <div>
+                <label className="block text-xs font-semibold text-emerald-100/80 mb-1">
+                  {t("messagePlaceholder")} *
+                </label>
+                <textarea 
+                  required 
+                  rows={3}
+                  value={formData.message}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, message: e.target.value }))}
+                  placeholder={t("messagePlaceholderDesc")}
+                  className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder:text-emerald-200/40 focus:outline-none focus:border-amber-400 text-sm transition resize-none"
+                />
+              </div>
+
+              {/* Row 3: Submit Button & Status Alerts */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+                <div>
+                  {status === "success" && (
+                    <div className="inline-flex items-center gap-2 text-emerald-300 text-xs font-bold bg-emerald-950/80 border border-emerald-400/40 px-3.5 py-2 rounded-xl">
+                      <CheckCircle2 size={16} className="text-emerald-400" />
+                      <span>Thank you! Your inquiry has been received. Our team will contact you shortly.</span>
+                    </div>
+                  )}
+                  {status === "error" && (
+                    <div className="inline-flex items-center gap-2 text-red-300 text-xs font-bold bg-red-950/80 border border-red-500/40 px-3.5 py-2 rounded-xl">
+                      <AlertCircle size={16} className="text-red-400" />
+                      <span>{errorMessage || "Failed to submit inquiry. Please try again."}</span>
+                    </div>
+                  )}
+                </div>
+
+                <button 
+                  type="submit" 
+                  disabled={status === "submitting"}
+                  className="w-full sm:w-auto min-w-[180px] bg-amber-400 hover:bg-amber-300 disabled:opacity-60 text-emerald-950 font-bold py-3 px-6 rounded-xl transition shadow-lg flex items-center justify-center gap-2 cursor-pointer text-sm"
+                >
+                  {status === "submitting" ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-emerald-950 border-t-transparent rounded-full animate-spin" />
+                      <span>Sending Inquiry...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send size={16} />
+                      <span>Send Inquiry</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </form>
           </div>
         </div>

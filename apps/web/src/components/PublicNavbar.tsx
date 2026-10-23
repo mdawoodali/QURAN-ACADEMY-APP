@@ -189,7 +189,6 @@ export default function PublicNavbar() {
               { href: "/teach-with-us", key: "careers" },
               { href: "/resources", key: "resources" },
               { href: "/blog", key: "blog" },
-              { href: "/contact", key: "contact" },
             ].map(({ href, key }) => (
               <Link
                 key={key}
@@ -336,13 +335,6 @@ export default function PublicNavbar() {
                   className="py-2 px-3 rounded-xl hover:bg-white/10 hover:text-amber-300 transition"
                 >
                   {t("blog")}
-                </Link>
-                <Link 
-                  href="/contact" 
-                  onClick={closeMenu}
-                  className="py-2 px-3 rounded-xl hover:bg-white/10 hover:text-amber-300 transition"
-                >
-                  {t("contact")}
                 </Link>
               </nav>
 

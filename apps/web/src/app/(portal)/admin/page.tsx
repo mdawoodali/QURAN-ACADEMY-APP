@@ -93,6 +93,11 @@ export default function AdminOverview() {
           </div>
 
           <div className="flex gap-4 text-xs font-bold text-emerald-200/80 mt-4 flex-wrap pt-3 border-t border-white/10">
+            <Link href="/admin/inquiries" className="hover:text-amber-300 transition flex items-center gap-1 text-amber-300 font-extrabold">
+              <span>Customer Inquiries Desk</span>
+              <ArrowUpRight size={12} />
+            </Link>
+            <span>•</span>
             <Link href="/admin/resources" className="hover:text-amber-300 transition flex items-center gap-1">
               <span>PDF &amp; Content Desk</span>
               <ArrowUpRight size={12} />
@@ -129,6 +134,23 @@ export default function AdminOverview() {
             </h3>
 
             <div className="space-y-3">
+              <Link
+                href="/admin/inquiries"
+                className="p-3.5 rounded-2xl bg-black/35 border border-amber-400/30 hover:border-amber-400 transition block group"
+              >
+                <div className="flex justify-between items-center mb-1">
+                  <span className="font-bold text-xs text-amber-300 group-hover:text-amber-200 transition-colors flex items-center gap-1.5">
+                    <span>Prospective Student Inquiries</span>
+                  </span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-400 text-emerald-950">
+                    Live
+                  </span>
+                </div>
+                <p className="text-[11px] text-emerald-100/70">
+                  Direct admission inquiries and messages submitted from website footer &amp; contact
+                </p>
+              </Link>
+
               <Link
                 href="/admin/teachers"
                 className="p-3.5 rounded-2xl bg-black/35 border border-white/10 hover:border-amber-400/40 transition block group"
