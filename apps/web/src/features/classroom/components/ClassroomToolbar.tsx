@@ -35,7 +35,7 @@ interface ClassroomToolbarProps {
   isLaserModeActive: boolean;
   onToggleLaserMode: () => void;
   activePenRule?: TajweedRuleType;
-  onSelectPenRule: (rule: TajweedRuleType) => void;
+  onSelectPenRule?: (rule: TajweedRuleType) => void;
   isTeacher?: boolean;
   onRemoteMuteStudent?: () => void;
   bandwidthMode: "auto" | "audio_only";
@@ -58,8 +58,6 @@ export default function ClassroomToolbar({
   onClearAll,
   isLaserModeActive,
   onToggleLaserMode,
-  activePenRule = "none",
-  onSelectPenRule,
   isTeacher = true,
   onRemoteMuteStudent,
   bandwidthMode,
@@ -106,48 +104,43 @@ export default function ClassroomToolbar({
         <span>Laser</span>
       </button>
 
-      {/* 3. Tajweed Markup Pen Rules */}
-      <div className="hidden md:flex items-center gap-1 bg-black/50 p-1 rounded-xl border border-white/10">
-        <span className="text-[10px] text-amber-300/80 font-bold px-1.5 uppercase flex items-center gap-1">
-          <Sparkles size={11} />
-          Rule:
+      {/* 3. Tajweed Color Key (Informational Legend — Pen selection removed) */}
+      <div
+        className="hidden md:flex items-center gap-1.5 bg-black/50 px-2.5 py-1.5 rounded-xl border border-white/10 select-none shadow-inner"
+        title="Tajweed Color Key: Integrated authentically in Quranic verses"
+      >
+        <span className="text-[10px] text-amber-300 font-bold uppercase tracking-wider flex items-center gap-1 mr-0.5">
+          <Sparkles size={11} className="text-amber-400" />
+          Tajweed Key:
         </span>
-        <button
-          onClick={() => onSelectPenRule("madd")}
-          className={`px-2 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
-            activePenRule === "madd" ? "bg-red-600 text-white shadow-xs" : "text-red-300 hover:bg-white/10"
-          }`}
-          title="Madd Rule (Elongation - Red)"
+        <div
+          className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-red-950/60 border border-red-500/40 text-[10px] font-bold text-red-300"
+          title="Madd (Elongation - Red): Prolonged 2, 4, 5, or 6 counts"
         >
-          Madd
-        </button>
-        <button
-          onClick={() => onSelectPenRule("ikhfa")}
-          className={`px-2 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
-            activePenRule === "ikhfa" ? "bg-emerald-600 text-white shadow-xs" : "text-emerald-300 hover:bg-white/10"
-          }`}
-          title="Ikhfa / Ghunnah Rule (Nasalization - Green)"
+          <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+          <span>Madd</span>
+        </div>
+        <div
+          className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-950/60 border border-emerald-500/40 text-[10px] font-bold text-emerald-300"
+          title="Ikhfa & Ghunnah (Nasalization - Green): 2 counts nasal vibration"
         >
-          Ikhfa
-        </button>
-        <button
-          onClick={() => onSelectPenRule("qalqalah")}
-          className={`px-2 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
-            activePenRule === "qalqalah" ? "bg-sky-600 text-white shadow-xs" : "text-sky-300 hover:bg-white/10"
-          }`}
-          title="Qalqalah Rule (Echoing Vibration - Blue)"
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          <span>Ikhfa</span>
+        </div>
+        <div
+          className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-sky-950/60 border border-sky-500/40 text-[10px] font-bold text-sky-300"
+          title="Qalqalah (Echoing - Blue): Echoing bounce on letters of Qutb Jad (ق، ط، ب، ج، د)"
         >
-          Qalqalah
-        </button>
-        <button
-          onClick={() => onSelectPenRule("throat")}
-          className={`px-2 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
-            activePenRule === "throat" ? "bg-amber-500 text-emerald-950 shadow-xs" : "text-amber-300 hover:bg-white/10"
-          }`}
-          title="Throat Makhraj Rule (Amber)"
+          <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
+          <span>Qalqalah</span>
+        </div>
+        <div
+          className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-950/60 border border-amber-500/40 text-[10px] font-bold text-amber-300"
+          title="Makhraj (Throat & Articulation - Amber): Throat letters (ح، خ، ع، غ، ء، ه)"
         >
-          Makhraj
-        </button>
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+          <span>Makhraj</span>
+        </div>
       </div>
 
       <div className="w-px bg-white/20 mx-1 hidden sm:block h-6" />

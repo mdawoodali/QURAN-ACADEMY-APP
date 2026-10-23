@@ -79,14 +79,29 @@ export default function MushafBoard({
 
           // Compute Tajweed Styling
           let ruleClass = "";
+          let effectiveRule = customRule || item.rule || item.type;
+
           if (tajweedMode) {
-            if (customRule === "madd" || item.rule === "madd" || item.type === "madd") {
+            // Intelligent fallback detection if not explicitly set
+            if (!effectiveRule || effectiveRule === "none") {
+              if (item.word.includes("ٓ") || item.word.includes("آ")) {
+                effectiveRule = "madd";
+              } else if (item.word.includes("نّ") || item.word.includes("مّ") || item.word.includes("ۢ")) {
+                effectiveRule = "ikhfa";
+              } else if (/[قطبجد][\u0652]/.test(item.word) || /[قطبجد]$/.test(item.word)) {
+                effectiveRule = "qalqalah";
+              } else if (/[ءهعحغخ]/.test(item.word)) {
+                effectiveRule = "throat";
+              }
+            }
+
+            if (effectiveRule === "madd") {
               ruleClass = "text-red-600 font-bold drop-shadow-xs";
-            } else if (customRule === "ikhfa" || item.rule === "ikhfa") {
+            } else if (effectiveRule === "ikhfa") {
               ruleClass = "text-emerald-600 font-bold";
-            } else if (customRule === "qalqalah" || item.rule === "qalqalah") {
+            } else if (effectiveRule === "qalqalah") {
               ruleClass = "text-sky-600 font-bold";
-            } else if (customRule === "throat" || item.rule === "throat") {
+            } else if (effectiveRule === "throat") {
               ruleClass = "text-amber-600 font-bold";
             }
           }
@@ -112,17 +127,21 @@ export default function MushafBoard({
                   ? "border-[3px] border-red-500 rounded-full px-4"
                   : "border-[3px] border-transparent"
               } ${ruleClass}`}
-              title={tajweedMode ? item.tajweed : undefined}
+              title={
+                tajweedMode
+                  ? item.tajweed || (effectiveRule && effectiveRule !== "none" ? `Rule: ${effectiveRule.toUpperCase()}` : undefined)
+                  : undefined
+              }
             >
               {item.word}
 
               {/* Tajweed rule micro-badge on hover or click */}
-              {isHighlighted && tajweedMode && item.tajweed && (
+              {isHighlighted && tajweedMode && (item.tajweed || (effectiveRule && effectiveRule !== "none")) && (
                 <span
                   dir="ltr"
                   className="absolute -top-7 left-1/2 -translate-x-1/2 bg-emerald-950 text-amber-300 text-[10px] font-sans font-bold px-2 py-0.5 rounded-full shadow-lg border border-amber-400/30 whitespace-nowrap z-20 pointer-events-none animate-in fade-in zoom-in-95"
                 >
-                  {item.tajweed}
+                  {item.tajweed || `Tajweed: ${effectiveRule?.toUpperCase()}`}
                 </span>
               )}
             </span>

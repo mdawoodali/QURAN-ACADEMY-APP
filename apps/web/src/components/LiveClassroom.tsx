@@ -5,7 +5,6 @@ import { useParams, useSearchParams, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
 import {
-  TajweedRuleType,
   ClassroomHeader,
   ClassroomVideoBubble,
   LetterPracticeTray,
@@ -88,7 +87,6 @@ export default function LiveClassroom() {
   const [isMicOn, setIsMicOn] = useState(true);
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [isLaserModeActive, setIsLaserModeActive] = useState(false);
-  const [activePenRule, setActivePenRule] = useState<TajweedRuleType>("none");
   const [isStudentUnlocked, setIsStudentUnlocked] = useState(false);
   const [showEndModal, setShowEndModal] = useState(false);
 
@@ -209,15 +207,9 @@ export default function LiveClassroom() {
     toast(isMicOn ? "Microphone Muted" : "Microphone Active", { icon: isMicOn ? "🔇" : "🎙️" });
   };
 
-  // Word click handler (respects pen rule or standard highlight)
+  // Word click handler (highlights word for focus practice)
   const handleWordClick = (index: number) => {
     sendHighlight(index);
-
-    if (activePenRule !== "none") {
-      const nextHighlights = { ...colorHighlights, [index]: activePenRule };
-      sendToolSync({ colorHighlights: nextHighlights });
-      toast.success(`Applied ${activePenRule.toUpperCase()} rule`);
-    }
   };
 
   // Split word into component phonemes
@@ -234,7 +226,6 @@ export default function LiveClassroom() {
     sendSplit(null);
     sendLaserPointer({ x: 0, y: 0, active: false });
     setIsLaserModeActive(false);
-    setActivePenRule("none");
     toast("Whiteboard annotations cleared", { icon: "🧹" });
   };
 
@@ -482,11 +473,6 @@ export default function LiveClassroom() {
                 toast(next ? "Laser Pointer Active (Tracks to Student)" : "Laser Pointer Off", {
                   icon: next ? "🔴" : "⚪"
                 });
-              }}
-              activePenRule={activePenRule}
-              onSelectPenRule={(rule) => {
-                setActivePenRule(rule);
-                toast(`Pen tool set to ${rule.toUpperCase()} rule`);
               }}
               isTeacher={roleParam === "teacher"}
               onRemoteMuteStudent={() => sendModeration("mute_student")}

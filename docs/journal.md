@@ -1212,3 +1212,44 @@ eceipt_uploaded, and payment_verified.
 - **Validation**:
   - `pnpm typecheck`: 0 TypeScript errors across all workspace packages.
   - `pnpm --filter frontend lint`: 0 ESLint errors and 0 warnings.
+
+---
+
+## 9.55 Live Classroom Tajweed Integration & Read-Only Color Legend Key
+
+- **Objective**:
+  - Integrate proper, authentic Tajweed rules into all verses in the live classroom recitation view.
+  - Remove interactive pen tool selectors for Tajweed rules from the classroom toolbar, presenting the 4 rules strictly as an informational reference key/color legend.
+- **Architectural Implementation**:
+  1. **Classroom Toolbar Tajweed Key (`apps/web/src/features/classroom/components/ClassroomToolbar.tsx`)**:
+     - Removed interactive buttons that allowed setting drawing/pen tools to specific Tajweed rules.
+     - Converted rule selector into a polished, read-only **Tajweed Color Key** bar:
+       - **Madd (Red)**: Prolonged elongation (2, 4, 5, or 6 counts).
+       - **Ikhfa & Ghunnah (Green)**: Nasalization with 2-count vibration.
+       - **Qalqalah (Blue)**: Echoing bounce on letters of Qutb Jad (ق، ط، ب، ج، د).
+       - **Makhraj (Amber)**: Throat articulation letters (ح، خ، ع، غ، ء، ه) and heavy phonemes.
+     - Provided clean hover tooltips explaining the articulation and timing for each rule.
+  2. **Classroom State Decoupling (`apps/web/src/components/LiveClassroom.tsx`)**:
+     - Removed `activePenRule` state and rule selection handlers from `LiveClassroom`.
+     - Clicking words on the interactive whiteboard now triggers clean recitation focus highlight without overriding intrinsic Tajweed rules.
+     - Cleaned up unused imports and props.
+  3. **Proper Tajweed Integration Across Verses & Lessons (`apps/web/src/features/classroom/constants.ts`)**:
+     - Updated `SCRIPT_DATA` baseline words (Uthmani and IndoPak) with explicit Tajweed rules: `ٱلْحَمْدُ` (Throat Haa / Izhar Qamari) and `ٱلْعَـٰلَمِينَ` (Madd Aaridh / Throat Ayn).
+     - Enhanced `CURRICULUM_LESSONS` with complete, multi-ayah lessons featuring comprehensive word-level Tajweed metadata:
+       - **Surah Al-Fatihah (Complete 1:1–7)**: All 29 words tagged with authentic rules, including Basmalah, Madd Tabi'i, Throat Ayn/Haa/Ghayn, Ikhfa/Ghunnah on `أَنْعَمْتَ`, and Madd Lazim (6 counts) on `ٱلضَّآلِّينَ`.
+       - **Surah Al-Ikhlas (Complete 112:1–4)**: Full Qalqalah tagging on `أَحَدٌ`, `ٱلصَّمَدُ`, `يَلِدْ`, `يُولَدْ`, and `أَحَدٌۢ` with Iqlab; Throat Qaf on `قُلْ`; Ikhfa/Ghunnah on `يَكُن`.
+       - **Surah Al-Falaq (Complete 113:1–5)**: Qalqalah Kubra focus on `ٱلْفَلَقِ`, `خَلَقَ`, `وَقَبَ`, `ٱلْعُقَدِ`, `حَسَدَ`; Ghunnah on `ٱلنَّفَّـٰثَـٰتِ`; and Ikhfa before `Shin`.
+       - **Surah An-Nas (Complete 114:1–6)**: Ghunnah Mushaddadah focus on `ٱلنَّاسِ` (2 counts) and `ٱلْجِنَّةِ`; Ikhfa on `مِن شَرِّ`.
+       - **Noorani Qaida (Lesson 1 - Huruf Mufradaat)**: Full 29 isolated letters categorized with articulation points (Makhaarij) and Qalqalah/Throat/Ghunnah rules.
+  4. **Mushaf Board Tajweed Engine Enhancements (`apps/web/src/features/classroom/components/MushafBoard.tsx`)**:
+     - Enhanced dynamic styling in `MushafBoard` to check `customRule || item.rule || item.type`.
+     - Added intelligent auto-detection fallback for verses:
+       - Auto-identifies Maddah signs (`ٓ`, `آ`) -> Madd (Red).
+       - Auto-identifies Shaddah on Noon/Meem or Iqlab (`نّ`, `مّ`, `ۢ`) -> Ikhfa / Ghunnah (Green).
+       - Auto-identifies Qalqalah letters with Sukun or at boundary (`[قطبجد]ْ`) -> Qalqalah (Blue).
+       - Auto-identifies Throat letters (`[ءهعحغخ]`) -> Throat / Makhraj (Amber).
+     - Improved Tajweed tooltip badges to display rule names and articulation guidance on highlight.
+- **Validation**:
+  - `pnpm typecheck`: 0 TypeScript errors across the entire codebase.
+  - `pnpm --filter frontend lint`: Clean ESLint status with 0 errors.
+  - `pnpm --filter @quran/domain test`: Domain Tajweed tests passing.
