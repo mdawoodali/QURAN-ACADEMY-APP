@@ -422,7 +422,7 @@ https://quranlearnacademy.com/resources
             }`}
           >
             <Compass size={16} />
-            <span>{isShia ? "Ja'fari Prayer Schedule" : "Prayer Times / Qibla"}</span>
+            <span>{isShia ? "Salat Timings" : "Prayer Times / Qibla"}</span>
           </button>
 
           <button

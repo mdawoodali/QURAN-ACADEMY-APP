@@ -1291,3 +1291,15 @@ eceipt_uploaded, and payment_verified.
     - Updated recitation export text attribution to reflect the streamlined naming.
 - **Validation**:
   - Verified with `pnpm typecheck` (0 errors).
+
+---
+
+## 9.58 Shia Section Salat Timings Renaming (Task 2 of 4)
+
+- **Objective**:
+  - Rename "Jafary Prayer Schedule" / "Ja'fari Prayer Schedule" to "Salat Timings" in the Shia resources navigation.
+- **Implementation**:
+  - **Public Resources Page (`apps/web/src/app/(public)/resources/page.tsx`)**:
+    - Updated navigation tab label from `"Ja'fari Prayer Schedule"` to `"Salat Timings"`.
+- **Validation**:
+  - Verified with `pnpm typecheck` (0 errors).
