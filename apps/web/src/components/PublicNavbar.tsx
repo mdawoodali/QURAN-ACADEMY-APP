@@ -15,6 +15,16 @@ export default function PublicNavbar() {
 
   const closeMenu = () => setMobileMenuOpen(false);
 
+  const handleGoHome = () => {
+    closeMenu();
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem("welcome_dismissed", "true");
+        localStorage.setItem("welcome_dismissed", "true");
+      } catch {}
+    }
+  };
+
   return (
     <header dir="ltr" className="w-full sticky top-0 z-50 text-white shadow-xl relative text-left">
       {/* 1. TOP BAR: Contact / WhatsApp Badges & Email & Socials */}
@@ -151,7 +161,7 @@ export default function PublicNavbar() {
           {/* Brand Official Logo: Elegantly proportioned and aligned within navbar */}
           <Link 
             href="/" 
-            onClick={closeMenu} 
+            onClick={handleGoHome} 
             className="flex items-center shrink-0 group py-1"
             title="Quran Learn Academy"
           >
@@ -273,7 +283,7 @@ export default function PublicNavbar() {
               <nav className="flex flex-col space-y-2 font-medium text-sm text-emerald-100/90">
                 <Link 
                   href="/" 
-                  onClick={closeMenu}
+                  onClick={handleGoHome}
                   className="py-2 px-3 rounded-xl hover:bg-white/10 hover:text-amber-300 transition"
                 >
                   {t("home")}

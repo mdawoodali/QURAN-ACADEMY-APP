@@ -1,4 +1,19 @@
-import type { CapacitorConfig } from "@capacitor/cli";
+// Capacitor Configuration without strict external dependency on @capacitor/cli during web typecheck
+interface CapacitorConfig {
+  appId: string;
+  appName: string;
+  webDir: string;
+  server?: {
+    url?: string;
+    cleartext?: boolean;
+    androidScheme?: string;
+    [key: string]: unknown;
+  };
+  plugins?: Record<string, unknown>;
+  android?: Record<string, unknown>;
+  ios?: Record<string, unknown>;
+  [key: string]: unknown;
+}
 
 const config: CapacitorConfig = {
   appId: "com.quranlearnacademy.app",

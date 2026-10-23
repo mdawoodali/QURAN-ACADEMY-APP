@@ -132,7 +132,7 @@ export function useVoiceFollow({ currentWords, onMatchWord }: UseVoiceFollowOpti
       if (tokenData.configured && tokenData.apiKey) {
         const keywordsParam = currentWords.map((w) => `keywords=${encodeURIComponent(w)}:3`).join("&");
         const socket = new WebSocket(
-          `wss://api.deepgram.com/v1/listen?model=nova-2&language=ar&smart_format=true&${keywordsParam}`,
+          `wss://api.deepgram.com/v1/listen?model=nova-3&language=ar&smart_format=true&${keywordsParam}`,
           ["token", tokenData.apiKey]
         );
 
@@ -150,7 +150,7 @@ export function useVoiceFollow({ currentWords, onMatchWord }: UseVoiceFollowOpti
             deepgramRecorderRef.current = recorder;
             setActiveSpeechEngine("Deepgram AI");
             setVoiceError(null);
-            toast.success("Deepgram Nova-2 Active (Sub-300ms Voice Sync)");
+            toast.success("Deepgram Nova-3 Active (Sub-300ms Voice Sync)");
           } catch {
             setVoiceError("Microphone access denied for Deepgram streaming.");
           }

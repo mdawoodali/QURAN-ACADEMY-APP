@@ -24,9 +24,9 @@ export async function GET() {
     return NextResponse.json({
       configured: true,
       apiKey: apiKey,
-      model: "nova-2",
+      model: "nova-3",
       language: "ar",
-      message: "Deepgram API connection verified for ultra-low latency voice following."
+      message: "Deepgram Nova-3 Multilingual (Arabic) connection verified for ultra-low latency voice following."
     });
   } catch (error: unknown) {
     console.error("Deepgram initialization error:", error);

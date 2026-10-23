@@ -98,7 +98,7 @@ describe("API Endpoint Resiliency & Parameter Boundary Verification Suite", () =
 
       const data = await res.json();
       expect(data.configured).toBe(true);
-      expect(data.model).toBe("nova-2");
+      expect(data.model).toBe("nova-3");
       expect(data.language).toBe("ar");
     });
   });

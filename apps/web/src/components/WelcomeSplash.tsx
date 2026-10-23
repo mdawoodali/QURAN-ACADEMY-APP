@@ -22,6 +22,12 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
     setSelectedSect(sect);
     setIsExiting(true);
     setSect(sect);
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem("welcome_dismissed", "true");
+        localStorage.setItem("welcome_dismissed", "true");
+      } catch {}
+    }
     // Smooth delay before triggering parent unmount to let animation play
     setTimeout(() => {
       onGetStarted(sect);

@@ -1187,3 +1187,28 @@ eceipt_uploaded, and payment_verified.
 - **Validation**:
   - `pnpm test`: 19/19 test suites passed, 128/128 tests passing with 100% success rate.
   - `pnpm --filter frontend build`: All 63/63 routes compiled cleanly with 0 errors via Turbopack.
+
+---
+
+## 9.54 Deepgram Nova-3 Multilingual (Arabic) Upgrade & Logo Landing Navigation Fix
+- **Objective**:
+  - Configure the Deepgram real-time streaming API to use the Nova-3 Multilingual model with explicit Arabic language parameter (`language="ar"`).
+  - Resolve landing page accessibility when clicking the logo: ensure clicking the brand logo in the public navbar, mobile drawer, and portal sidebars routes directly to the main landing page without blocking splash screens.
+- **Implementation**:
+  - **Deepgram Real-Time WebSocket Streaming (`apps/web/src/features/classroom/hooks/useVoiceFollow.ts`)**:
+    - Upgraded WebSocket URL to use `model=nova-3` with explicit `language=ar`:
+      `wss://api.deepgram.com/v1/listen?model=nova-3&language=ar&smart_format=true&${keywordsParam}`.
+    - Updated active engine feedback toast to `"Deepgram Nova-3 Active (Sub-300ms Voice Sync)"`.
+  - **Deepgram Token Endpoint (`apps/web/src/app/api/speech/deepgram-token/route.ts`)**:
+    - Configured API handler to return `model: "nova-3"` and `language: "ar"` in the verified connection response.
+  - **Main Landing Page & Logo Navigation (`page.tsx`, `PublicNavbar.tsx`, `Sidebar.tsx`, `WelcomeSplash.tsx`)**:
+    - `page.tsx`: Initialized `showSplash` to `false` and added multi-storage checks (`sessionStorage` and `localStorage`) so returning users and logo clicks immediately render the main landing page hero, courses, and testimonials.
+    - `PublicNavbar.tsx`: Integrated `handleGoHome` on desktop and mobile logo links, automatically setting `welcome_dismissed` to `"true"` on click.
+    - `Sidebar.tsx`: Added `onClick` handler on the portal sidebar logo to enable instant navigation to the main landing page.
+    - `WelcomeSplash.tsx`: Persisted `welcome_dismissed: "true"` to prevent recurring overlay blockage and maintained direct homepage skip button.
+  - **Test Suite Hardening (`api-resiliency.test.ts`, `health.test.ts`, `classroom-sync-bulletproof.test.ts`)**:
+    - Updated STT endpoint verification tests to assert `nova-3` and `ar`.
+    - Sanitized test mocks and removed unused imports for clean ESLint execution.
+- **Validation**:
+  - `pnpm typecheck`: 0 TypeScript errors across all workspace packages.
+  - `pnpm --filter frontend lint`: 0 ESLint errors and 0 warnings.

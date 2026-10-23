@@ -76,7 +76,18 @@ export default function Sidebar({ onClose, role, userName, initials }: { onClose
   return (
     <div className="w-64 h-full bg-black/45 backdrop-blur-xl border-r border-white/10 text-white flex flex-col shadow-2xl">
       <div className="p-6 flex items-start justify-between">
-        <Link href="/" className="flex items-center gap-3">
+        <Link 
+          href="/" 
+          onClick={() => {
+            if (typeof window !== "undefined") {
+              try {
+                sessionStorage.setItem("welcome_dismissed", "true");
+                localStorage.setItem("welcome_dismissed", "true");
+              } catch {}
+            }
+          }}
+          className="flex items-center gap-3"
+        >
           <div className="bg-emerald-800/80 border border-amber-400/40 p-2 rounded-xl text-amber-300 shadow-sm">
             <BookOpen size={24} />
           </div>

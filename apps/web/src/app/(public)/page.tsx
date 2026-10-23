@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,22 +10,30 @@ import TestimonialsCarousel from "@/components/TestimonialsCarousel";
 
 export default function Home() {
   const { t } = useLanguage();
-  const [showSplash, setShowSplash] = useState(() => {
-    if (typeof window !== "undefined") {
-      try {
-        return sessionStorage.getItem("welcome_dismissed") !== "true";
-      } catch {
-        return true;
+  const [showSplash, setShowSplash] = useState(false);
+
+  useEffect(() => {
+    try {
+      const dismissed =
+        sessionStorage.getItem("welcome_dismissed") === "true" ||
+        localStorage.getItem("welcome_dismissed") === "true";
+      const hasSect = localStorage.getItem("user_sect");
+
+      // Only display splash if user has never chosen a sect AND never dismissed it
+      if (!dismissed && !hasSect) {
+        queueMicrotask(() => setShowSplash(true));
       }
+    } catch {
+      queueMicrotask(() => setShowSplash(false));
     }
-    return true;
-  });
+  }, []);
 
   const handleDismiss = () => {
     setShowSplash(false);
     if (typeof window !== "undefined") {
       try {
         sessionStorage.setItem("welcome_dismissed", "true");
+        localStorage.setItem("welcome_dismissed", "true");
       } catch {
         // safe fallback
       }

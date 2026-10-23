@@ -23,7 +23,7 @@ describe("Health API Route", () => {
 
     const body = await res.json();
     expect(body.configured).toBe(true);
-    expect(body.model).toBe("nova-2");
+    expect(body.model).toBe("nova-3");
     expect(body.language).toBe("ar");
   });
 });

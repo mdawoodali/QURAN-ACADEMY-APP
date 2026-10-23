@@ -1,10 +1,10 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 
 describe("Bulletproof Real-Time Classroom Data Syncing & Anti-Chaos Suite", () => {
   describe("1. Monotonic Packet Freshness & Network Jitter Throttling", () => {
     it("discards stale out-of-order packets when network jitter delivers an older timestamp later", () => {
       let lastProcessedTimestamp = 0;
-      const appliedEvents: any[] = [];
+      const appliedEvents: unknown[] = [];
 
       function processEvent(packet: { type: string; timestamp: number; index?: number }) {
         if (packet.timestamp < lastProcessedTimestamp) {
@@ -118,7 +118,7 @@ describe("Bulletproof Real-Time Classroom Data Syncing & Anti-Chaos Suite", () =
       const peerRequest = { type: "sync_request", senderRole: "student", timestamp: Date.now() };
 
       // Teacher generates sync_response
-      let responsePayload: any = null;
+      let responsePayload: Record<string, unknown> | null = null;
       if (peerRequest.type === "sync_request") {
         responsePayload = {
           type: "sync_response",
