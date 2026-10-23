@@ -1450,3 +1450,28 @@ eceipt_uploaded, and payment_verified.
 - **Validation**:
   - `pnpm typecheck`: 0 TypeScript errors.
   - `pnpm --filter frontend lint`: 0 errors.
+
+---
+
+## 9.64 Sunni Calendar Integration, Tab Renaming & Dual-Sect Hadith Library Foundation
+
+- **Objective**:
+  1. Rename the Sunni navigation tab from `"Prayer Times / Qibla"` to simply `"Prayer Times"`.
+  2. Enable and tailor the Islamic Calendar in the Sunni panel, highlighting major canonical Islamic occasions and milestones without Shia-specific theological observances.
+  3. Introduce a dedicated "Hadiths" resource library section across both Sunni and Shia panels, initialized empty and fully synchronized with the administrative desk for future compendium uploads.
+- **Implementation Details**:
+  1. **Tab Renaming & Guard Updates (`apps/web/src/app/(public)/resources/page.tsx`)**:
+     - Renamed the tab label for the Sunni panel to `"Prayer Times"` while preserving `"Salat Timings"` for the Shia panel.
+     - Removed `calendar` from the Sunni redirection guard, unlocking full access to the interactive Islamic calendar.
+  2. **Canonical Sunni Calendar Events (`apps/web/src/data/islamicCalendarEvents.ts` & `IslamicCalendarView.tsx`)**:
+     - Formulated `MAJOR_ISLAMIC_EVENTS` covering Hijri New Year, Ashura fast, Mawlid an-Nabi, Isra & Mi'raj, Shab-e-Barat, Ramadan start, Battle of Badr, Conquest of Makkah, Laylat al-Qadr odd nights, Eid al-Fitr, 10 Days of Dhu al-Hijjah, Day of Arafah, Eid al-Adha, and Ayyam at-Tashreeq.
+     - Updated `IslamicCalendarView` to detect active sect (`sectProp` / `useSect`) and dynamically switch event datasets, legend badges, and descriptions.
+     - Suppressed the `14 Infallibles` tab button when in Sunni mode and ensured safe automatic fallback to the monthly calendar grid.
+  3. **Dual-Sect Empty Hadiths Section & Admin Upload Readiness (`apps/web/src/app/(public)/resources/page.tsx`, `apps/web/src/app/api/admin/resources/route.ts`, `apps/web/src/app/(portal)/admin/resources/page.tsx`)**:
+     - Added `"hadiths"` to `type ResourceTab` and placed the "Hadiths" tab button on both panels.
+     - Implemented dynamic database document matching (`doc.category.toLowerCase().includes("hadith")`) and search filtering.
+     - Added an elegant empty state placeholder with live database sync indicator and instructions for future admin additions.
+     - Cleared initial seed Hadith records from both client initial state and server fallback store so the section starts cleanly empty.
+- **Validation**:
+  - `pnpm typecheck`: 0 TypeScript errors.
+  - `pnpm --filter frontend lint`: 0 errors.

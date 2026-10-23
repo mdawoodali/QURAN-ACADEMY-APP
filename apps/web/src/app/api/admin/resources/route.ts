@@ -51,17 +51,6 @@ const FALLBACK_RESOURCE_STORE: UploadedDocumentRecord[] = [
     description: "Complete 54 supplications of Imam Ali Zayn al-Abidin (AS) with academic annotations."
   },
   {
-    id: "doc_4",
-    title: "Riyad al-Salihin — Gardens of the Righteous",
-    fileName: "Riyad_al_Salihin_Imam_Nawawi.pdf",
-    category: "Hadith & Sunnah Compendiums",
-    sect: "sunni",
-    fileSize: "12.4 MB",
-    uploadDate: "17 Oct 2026",
-    uploadedBy: "Super Admin",
-    description: "Classical Hadith compendium by Imam an-Nawawi covering ethics, worship, and manners."
-  },
-  {
     id: "doc_5",
     title: "Practical Ahkam & Daily Salat Manual",
     fileName: "Practical_Ahkam_Salat_Handbook.pdf",

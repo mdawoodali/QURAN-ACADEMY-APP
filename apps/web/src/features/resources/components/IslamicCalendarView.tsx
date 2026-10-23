@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Calendar as CalendarIcon,
   ChevronLeft,
@@ -17,10 +17,12 @@ import {
 import {
   HIJRI_MONTHS,
   ISLAMIC_SHIA_EVENTS,
+  MAJOR_ISLAMIC_EVENTS,
   IslamicCalendarEvent,
   HijriMonthMeta
 } from "@/data/islamicCalendarEvents";
 import { MASOOMEEN_CALENDAR } from "@/data/shiaToolkitData";
+import { useSect } from "@/components/SectContext";
 
 /**
  * Derives current live Hijri and Gregorian calendar metadata.
@@ -96,7 +98,14 @@ function getHijriMonthStartGregorian(
   return new Date(baseTimestamp);
 }
 
-export default function IslamicCalendarView() {
+export default function IslamicCalendarView({ sectProp }: { sectProp?: "shia" | "sunni" }) {
+  const { isShia: contextIsShia, isSunni: contextIsSunni } = useSect();
+  const isShia = sectProp ? sectProp === "shia" : contextIsShia;
+  const isSunni = sectProp ? sectProp === "sunni" : contextIsSunni;
+
+  // Select events catalog based on active panel (Shia vs Sunni Major Islamic Events)
+  const activeEventsList = isShia ? ISLAMIC_SHIA_EVENTS : MAJOR_ISLAMIC_EVENTS;
+
   const liveInfo = useMemo(() => getLiveCalendarInfo(), []);
 
   // Opens by default on the current active Hijri month and date
@@ -104,6 +113,13 @@ export default function IslamicCalendarView() {
   const [selectedFilter, setSelectedFilter] = useState<string>("all");
   const [selectedEvent, setSelectedEvent] = useState<IslamicCalendarEvent | null>(null);
   const [viewMode, setViewMode] = useState<"calendar" | "timeline" | "masoomeen">("calendar");
+
+  // Prevent masoomeen view from remaining active if user switches to Sunni panel
+  useEffect(() => {
+    if (isSunni && viewMode === "masoomeen") {
+      queueMicrotask(() => setViewMode("calendar"));
+    }
+  }, [isSunni, viewMode]);
 
   const currentMonthMeta: HijriMonthMeta = useMemo(() => {
     return HIJRI_MONTHS.find((m) => m.monthIndex === selectedMonthIndex) || HIJRI_MONTHS[0]!;
@@ -137,17 +153,17 @@ export default function IslamicCalendarView() {
 
   // Events belonging to the currently selected month
   const monthEvents = useMemo(() => {
-    return ISLAMIC_SHIA_EVENTS.filter((e) => e.hijriMonth === selectedMonthIndex);
-  }, [selectedMonthIndex]);
+    return activeEventsList.filter((e) => e.hijriMonth === selectedMonthIndex);
+  }, [activeEventsList, selectedMonthIndex]);
 
   // Filtered events across the whole year (for timeline)
   const filteredTimelineEvents = useMemo(() => {
-    return ISLAMIC_SHIA_EVENTS.filter((e) => {
+    return activeEventsList.filter((e) => {
       if (selectedFilter === "all") return true;
       if (selectedFilter === "major") return e.isMajor;
       return e.category === selectedFilter;
     });
-  }, [selectedFilter]);
+  }, [activeEventsList, selectedFilter]);
 
   // Build grid days for the selected Hijri month
   const monthDays = useMemo(() => {
@@ -243,10 +259,14 @@ export default function IslamicCalendarView() {
               <span>Dual Islamic (Hijri) &amp; English (Gregorian) Calendar</span>
             </div>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-white mb-2">
-              Islamic Calendar &amp; Sacred Shia Commemorations
+              {isShia
+                ? "Islamic Calendar & Sacred Shia Commemorations"
+                : "Islamic Calendar & Major Sacred Occasions"}
             </h2>
             <p className="text-xs sm:text-sm text-emerald-100/80 max-w-2xl leading-relaxed">
-              Explore the 12 sacred Hijri months side-by-side with equal prominence for English calendar dates. Comprehensive historical commemorations, Wiladat (joyful births), Shahadat (martyrdoms), Laylat al-Qadr, and sacred Eids of the Ahlulbayt (AS).
+              {isShia
+                ? "Explore the 12 sacred Hijri months side-by-side with equal prominence for English calendar dates. Comprehensive historical commemorations, Wiladat (joyful births), Shahadat (martyrdoms), Laylat al-Qadr, and sacred Eids of the Ahlulbayt (AS)."
+                : "Explore the 12 sacred Hijri months side-by-side with equal prominence for English calendar dates. Canonical Islamic occasions including Ashura, Mawlid an-Nabi, Isra & Mi'raj, Shab-e-Barat, Ramadan, Laylat al-Qadr, Eid al-Fitr, Day of Arafah, and Eid al-Adha."}
             </p>
           </div>
 
@@ -272,16 +292,18 @@ export default function IslamicCalendarView() {
             >
               Annual Timeline
             </button>
-            <button
-              onClick={() => setViewMode("masoomeen")}
-              className={`px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                viewMode === "masoomeen"
-                  ? "bg-amber-400 text-emerald-950 shadow-md"
-                  : "text-emerald-100/70 hover:text-white"
-              }`}
-            >
-              14 Infallibles
-            </button>
+            {isShia && (
+              <button
+                onClick={() => setViewMode("masoomeen")}
+                className={`px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  viewMode === "masoomeen"
+                    ? "bg-amber-400 text-emerald-950 shadow-md"
+                    : "text-emerald-100/70 hover:text-white"
+                }`}
+              >
+                14 Infallibles
+              </button>
+            )}
           </div>
         </div>
 
@@ -291,19 +313,26 @@ export default function IslamicCalendarView() {
             <span className="text-amber-300 uppercase tracking-wider text-[11px]">Event Key:</span>
             <span className="flex items-center gap-1.5 text-emerald-300">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block" />
-              Wiladat (Joyous Births)
+              {isShia ? "Wiladat (Joyous Births)" : "Joyous Occasions (Milad)"}
             </span>
-            <span className="flex items-center gap-1.5 text-red-300">
-              <span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block" />
-              Shahadat (Martyrdoms)
-            </span>
+            {isShia ? (
+              <span className="flex items-center gap-1.5 text-red-300">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block" />
+                Shahadat (Martyrdoms)
+              </span>
+            ) : (
+              <span className="flex items-center gap-1.5 text-sky-300">
+                <span className="w-2.5 h-2.5 rounded-full bg-sky-400 inline-block" />
+                Historical Milestones (Hijrah &amp; Badr)
+              </span>
+            )}
             <span className="flex items-center gap-1.5 text-amber-300">
               <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" />
               Major Eids &amp; Victory
             </span>
             <span className="flex items-center gap-1.5 text-purple-300">
               <span className="w-2.5 h-2.5 rounded-full bg-purple-400 inline-block" />
-              Sacred Nights (Qadr / Barat)
+              Sacred Nights (Qadr, Mi&apos;raj &amp; Barat)
             </span>
           </div>
 

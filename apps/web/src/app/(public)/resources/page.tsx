@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Download, BookOpen, FileText, Search, Sparkles, X, Library, Compass, CircleDot, BookMarked, Copy, Check, Shield, Calendar, Bookmark, ArrowRight } from "lucide-react";
+import { Download, BookOpen, FileText, Search, Sparkles, X, Library, Compass, CircleDot, BookMarked, Copy, Check, Shield, Calendar, Bookmark, ArrowRight, Database } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { QURAN_PARAS } from "@/data/quranParas";
 import { DAILY_GUIDES_DATA, GuideResource } from "@/data/guidesData";
@@ -19,6 +19,7 @@ import toast from "react-hot-toast";
 
 type ResourceTab =
   | "quran"
+  | "hadiths"
   | "duas"
   | "ziaraat"
   | "texts"
@@ -48,6 +49,7 @@ export default function ResourcesPage() {
   // Search States
   const [duasSearch, setDuasSearch] = useState<string>("");
   const [ziaraatSearch, setZiaraatSearch] = useState<string>("");
+  const [hadithsSearch, setHadithsSearch] = useState<string>("");
 
   // Recitation Modal state for Duas & Ziaraat
   const [activeRecitation, setActiveRecitation] = useState<{
@@ -93,8 +95,9 @@ export default function ResourcesPage() {
       if (isShia && doc.sect === "sunni") return false;
       if (isSunni && (doc.sect === "shia" || doc.category.toLowerCase().includes("ziar"))) return false;
       if (activeTab === "duas") return doc.category.toLowerCase().includes("dua");
+      if (activeTab === "hadiths") return doc.category.toLowerCase().includes("hadith");
       if (activeTab === "ziaraat") return doc.category.toLowerCase().includes("ziar");
-      if (activeTab === "texts") return doc.category.toLowerCase().includes("classical") || doc.category.toLowerCase().includes("hadith");
+      if (activeTab === "texts") return doc.category.toLowerCase().includes("classical");
       if (activeTab === "ahkam") return doc.category.toLowerCase().includes("ahkam");
       if (activeTab === "quran") return doc.category.toLowerCase().includes("quran") || doc.category.toLowerCase().includes("tajweed");
       return false;
@@ -198,7 +201,7 @@ export default function ResourcesPage() {
 
   // Safety guard: if switched to Sunni while on specialized Shia tabs, bounce to Quran
   useEffect(() => {
-    if (isSunni && (activeTab === "texts" || activeTab === "ahkam" || activeTab === "calendar" || activeTab === "ziaraat")) {
+    if (isSunni && (activeTab === "texts" || activeTab === "ahkam" || activeTab === "ziaraat")) {
       queueMicrotask(() => setActiveTab("quran"));
     }
   }, [isSunni, activeTab]);
@@ -370,7 +373,23 @@ https://quranlearnacademy.com/resources
             <span>Duas</span>
           </button>
 
-          {/* Shia-Specific Tabs: Ziaraat, Classical Texts, Ahkam & Calendar */}
+          {/* Hadiths Tab (Available in both Sunni & Shia panels) */}
+          <button
+            onClick={() => {
+              setActiveTab("hadiths");
+              setSearchQuery("");
+            }}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+              activeTab === "hadiths"
+                ? "bg-amber-400 text-emerald-950 shadow-md"
+                : "text-emerald-100/80 hover:text-white hover:bg-white/10"
+            }`}
+          >
+            <Library size={16} />
+            <span>Hadiths</span>
+          </button>
+
+          {/* Shia-Specific Tabs: Ziaraat, Classical Texts, & Ahkam */}
           {isShia && (
             <>
               {/* Ziaraat Tab (Exclusively for Shia panel) */}
@@ -418,23 +437,24 @@ https://quranlearnacademy.com/resources
                 <Shield size={16} />
                 <span>Wudhu &amp; Salat Ahkam</span>
               </button>
-
-              <button
-                onClick={() => {
-                  setActiveTab("calendar");
-                  setSearchQuery("");
-                }}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                  activeTab === "calendar"
-                    ? "bg-amber-400 text-emerald-950 shadow-md"
-                    : "text-emerald-100/80 hover:text-white hover:bg-white/10"
-                }`}
-              >
-                <Calendar size={16} />
-                <span>Islamic Calendar</span>
-              </button>
             </>
           )}
+
+          {/* Islamic Calendar Tab (Available in both Sunni & Shia panels) */}
+          <button
+            onClick={() => {
+              setActiveTab("calendar");
+              setSearchQuery("");
+            }}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+              activeTab === "calendar"
+                ? "bg-amber-400 text-emerald-950 shadow-md"
+                : "text-emerald-100/80 hover:text-white hover:bg-white/10"
+            }`}
+          >
+            <Calendar size={16} />
+            <span>Islamic Calendar</span>
+          </button>
 
           <button
             onClick={() => {
@@ -463,7 +483,7 @@ https://quranlearnacademy.com/resources
             }`}
           >
             <Compass size={16} />
-            <span>{isShia ? "Salat Timings" : "Prayer Times / Qibla"}</span>
+            <span>{isShia ? "Salat Timings" : "Prayer Times"}</span>
           </button>
 
           <button
@@ -706,6 +726,126 @@ https://quranlearnacademy.com/resources
         </section>
       )}
 
+      {/* TAB 1.5: HADITHS (Prophetic Sunnah & Hadith Compendiums for Sunni & Shia) */}
+      {activeTab === "hadiths" && (
+        <section className="mb-16 animate-in fade-in duration-300">
+          <div className="text-center max-w-3xl mx-auto mb-8">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-300 text-xs font-semibold mb-3">
+              <Library size={14} />
+              <span>
+                {isShia
+                  ? "Ahlulbayt (AS) & Prophetic Traditions"
+                  : "Prophetic Sunnah & Sihah al-Sittah"}
+              </span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-white mb-2">
+              Hadith &amp; Sunnah Compendiums
+            </h2>
+            <p className="text-sm sm:text-base text-emerald-100/80 leading-relaxed max-w-2xl mx-auto">
+              {isShia
+                ? "Authentic traditions and narrations of the Holy Prophet Muhammad (SAWW) and the Twelve Infallible Imams (AS). Verified texts from Al-Kafi, Man La Yahduruhu al-Faqih, Tahdhib al-Ahkam, and classical compendiums."
+                : "Authentic sayings, actions, and approvals of the Holy Prophet Muhammad (SAWW) across the canonical Sihah al-Sittah works (Sahih al-Bukhari, Sahih Muslim, and the Sunan collections)."}
+            </p>
+          </div>
+
+          {/* Search Bar */}
+          <div className="max-w-md mx-auto mb-8 relative">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-200/50" size={16} />
+            <input
+              type="text"
+              value={hadithsSearch}
+              onChange={(e) => setHadithsSearch(e.target.value)}
+              placeholder="Search Hadith compendiums by title or narrator..."
+              className="w-full bg-black/40 border border-white/20 rounded-xl pl-10 pr-3 py-2.5 text-xs sm:text-sm text-white placeholder:text-emerald-200/40 focus:outline-none focus:border-amber-400 backdrop-blur-md"
+            />
+            {hadithsSearch && (
+              <button
+                onClick={() => setHadithsSearch("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] bg-white/10 hover:bg-white/20 px-2 py-1 rounded text-emerald-200 cursor-pointer"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+
+          {/* Published Hadiths Grid (from Database / Admin Portal) */}
+          {matchingDbDocs.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+              {matchingDbDocs
+                .filter(
+                  (doc) =>
+                    !hadithsSearch ||
+                    doc.title.toLowerCase().includes(hadithsSearch.toLowerCase()) ||
+                    doc.description.toLowerCase().includes(hadithsSearch.toLowerCase())
+                )
+                .map((doc) => (
+                  <div
+                    key={doc.id}
+                    className="glass-container rounded-2xl p-5 border border-white/15 hover:border-amber-400/40 transition shadow-xl flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between text-xs mb-2">
+                        <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-300">
+                          {doc.category}
+                        </span>
+                        <span className="text-emerald-200/60 font-mono text-[11px]">{doc.fileSize}</span>
+                      </div>
+                      <h3 className="text-base font-serif font-bold text-white mb-2 leading-snug">
+                        {doc.title}
+                      </h3>
+                      <p className="text-xs text-emerald-100/75 line-clamp-3 mb-4 leading-relaxed">
+                        {doc.description}
+                      </p>
+                    </div>
+
+                    <div className="pt-3 border-t border-white/10 flex items-center justify-between">
+                      <span className="text-[11px] text-emerald-200/60 font-mono">{doc.fileName}</span>
+                      <button
+                        onClick={() => {
+                          if (doc.fileDataUrl) {
+                            const newTab = window.open();
+                            if (newTab) {
+                              newTab.location.href = doc.fileDataUrl;
+                            }
+                          } else {
+                            toast(`Reference compendium: ${doc.title}`, { icon: "📖" });
+                          }
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-800/80 hover:bg-emerald-700 text-amber-300 text-xs font-bold transition border border-amber-400/30 cursor-pointer"
+                      >
+                        <BookOpen size={13} />
+                        <span>Read Online</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          ) : (
+            /* Empty State: Kept empty for the time being, to be filled later through admin portal */
+            <div className="max-w-xl mx-auto text-center py-16 px-6 glass-container rounded-3xl border border-white/15 shadow-xl space-y-4">
+              <div className="w-16 h-16 rounded-2xl bg-amber-400/15 border border-amber-400/30 text-amber-300 flex items-center justify-center mx-auto">
+                <Library size={32} />
+              </div>
+              <div>
+                <h3 className="text-xl font-serif font-bold text-white mb-2">
+                  No Hadith Collections Published Yet
+                </h3>
+                <p className="text-xs sm:text-sm text-emerald-100/70 leading-relaxed max-w-md mx-auto">
+                  {isShia
+                    ? "Authentic Shia Hadith compendiums and annotated traditions are currently being curated. Once uploaded and published via the Academy Admin Portal, they will appear here instantly."
+                    : "Authentic Sunnah collections and verified Hadith compendiums are currently being prepared. Once uploaded and published via the Academy Admin Portal, they will appear here instantly."}
+                </p>
+              </div>
+
+              <div className="pt-2 flex items-center justify-center gap-2 text-xs text-emerald-200/60 font-mono">
+                <Database size={13} className="text-emerald-400" />
+                <span>Database Sync Active • Admin Upload Ready</span>
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
       {/* TAB 3: ZIARAAT (10 Canonical Authentic Shia Visitations - Name-only cards, Shia Panel Only) */}
       {activeTab === "ziaraat" && isShia && (
         <section className="mb-16">
@@ -853,8 +993,8 @@ https://quranlearnacademy.com/resources
         </section>
       )}
 
-      {/* TAB: ISLAMIC & SHIA CALENDAR */}
-      {activeTab === "calendar" && isShia && (
+      {/* TAB: ISLAMIC CALENDAR (Available for both Sunni & Shia) */}
+      {activeTab === "calendar" && (
         <section className="mb-16">
           <IslamicCalendarView />
         </section>
