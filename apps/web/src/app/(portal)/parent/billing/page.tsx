@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { compressReceiptImage } from "@/lib/imageCompressor";
 import { 
   Building2, 
   Copy, 
@@ -82,7 +83,7 @@ export default function ParentBilling() {
     toast.success(`${label} copied to clipboard!`);
   };
 
-  const handleReceiptSubmit = (e: React.FormEvent) => {
+  const handleReceiptSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!transactionRef.trim()) {
       toast.error("Please enter your transaction reference or UTR number");
@@ -90,13 +91,45 @@ export default function ParentBilling() {
     }
 
     setIsUploading(true);
-    toast.loading("Submitting payment receipt to Accounts desk...", { id: "receipt" });
+    toast.loading("Compressing slip & saving to Accounts desk...", { id: "receipt" });
 
-    setTimeout(() => {
+    try {
+      let receiptDataUrl = "";
+      if (receiptFile) {
+        try {
+          const compressed = await compressReceiptImage(receiptFile);
+          receiptDataUrl = compressed.dataUrl;
+        } catch {
+          // continue with submission even if compression fails
+        }
+      }
+
+      const res = await fetch("/api/invoices", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          familyName: "Khan Family",
+          studentName: "Yusuf & Hana Khan",
+          packageTier: "Standard Plan (2 Learners)",
+          amount: Number(amountPaid) || (selectedCurrency === "PKR" ? 18000 : selectedCurrency === "GBP" ? 65 : 100),
+          currency: selectedCurrency,
+          paymentMethod: bank.bankName,
+          transactionRef: transactionRef.trim(),
+          receiptUrl: receiptDataUrl,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to save receipt record");
+      }
+
       setIsUploading(false);
       setReceiptSuccess(true);
-      toast.success("Receipt submitted successfully! Admin will verify within 2 business hours.", { id: "receipt" });
-    }, 1200);
+      toast.success("Receipt submitted and persisted to Academy Accounts! Verification usually within 2 business hours.", { id: "receipt" });
+    } catch (err: any) {
+      setIsUploading(false);
+      toast.error("Could not record receipt. Please check your network and try again.", { id: "receipt" });
+    }
   };
 
   return (

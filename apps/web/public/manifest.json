@@ -1,17 +1,20 @@
 {
-  "name": "Quran Academy",
+  "name": "Quran Learn Academy",
   "short_name": "Quran Academy",
-  "description": "A lifelong connection with the Quran.",
+  "description": "Excellence in 1-on-1 Online Quran, Tajweed and Hifz Pedagogy.",
   "start_url": "/",
+  "id": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#021811",
-  "theme_color": "#052b20",
+  "theme_color": "#021811",
+  "categories": ["education", "lifestyle", "books"],
   "icons": [
     {
       "src": "/logo_quran_learn_academy.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icon.png",

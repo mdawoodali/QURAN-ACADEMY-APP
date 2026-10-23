@@ -44,7 +44,7 @@ export async function middleware(request: NextRequest) {
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   response.headers.set(
     "Permissions-Policy",
-    "camera=(self), microphone=(self), geolocation=()"
+    "camera=(self), microphone=(self), geolocation=(self)"
   );
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -98,9 +98,18 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const authPromise = supabase.auth.getUser();
+    const timeoutPromise = new Promise<{ data: { user: null } }>((resolve) =>
+      setTimeout(() => resolve({ data: { user: null } }), 2500)
+    );
+    const result = await Promise.race([authPromise, timeoutPromise]);
+    user = result?.data?.user || null;
+  } catch (authErr) {
+    console.warn("[Middleware Auth Check Timeout/Error]", authErr);
+    user = null;
+  }
 
   if (!user && isProtectedRoute) {
     url.pathname = "/login";
@@ -108,13 +117,23 @@ export async function middleware(request: NextRequest) {
   }
 
   if (user && isAuthRoute) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
+    let profileRole = "student";
+    try {
+      const profilePromise = supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+      const profileTimeout = new Promise<{ data: null }>((resolve) =>
+        setTimeout(() => resolve({ data: null }), 1500)
+      );
+      const res: any = await Promise.race([profilePromise, profileTimeout]);
+      if (res?.data?.role) profileRole = res.data.role;
+    } catch {
+      profileRole = "student";
+    }
 
-    url.pathname = profile ? `/${profile.role}` : "/student";
+    url.pathname = `/${profileRole}`;
     return NextResponse.redirect(url);
   }
 

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Calendar, Video, CheckCircle2, Ban, User } from "lucide-react";
+import { Calendar, Video, CheckCircle2, Ban, User, MessageSquare } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface TeacherSlot {
@@ -203,11 +203,24 @@ export default function TeacherSchedule() {
                     return (
                       <div
                         key={slot.id}
-                        className="p-3 rounded-xl bg-amber-400 text-emerald-950 font-bold shadow-md text-xs relative group cursor-pointer transition-transform hover:scale-[1.02]"
+                        className="p-3 rounded-xl bg-amber-400 text-emerald-950 font-bold shadow-md text-xs relative group transition-transform hover:scale-[1.02]"
                       >
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-[10px] opacity-80">{slot.time}</span>
-                          <Video size={12} className="opacity-90" />
+                          <div className="flex items-center gap-1.5">
+                            <a
+                              href={`https://wa.me/?text=${encodeURIComponent(`Assalamu Alaikum! Reminder for ${slot.studentName}'s Quran class today at ${slot.time} PKT. Join room: https://quranacademyapp.vercel.app/classroom/${slot.classroomSlug}`)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Send WhatsApp Reminder to Parent"
+                              className="text-emerald-950 hover:text-emerald-800 bg-white/40 hover:bg-white/60 p-1 rounded-md transition"
+                            >
+                              <MessageSquare size={11} />
+                            </a>
+                            <Link href={`/classroom/${slot.classroomSlug}`} title="Enter Live Classroom" className="bg-emerald-950 text-amber-300 p-1 rounded-md hover:bg-emerald-900 transition">
+                              <Video size={11} />
+                            </Link>
+                          </div>
                         </div>
                         <div className="truncate font-extrabold">{slot.studentName}</div>
                         <div className="text-[10px] opacity-75 truncate">{slot.course}</div>

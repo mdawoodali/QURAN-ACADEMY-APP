@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { CheckCircle2, BookOpen, Search } from "lucide-react";
+import { useState, useEffect } from "react";
+import { CheckCircle2, BookOpen, Search, RefreshCw } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface EnrolmentItem {
@@ -65,12 +65,41 @@ const INITIAL_ENROLMENTS: EnrolmentItem[] = [
 export default function AdminEnrolments() {
   const [enrolments, setEnrolments] = useState<EnrolmentItem[]>(INITIAL_ENROLMENTS);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleAction = (id: string, actionName: string) => {
+  const loadEnrolments = () => {
+    setIsLoading(true);
+    fetch("/api/enrolments")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.enrolments && data.enrolments.length > 0) {
+          setEnrolments(data.enrolments);
+        }
+      })
+      .catch((err) => console.warn("Could not load enrolments:", err))
+      .finally(() => setIsLoading(false));
+  };
+
+  useEffect(() => {
+    loadEnrolments();
+  }, []);
+
+  const handleAction = async (id: string, actionName: string) => {
     toast.success(`Action "${actionName}" executed for enrolment.`);
     setEnrolments((prev) =>
       prev.map((e) => (e.id === id ? { ...e, status: "active" } : e))
     );
+
+    // Persist status change to API/DB
+    try {
+      await fetch("/api/enrolments", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status: "active" }),
+      });
+    } catch (err) {
+      console.warn("Could not patch enrolment:", err);
+    }
   };
 
   const filtered = enrolments.filter(

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CheckCircle2, Clock, Download, FileText, ArrowDownToLine, ShieldCheck } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -51,10 +51,40 @@ const INITIAL_RECEIPTS: PendingReceipt[] = [
 export default function AdminFinance() {
   const [receipts, setReceipts] = useState<PendingReceipt[]>(INITIAL_RECEIPTS);
 
+  useEffect(() => {
+    fetch("/api/invoices")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.invoices && data.invoices.length > 0) {
+          const mapped: PendingReceipt[] = data.invoices.map((inv: any) => ({
+            id: inv.id,
+            familyName: inv.familyName,
+            learnerCount: 1,
+            packageTier: inv.packageTier,
+            amount: String(inv.amount),
+            currency: inv.currency,
+            channel: inv.paymentMethod,
+            transactionRef: inv.transactionRef,
+            submittedAt: new Date(inv.submittedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            status: inv.status === "verified" ? "verified" : "pending_verification",
+          }));
+          setReceipts(mapped);
+        }
+      })
+      .catch((err) => console.warn("Could not load invoices from API:", err));
+  }, []);
+
   const handleVerifyReceipt = async (id: string, ref: string, r: PendingReceipt) => {
     toast.loading(`Clearing payment for Ref: ${ref}...`, { id: "clear" });
     
     try {
+      // Persist verification to database / API
+      await fetch("/api/invoices", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status: "verified" }),
+      }).catch((e) => console.warn("Invoices patch:", e));
+
       // Fire automated transactional email via Resend endpoint
       await fetch("/api/email/send", {
         method: "POST",

@@ -146,8 +146,22 @@ export default function LiveClassroom() {
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: settings.isCameraOn ? { deviceId: settings.videoInputId ? { exact: settings.videoInputId } : undefined } : false,
-        audio: settings.isMicOn ? { deviceId: settings.audioInputId ? { exact: settings.audioInputId } : undefined } : false,
+        video: settings.isCameraOn
+          ? {
+              deviceId: settings.videoInputId ? { ideal: settings.videoInputId } : undefined,
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+              facingMode: "user",
+            }
+          : false,
+        audio: settings.isMicOn
+          ? {
+              deviceId: settings.audioInputId ? { ideal: settings.audioInputId } : undefined,
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true,
+            }
+          : false,
       });
 
       streamRef.current = stream;
@@ -238,6 +252,14 @@ export default function LiveClassroom() {
 
   return (
     <div className="flex flex-col h-screen w-full bg-[#031d16] text-white overflow-hidden relative select-none">
+      {/* Network Drop / Reconnection Banner */}
+      {connectionStatus === "reconnecting" && (
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-50 bg-amber-500 text-emerald-950 px-4 py-1.5 rounded-full font-bold text-xs sm:text-sm flex items-center gap-2 shadow-2xl border border-amber-300 animate-pulse">
+          <span className="w-2 h-2 rounded-full bg-emerald-950 animate-ping" />
+          <span>Connection fluctuating — Re-establishing classroom sync...</span>
+        </div>
+      )}
+
       {/* 1. Pre-Call Hardware Diagnostic Modal */}
       <DeviceCheckModal
         isOpen={showDeviceCheck}
