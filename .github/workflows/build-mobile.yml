@@ -1,0 +1,111 @@
+name: Build Mobile Apps (Android & iOS)
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: "Build target: release or debug"
+        required: true
+        default: "release"
+        type: choice
+        options:
+          - release
+          - debug
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-android:
+    name: Build Android App (.aab & .apk)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: "zulu"
+          java-version: 17
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Web Application
+        run: pnpm --filter frontend build
+        env:
+          NEXT_PUBLIC_APP_URL: "https://quranacademyapp.vercel.app"
+
+      - name: Sync Capacitor Android
+        run: |
+          cd apps/web
+          npx cap sync android
+
+      - name: Grant Execute Permission to Gradlew
+        run: chmod +x apps/web/android/gradlew
+
+      - name: Build Android App Bundle (Google Play AAB)
+        run: |
+          cd apps/web/android
+          if [ "${{ github.event.inputs.build_type }}" = "debug" ]; then
+            ./gradlew assembleDebug
+          else
+            ./gradlew bundleRelease assembleRelease
+          fi
+
+      - name: Upload Android Release Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-app-build
+          path: |
+            apps/web/android/app/build/outputs/bundle/**/*.aab
+            apps/web/android/app/build/outputs/apk/**/*.apk
+
+  build-ios:
+    name: Build iOS Xcode Archive
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Web Application
+        run: pnpm --filter frontend build
+        env:
+          NEXT_PUBLIC_APP_URL: "https://quranacademyapp.vercel.app"
+
+      - name: Sync Capacitor iOS
+        run: |
+          cd apps/web
+          npx cap sync ios
+
+      - name: Upload iOS Xcode Project Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-xcode-build
+          path: apps/web/ios/App

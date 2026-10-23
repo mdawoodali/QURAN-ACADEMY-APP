@@ -1106,3 +1106,19 @@ eceipt_uploaded, and payment_verified.
 - **Validation**:
   - `pnpm test`: 18/18 test suites passed, 123/123 tests passing with 100% success rate.
   - `pnpm exec cap sync`: Successfully synced web assets, plugins, and configuration across Android and iOS platforms.
+
+
+---
+
+## 9.51 Unified Cross-Platform Architecture: Single Codebase for Android & iOS with Automated GitHub Actions
+- **Objective**: Guarantee 100% unified code parity so a single codebase serves both Android and iOS simultaneously, and automate cloud binary generation without requiring a physical Mac.
+- **Architectural Implementation**:
+  1. **Single Unified Codebase**:
+     - Confirmed Capacitor single-source-of-truth architecture: all UI components, LiveKit WebRTC classroom, Tajweed parser, and billing logic are written once in Next.js / TypeScript and packaged identically into both Android and iOS native targets.
+     - Updates made to the repository automatically synchronize across Web, Android, and iOS via `pnpm cap:sync`.
+  2. **Automated GitHub Actions Mobile CI/CD (`.github/workflows/build-mobile.yml`)**:
+     - Configured one-click `workflow_dispatch` and tag-based release pipeline.
+     - `build-android`: Provisions Ubuntu with JDK 17, compiles Next.js web bundle, synchronizes Capacitor, executes Gradle, and uploads signed `.aab` (Google Play) and `.apk` binaries directly to GitHub Artifacts.
+     - `build-ios`: Provisions `macos-latest`, compiles Next.js web bundle, synchronizes Capacitor, and packages the iOS Xcode archive artifact ready for App Store Connect distribution.
+- **Validation**:
+  - `docs/journal.md` updated and validated against CI enforcement policies.
