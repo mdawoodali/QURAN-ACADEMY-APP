@@ -1050,3 +1050,35 @@ eceipt_uploaded, and payment_verified.
 - **Validation**:
   - `pnpm test`: 16/16 test files passed, 112/112 unit & integration tests passing (100% pass rate).
   - `pnpm --filter frontend build`: All 58/58 static and dynamic routes compiled cleanly in Turbopack with 0 errors.
+
+
+---
+
+## 9.49 Open-Source Enhancement Suite: Tajweed Rule Parser, Reed Pen Calligraphy, Vector Mushaf, Audio Waveform & PWA Push Notifications
+- **Objective**: Deliver the complete suite of open-source enhancements and public production hardening: character-level Tajweed rule parsing, reed pen calligraphy, vector Mushaf page rendering, vocal waveform elongation tracking, and PWA Web Push infrastructure.
+- **Architectural Enhancements Implemented**:
+  1. **Standardized Character-Level Tajweed Rule Parser (`packages/domain/src/quran/tajweedEngine.ts`)**:
+     - Modeled after the authoritative King Fahd Complex (Hafs 'an 'Asim) and Tanzil Uthmanic specification.
+     - Implemented rule segmentation for Ghunnah, Idgham (with & without Ghunnah), Iqlab, Ikhfa, Qalqalah, and Madd (Muttasil, Munfasil, Lazim).
+     - Provides `parseTajweed()` for raw segment extraction and `renderTajweedHtml()` for accessible spans with color styling and rule explanation tooltips.
+     - Fully exported in `@quran/domain` and validated with 7 comprehensive unit tests in `tajweedEngine.test.ts`.
+  2. **Authentic Reed Pen (Qalam / قلم) Calligraphy Engine (`apps/web/src/lib/calligraphyStroke.ts`)**:
+     - Developed a lightweight, zero-dependency ribbon polygon algorithm inspired by the `perfect-freehand` specification.
+     - Supports authentic Islamic calligraphy nib cut angles and aspect ratios: Naskh (40°), Thuluth (45°), Nastaliq (65°), and standard marker.
+     - Implements pressure-sensitive tapering and quadratic Bezier SVG path generation (`generateCalligraphyPath`).
+     - Validated with 4 unit tests in `apps/web/src/__tests__/calligraphyStroke.test.ts`.
+  3. **Interactive Vector Mushaf Page Component (`apps/web/src/features/classroom/components/VectorMushafPage.tsx`)**:
+     - Renders ornamental Uthmanic page frames with Surah banners, Makki/Madani classification, total ayat count, and calligraphic Bismillah.
+     - Features interactive Ayah hitboxes with glowing active selections, circular end markers (`۝`), and real-time character-level Tajweed colorization.
+     - Exported in `apps/web/src/features/classroom/index.ts`.
+  4. **Real-Time Recitation Waveform & Tajweed Duration Meter (`apps/web/src/components/TajweedWaveform.tsx`)**:
+     - Connects to Web Audio API `AnalyserNode` to render real-time vocal frequency bars on HTML5 Canvas.
+     - Measures sustained phonation time in milliseconds and calculates Harakat count (~400ms per Harakah).
+     - Provides instant visual badges when students successfully sustain required Madd durations (2, 4, 5, or 6 counts).
+  5. **PWA Service Worker & Web Push Infrastructure (`apps/web/public/sw.js` & `apps/web/src/components/PWAInstallPrompt.tsx`)**:
+     - Created `sw.js` with Stale-While-Revalidate caching for icons, fonts, and assets, with automatic bypass for live WebRTC/API endpoints.
+     - Implemented `push` and `notificationclick` listeners to deliver 15-minute class reminders directly to student/parent devices.
+     - Added `<PWAInstallPrompt />` in `apps/web/src/app/layout.tsx` for one-tap home screen installation and notification permission activation.
+- **Validation**:
+  - `pnpm test`: 18/18 test files passed, 123/123 tests passing with 100% success rate.
+  - `pnpm --filter frontend build`: All 58/58 static and dynamic routes compiled cleanly in Turbopack with 0 TypeScript errors.

@@ -3,6 +3,7 @@ import { Source_Serif_4, Figtree, Amiri_Quran, Noto_Sans_Arabic, Vidaloka, Cinze
 import { Toaster } from "react-hot-toast";
 import { LanguageProvider } from "@/components/LanguageContext";
 import { SectProvider } from "@/components/SectContext";
+import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import "./globals.css";
 
 const sourceSerif = Source_Serif_4({ subsets: ["latin"], variable: "--font-hero" });
@@ -173,6 +174,7 @@ export default function RootLayout({
           </LanguageProvider>
         </SectProvider>
         <Toaster position="bottom-right" />
+        <PWAInstallPrompt />
       </body>
     </html>
   );
