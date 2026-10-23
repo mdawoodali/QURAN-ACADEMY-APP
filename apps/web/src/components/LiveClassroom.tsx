@@ -400,7 +400,7 @@ export default function LiveClassroom() {
                       ))}
                     </div>
                     <div className="text-amber-300 font-bold text-xs tracking-wide">
-                      {isVoiceFollowOn ? "AI Listening to Recitation (Speak into Mic)" : "AI Voice Follow Paused"}
+                      {isVoiceFollowOn ? "AI Listening to Arabic Recitation (Arabic Only)" : "AI Voice Follow Paused"}
                     </div>
                   </div>
 
@@ -415,7 +415,7 @@ export default function LiveClassroom() {
                       className="text-xs text-white font-medium bg-emerald-950/80 border border-emerald-500/30 px-3 py-1 rounded-full max-w-md truncate"
                       dir="rtl"
                     >
-                      <span className="text-amber-300 mr-2 font-sans text-[10px]">Recognized:</span>
+                      <span className="text-amber-300 mr-2 font-sans text-[10px]">Arabic Recited:</span>
                       &quot;{lastSpokenText}&quot;
                     </div>
                   )}

@@ -24,32 +24,52 @@ export function useVoiceFollow({ currentWords, onMatchWord }: UseVoiceFollowOpti
   const processSpokenTranscript = useCallback((rawText: string) => {
     const clean = rawText.trim();
     if (!clean) return;
-    setLastSpokenText(clean);
 
-    const wordsSpoken = clean.split(/\s+/);
-    const latestSpoken = wordsSpoken[wordsSpoken.length - 1] || "";
-    const normalizedSpoken = normalizeArabic(latestSpoken);
-
-    let matchIdx = -1;
-    for (let i = 0; i < currentWords.length; i++) {
-      const normAyahWord = normalizeArabic(currentWords[i] || "");
-      if (
-        normAyahWord &&
-        normalizedSpoken &&
-        (normAyahWord.includes(normalizedSpoken) || normalizedSpoken.includes(normAyahWord))
-      ) {
-        matchIdx = i;
-        break;
-      }
-      const phonetics = PHONETIC_MAP[i] || [];
-      if (phonetics.some((p) => latestSpoken.toLowerCase().includes(p))) {
-        matchIdx = i;
-        break;
-      }
+    // STRICT ARABIC ENFORCEMENT:
+    // Only accept Arabic script input; discard all English / non-Arabic speech.
+    const ARABIC_SCRIPT_REGEX = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/;
+    if (!ARABIC_SCRIPT_REGEX.test(clean)) {
+      // Input is entirely English or non-Arabic; ignore it completely.
+      return;
     }
 
-    if (matchIdx !== -1) {
-      onMatchWord(matchIdx);
+    // Filter out any incidental non-Arabic tokens so the engine only processes Arabic
+    const arabicOnlyWords = clean
+      .split(/\s+/)
+      .filter((w) => ARABIC_SCRIPT_REGEX.test(w));
+
+    if (arabicOnlyWords.length === 0) return;
+
+    const arabicClean = arabicOnlyWords.join(" ");
+    setLastSpokenText(arabicClean);
+
+    // Check spoken Arabic words starting with the latest token
+    for (let sIdx = arabicOnlyWords.length - 1; sIdx >= 0; sIdx--) {
+      const wordToken = arabicOnlyWords[sIdx] || "";
+      const normalizedSpoken = normalizeArabic(wordToken);
+      if (!normalizedSpoken) continue;
+
+      let matchIdx = -1;
+      for (let i = 0; i < currentWords.length; i++) {
+        const normAyahWord = normalizeArabic(currentWords[i] || "");
+        if (
+          normAyahWord &&
+          (normAyahWord.includes(normalizedSpoken) || normalizedSpoken.includes(normAyahWord))
+        ) {
+          matchIdx = i;
+          break;
+        }
+        const phonetics = PHONETIC_MAP[i] || [];
+        if (phonetics.some((p) => normalizeArabic(p) === normalizedSpoken)) {
+          matchIdx = i;
+          break;
+        }
+      }
+
+      if (matchIdx !== -1) {
+        onMatchWord(matchIdx);
+        break;
+      }
     }
   }, [currentWords, onMatchWord]);
 
@@ -91,7 +111,7 @@ export function useVoiceFollow({ currentWords, onMatchWord }: UseVoiceFollowOpti
       recognition.onstart = () => {
         setVoiceError(null);
         setActiveSpeechEngine("Web Speech");
-        toast.success("Voice Follow active (Browser Web Speech)");
+        toast.success("AI Arabic Voice Follow active (Web Speech)");
       };
 
       recognition.onerror = (e: { error: string }) => {
@@ -150,7 +170,7 @@ export function useVoiceFollow({ currentWords, onMatchWord }: UseVoiceFollowOpti
             deepgramRecorderRef.current = recorder;
             setActiveSpeechEngine("Deepgram AI");
             setVoiceError(null);
-            toast.success("Deepgram Nova-3 Active (Sub-300ms Voice Sync)");
+            toast.success("AI Arabic Voice Follow active (Deepgram Nova-3)");
           } catch {
             setVoiceError("Microphone access denied for Deepgram streaming.");
           }
@@ -208,7 +228,7 @@ export function useVoiceFollow({ currentWords, onMatchWord }: UseVoiceFollowOpti
   const toggleVoiceFollow = useCallback(() => {
     if (isVoiceFollowOn) {
       stopVoiceFollow();
-      toast("Voice Follow deactivated");
+      toast("AI Arabic Voice Follow paused");
     } else {
       isVoiceFollowOnRef.current = true;
       setIsVoiceFollowOn(true);

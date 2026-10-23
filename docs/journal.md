@@ -1253,3 +1253,28 @@ eceipt_uploaded, and payment_verified.
   - `pnpm typecheck`: 0 TypeScript errors across the entire codebase.
   - `pnpm --filter frontend lint`: Clean ESLint status with 0 errors.
   - `pnpm --filter @quran/domain test`: Domain Tajweed tests passing.
+
+---
+
+## 9.56 Strict Arabic Speech Input Enforcement for Classroom AI Voice Follow
+
+- **Objective**:
+  - Enforce strictly Arabic speech input for AI Speech/Voice Follow in the live classroom (`useVoiceFollow`), ensuring all English and non-Arabic speech inputs are completely rejected and ignored.
+- **Architectural Implementation**:
+  1. **Strict Arabic Script Validation (`apps/web/src/features/classroom/hooks/useVoiceFollow.ts`)**:
+     - Integrated `ARABIC_SCRIPT_REGEX = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/` in `processSpokenTranscript`.
+     - When any non-Arabic or English transcript is received from Deepgram or Web Speech, it is immediately discarded without updating recognized text or triggering word matches.
+     - Extracted pure Arabic tokens to eliminate any accidental Latin/English words.
+     - Updated feedback toasts to explicitly indicate `"AI Arabic Voice Follow active (Deepgram Nova-3)"` and `"AI Arabic Voice Follow active (Web Speech)"`.
+  2. **Elimination of English Phonetics (`apps/web/src/features/classroom/constants.ts`)**:
+     - Replaced all English transliterated words (`"alhamdu"`, `"lillahi"`, `"rabbi"`, `"alameen"`) in `PHONETIC_MAP` with authentic Arabic spelling and diacritical variants (`"الحمد"`, `"حمد"`, `"لله"`, `"الله"`, `"رب"`, `"العالمين"`, `"عالمين"`).
+     - Ensured speech token matching strictly verifies normalized Arabic against the current Quranic ayah words.
+  3. **Live Classroom Telemetry Clarity (`apps/web/src/components/LiveClassroom.tsx`)**:
+     - Updated real-time AI recitation telemetry banner to state: `"AI Listening to Arabic Recitation (Arabic Only)"`.
+     - Updated recognized badge label to `"Arabic Recited:"` with clean right-to-left Quranic typography.
+  4. **Test Suite Alignment (`tests/classroom.test.ts`)**:
+     - Updated Noorani Qaida letter length assertions to support full Arabic alphabet sets (`toBeGreaterThanOrEqual(7)`).
+- **Validation**:
+  - `pnpm typecheck`: 0 TypeScript errors across the repository.
+  - `pnpm --filter frontend lint`: 0 ESLint errors.
+  - Domain tests passing.

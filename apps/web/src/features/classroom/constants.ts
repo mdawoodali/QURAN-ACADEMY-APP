@@ -19,10 +19,10 @@ export function normalizeArabic(text: string): string {
 }
 
 export const PHONETIC_MAP: Record<number, string[]> = {
-  0: ["alhamdu", "alhamd", "alhamdulillah", "elhamd", "hamd", "al-hamdu", "الحمد", "حمد"],
-  1: ["lillahi", "lillah", "allah", "lellah", "lillāhi", "لله", "الله"],
-  2: ["rabbi", "rabb", "rab", "rub", "rab-bi", "رب"],
-  3: ["alameen", "alalamin", "al-alameen", "aalamin", "alamin", "al-ʿālamīn", "العالمين", "عالمين"]
+  0: ["الحمد", "حمد", "الحمْدُ", "أَلْحَمْدُ"],
+  1: ["لله", "الله", "لِلَّهِ", "لِلّٰهِ"],
+  2: ["رب", "رَبِّ", "رَبِّ"],
+  3: ["العالمين", "عالمين", "الْعَالَمِينَ", "الْعٰلَمِیْنَ"]
 };
 
 // Default single-ayah baseline kept for backward compatibility and existing tests
