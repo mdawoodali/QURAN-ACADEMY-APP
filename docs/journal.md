@@ -1363,3 +1363,28 @@ eceipt_uploaded, and payment_verified.
      - Connected dynamic database fetching so published PDF documents and classical manuscripts are accessible to students and visitors under matching category tabs.
 - **Validation**:
   - `pnpm typecheck`: 0 TypeScript errors across the repository.
+
+---
+
+## 9.61 Islamic Calendar: Date Parity & Live Date Defaulting
+
+- **Objective**:
+  - Address date visibility parity: Make English (Gregorian) calendar dates just as prominent, large, and legible as Islamic (Hijri) dates.
+  - Automatically default the Islamic calendar to open directly on the current live date and current active Hijri month.
+- **Implementation Details (`apps/web/src/features/resources/components/IslamicCalendarView.tsx`)**:
+  1. **Dynamic Live Date & Active Month Detection**:
+     - Implemented `getLiveCalendarInfo()` using `Intl.DateTimeFormat("en-US-u-ca-islamic-umalqura", ...)` to extract the current live Hijri month, day, and year alongside Gregorian date parameters.
+     - Initialized `selectedMonthIndex` directly to the live Hijri month (`liveInfo.hijriMonth`), ensuring the calendar opens immediately to today's active month.
+     - Added a `Jump to Today` shortcut button in the month controls to allow instant return to the live date.
+     - Added an active live date pill in the calendar header displaying both Hijri and Gregorian dates in real time.
+  2. **Equal Visual Prominence for English & Hijri Dates**:
+     - Redesigned calendar day cells with a balanced dual-column date header:
+       - **Hijri**: Labeled "HIJRI" in amber-300 with day numbers rendered in `text-xl sm:text-2xl font-mono font-black text-amber-200`.
+       - **English**: Labeled "ENGLISH" in emerald-300 with day numbers in matching `text-xl sm:text-2xl font-mono font-black text-white` accompanied by short month names (e.g. `23 Oct`).
+     - Enhanced "Today" highlighting with an emerald glow ring (`ring-2 ring-emerald-400`), animated pulsing indicator, and distinct high-contrast badge.
+     - Aligned day-of-week cell offsets using exact Gregorian start date calculations for each Hijri month.
+     - Updated event cards and modal displays to render both Hijri and Gregorian dates with equal clarity and visual weight.
+     - Upgraded the Annual Timeline view to feature matching dual 56px badges for both Hijri and Gregorian dates side-by-side.
+- **Validation**:
+  - `pnpm typecheck`: 0 TypeScript errors across the repository.
+  - `pnpm --filter frontend lint`: 0 errors.
