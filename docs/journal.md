@@ -1303,3 +1303,27 @@ eceipt_uploaded, and payment_verified.
     - Updated navigation tab label from `"Ja'fari Prayer Schedule"` to `"Salat Timings"`.
 - **Validation**:
   - Verified with `pnpm typecheck` (0 errors).
+
+---
+
+## 9.59 Islamic Calendar with Gregorian Mapping & Sacred Shia Events (Task 3 of 4)
+
+- **Objective**:
+  - Implement an interactive dual Islamic (Hijri) and English (Gregorian) calendar highlighting important events in Islam and specifically canonical occasions for Shias.
+- **Architectural Implementation**:
+  1. **Canonical Events Data Compendium (`apps/web/src/data/islamicCalendarEvents.ts`)**:
+     - Defined all 12 sacred Hijri months (Muharram through Dhu al-Hijjah) with their Arabic titles, day counts, and seasonal Gregorian periods.
+     - Documented canonical commemorations:
+       - **Wiladat (Joyous Births)**: Prophet Muhammad (SAWW), Imam Ali (AS) in Kaaba, Sayyida Fatima (SA), Imam Hussain (AS), Hazrat Abbas (AS), Imam Sadiq (AS), Imam Rida (AS), Imam Mahdi (ATFS), and other Imams.
+       - **Shahadat (Sacred Martyrdoms)**: Youm-e-Ashura (10 Muharram), Arbaeen (20 Safar), Wafat of Prophet (SAWW), Sayyida Fatima Zahra (SA - Ayyam-e-Fatimiyyah), Ameer al-Momineen Imam Ali (AS - 21 Ramadan), Baqi Imams, and Kadhimiya.
+       - **Eids & Victories**: Eid al-Fitr, Eid al-Adha, Eid al-Ghadir (18 Dhu al-Hijjah), Eid al-Mubahala (24 Dhu al-Hijjah), Eid al-Mab'ath (27 Rajab), and Eid-e-Zahra (9 Rabi al-Awwal).
+       - **Sacred Nights & Occasions**: Laylat al-Qadr (19, 21, 23 Ramadan), Day of Arafah, Mid-Sha'ban (Shab-e-Barat), and Tasu'a.
+  2. **Interactive Dual-Calendar Component (`apps/web/src/features/resources/components/IslamicCalendarView.tsx`)**:
+     - 7-column responsive monthly grid displaying both Hijri Day and corresponding Gregorian date side-by-side.
+     - Event color coding and badges: Emerald for Wiladat, Red for Shahadat, Amber for Eids, and Purple for Sacred Nights.
+     - Interactive modal displaying historical significance, theological context, and recommended A'amal/supplications for clicked events.
+     - Three switchable view modes: Monthly Calendar Grid, Annual Chronological Timeline, and 14 Infallibles Biographies.
+  3. **Resources Navigation Integration (`apps/web/src/app/(public)/resources/page.tsx`)**:
+     - Connected tab as `"Islamic Calendar"` with direct activation of the dual-calendar view.
+- **Validation**:
+  - Verified with `pnpm typecheck` (0 errors).

@@ -13,6 +13,7 @@ import PrayerTimesQibla from "@/features/resources/components/PrayerTimesQibla";
 import JafariPrayerSchedule from "@/features/resources/components/JafariPrayerSchedule";
 import AsmaUlHusnaView from "@/features/resources/components/AsmaUlHusnaView";
 import SeeratView from "@/features/resources/components/SeeratView";
+import IslamicCalendarView from "@/features/resources/components/IslamicCalendarView";
 import { useSect } from "@/components/SectContext";
 import toast from "react-hot-toast";
 
@@ -390,7 +391,7 @@ https://quranlearnacademy.com/resources
                 }`}
               >
                 <Calendar size={16} />
-                <span>14 Infallibles Calendar</span>
+                <span>Islamic Calendar</span>
               </button>
             </>
           )}
@@ -812,23 +813,10 @@ https://quranlearnacademy.com/resources
         </section>
       )}
 
-      {/* TAB: 14 INFALLIBLES CALENDAR */}
+      {/* TAB: ISLAMIC & SHIA CALENDAR */}
       {activeTab === "calendar" && isShia && (
         <section className="mb-16">
-          <div className="text-center max-w-3xl mx-auto mb-8">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-300 text-xs font-semibold mb-3">
-              <Calendar size={14} />
-              <span>Chahardah Masoomeen (AS) Historical Timeline</span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white mb-3">
-              14 Infallibles Calendar
-            </h2>
-            <p className="text-sm sm:text-base text-emerald-100/80 max-w-2xl mx-auto">
-              Chronological commemorations, births, and martyrdoms across the sacred Hijri calendar with shrine locations and historical titles.
-            </p>
-          </div>
-
-          <ShiaToolkit initialTab="calendar" hideSubNavbar />
+          <IslamicCalendarView />
         </section>
       )}
 
