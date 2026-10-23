@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Home, PlaySquare, Book, TrendingUp, CreditCard, User, HelpCircle, BookOpen, X, LogOut, FileUp } from "lucide-react";
+import { Home, PlaySquare, Book, TrendingUp, CreditCard, User, HelpCircle, BookOpen, X, LogOut, FileUp, Activity } from "lucide-react";
 import { createBrowserClient } from '@supabase/ssr'
 import { useLanguage } from './LanguageContext';
+import { APP_VERSION } from '@quran/contracts';
 
 const STUDENT_LINKS = [
   { href: "/student", label: "Home", icon: Home },
@@ -29,6 +30,7 @@ const ADMIN_LINKS = [
   { href: "/admin/scheduling", label: "Scheduling", icon: PlaySquare },
   { href: "/admin/teachers", label: "Teachers", icon: User },
   { href: "/admin/finance", label: "Finance", icon: CreditCard },
+  { href: "/admin/diagnostics", label: "Diagnostics", icon: Activity },
 ];
 
 const PARENT_LINKS = [
@@ -89,7 +91,7 @@ export default function Sidebar({ onClose, role, userName, initials }: { onClose
         )}
       </div>
 
-      <div className="px-6 py-4">
+      <div className="px-6 py-4 flex-1 overflow-y-auto">
         <div className="text-[10px] font-bold text-amber-300 tracking-widest uppercase mb-4">
           {portalName}
         </div>
@@ -116,7 +118,7 @@ export default function Sidebar({ onClose, role, userName, initials }: { onClose
         </nav>
       </div>
 
-      <div className="mt-auto p-6 flex flex-col gap-4 border-t border-white/10">
+      <div className="mt-auto p-6 flex flex-col gap-3 border-t border-white/10">
         <div className="flex items-center gap-4">
           <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center font-bold text-sm">
             {initials || 'U'}
@@ -126,8 +128,8 @@ export default function Sidebar({ onClose, role, userName, initials }: { onClose
           </div>
         </div>
         
-        <div className="flex items-center justify-between mt-2">
-          <button onClick={handleSignOut} className="text-left text-sm font-bold text-red-300 hover:text-red-400 transition flex items-center gap-2">
+        <div className="flex items-center justify-between mt-1">
+          <button onClick={handleSignOut} className="text-left text-sm font-bold text-red-300 hover:text-red-400 transition flex items-center gap-2 cursor-pointer">
             <LogOut size={16} />
             Sign Out
           </button>
@@ -141,6 +143,17 @@ export default function Sidebar({ onClose, role, userName, initials }: { onClose
             <span className="opacity-40">/</span>
             <span dir="rtl" className={`font-urdu text-sm ${language === "ur" ? "text-white font-extrabold" : "text-emerald-300"}`}>اردو</span>
           </button>
+        </div>
+
+        {/* Live Version Badge */}
+        <div className="flex items-center justify-between text-[11px] text-emerald-300/70 pt-2.5 mt-1 border-t border-emerald-800/40 font-mono">
+          <span className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span>v{APP_VERSION}</span>
+          </span>
+          <span className="text-[10px] bg-emerald-950/80 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-700/40">
+            Live
+          </span>
         </div>
       </div>
     </div>

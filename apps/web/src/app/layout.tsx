@@ -4,6 +4,7 @@ import { Toaster } from "react-hot-toast";
 import { LanguageProvider } from "@/components/LanguageContext";
 import { SectProvider } from "@/components/SectContext";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
+import VersionGuard from "@/components/VersionGuard";
 import "./globals.css";
 
 const sourceSerif = Source_Serif_4({ subsets: ["latin"], variable: "--font-hero" });
@@ -182,6 +183,7 @@ export default function RootLayout({
         </SectProvider>
         <Toaster position="bottom-right" />
         <PWAInstallPrompt />
+        <VersionGuard />
       </body>
     </html>
   );

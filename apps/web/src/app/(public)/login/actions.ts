@@ -140,3 +140,26 @@ export async function signup(formData: FormData) {
     redirect('/student')
   }
 }
+
+export async function loginWithGoogle() {
+  const supabase = await createClient()
+  const origin = process.env.NEXT_PUBLIC_APP_URL || 'https://quranacademyapp.vercel.app'
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${origin}/auth/callback`,
+      queryParams: {
+        access_type: 'offline',
+        prompt: 'consent',
+      },
+    },
+  })
+
+  if (error) {
+    redirect('/login?error=' + encodeURIComponent(error.message))
+  }
+
+  if (data?.url) {
+    redirect(data.url)
+  }
+}

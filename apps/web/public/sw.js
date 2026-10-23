@@ -4,7 +4,7 @@
  * for live 1-on-1 classroom alerts.
  */
 
-const CACHE_NAME = "quran-academy-cache-v1";
+const CACHE_NAME = "quran-academy-v1.1.0";
 const STATIC_ASSETS = [
   "/",
   "/manifest.json",
@@ -144,4 +144,16 @@ self.addEventListener("notificationclick", (event) => {
         }
       })
   );
+});
+
+// Message Listener: Force update & instant cache wipe
+self.addEventListener("message", (event) => {
+  if (event.data === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
+  if (event.data === "PURGE_CACHES") {
+    caches.keys().then((keys) => {
+      return Promise.all(keys.map((k) => caches.delete(k)));
+    });
+  }
 });

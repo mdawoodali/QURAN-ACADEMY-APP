@@ -1146,3 +1146,44 @@ eceipt_uploaded, and payment_verified.
 - **Validation**:
   - `pnpm test`: 18/18 test suites passed, 123/123 tests passing with 100% success rate.
   - `pnpm --filter frontend build`: 58/58 routes compiled cleanly in Turbopack.
+
+
+---
+
+## 9.53 Strict Semantic Versioning (v1.1.0), Stale Client Blocker, Developer Diagnostics & Google OAuth
+
+- **Objective**: Establish unified semantic versioning across GitHub Actions, release artifacts, mobile apps, and web UI; implement an unclosable forced update blocker for stale clients with automated cache purging; introduce a comprehensive Developer Diagnostics Module (`/dev`, `/admin/diagnostics`); and prepare zero-cache Google OAuth integration.
+- **Architectural Enhancements Implemented**:
+  1. **Strict Semantic Versioning Foundation (`packages/contracts/src/version.ts`)**:
+     - Defined `APP_VERSION = "1.1.0"`, `MIN_SUPPORTED_VERSION = "1.1.0"`, and `BUILD_CHANNEL = "production"`.
+     - Implemented `compareSemanticVersions(v1, v2)` with comprehensive unit test coverage (`packages/contracts/src/version.test.ts` — 5/5 passing).
+     - Exported version metadata endpoint `/api/version` and static fallback `/version.json` with strict zero-cache headers (`Cache-Control: no-store, no-cache, must-revalidate`).
+  2. **Stale Client Blocker (`VersionGuard.tsx`) & Invalidation Engine (`sw.js`)**:
+     - Mounted `VersionGuard` in `RootLayout` polling every 5 minutes and on visibility/focus change.
+     - When a client is running an outdated build (`< minSupportedVersion`), renders an unclosable full-screen update blocker with live progress indicators.
+     - Automatically triggers Service Worker cache invalidation (`PURGE_CACHES`), deletes all `CacheStorage` instances, unregisters stale Service Workers, and forces a hard reload (`window.location.reload(true)`).
+     - Service Worker cache bumped to `quran-academy-v1.1.0` with explicit `networkOnly` routing for `/api/` and `/auth/` paths to eliminate token caching.
+  3. **Developer Diagnostics Hub (`/dev` & `/admin/diagnostics`)**:
+     - Live Diagnostic Health API (`/api/diagnostics`) evaluating:
+       - Active App Version vs Min Required Version.
+       - Supabase PostgreSQL database latency and profiles table status.
+       - LiveKit WebRTC token generator and server credentials.
+       - Resend transactional email API key availability.
+       - Google OAuth credentials check (`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`).
+     - Real-Time Hardware Diagnostic: Audio level visualizer utilizing Web Audio API `AnalyserNode` and live WebRTC camera video stream test.
+     - Interactive Sandbox Controls:
+       - 1-Click Cache Purge wiping all client caches and reloading.
+       - Outdated Client Simulator (toggles simulated version `1.0.0`) allowing developers to test and verify the forced update blocker and recovery flow in real time.
+     - Fast developer shortcut `/dev` redirecting directly to `/admin/diagnostics`.
+     - Version badges and Diagnostics navigation item integrated into Sidebar, Public Navbar, and Footer.
+  4. **GitHub Actions Version Synchronization**:
+     - Updated `.github/workflows/ci.yml` run name to `CI Pipeline — v1.1.0`.
+     - Updated `.github/workflows/build-mobile.yml` run name to `Build Cross-Platform Mobile APK — v1.1.0` and artifact name to `quran-academy-v1.1.0-android-build`.
+     - Updated root and `apps/web` `package.json` to version `1.1.0`.
+  5. **Google OAuth Preparation & Zero-Cache Guarantee**:
+     - Added 1-tap "Continue with Google" sign-in option on `/login` via Supabase OAuth.
+     - Implemented `/auth/callback/route.ts` handling OAuth authorization code exchange, profile extraction, and role-based redirect.
+     - Prerender-safe Next.js 16 Suspense boundary isolating `searchParams` data access in `login/page.tsx` for optimal PPR streaming.
+- **Validation**:
+  - `pnpm test`: 19/19 test suites passed, 128/128 tests passing with 100% success rate.
+  - `pnpm --filter frontend build`: All 63/63 routes compiled cleanly with 0 errors via Turbopack.

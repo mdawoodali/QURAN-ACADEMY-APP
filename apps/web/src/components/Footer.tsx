@@ -253,7 +253,7 @@ export default function Footer() {
       <div className="border-t border-white/10 py-6 bg-black/60 text-xs text-emerald-100/60">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-center md:text-left">
-            {t("copyright")}
+            {t("copyright")} • <span className="font-mono text-emerald-400">v1.1.0</span>
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4 text-emerald-100/70">
             <Link href="/terms-and-conditions" className="hover:text-amber-300 transition">

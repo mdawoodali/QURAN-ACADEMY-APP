@@ -203,3 +203,6 @@ export const InvoiceRecordSchema = z.object({
 });
 export type InvoiceRecord = z.infer<typeof InvoiceRecordSchema>;
 
+export * from './version';
+
+

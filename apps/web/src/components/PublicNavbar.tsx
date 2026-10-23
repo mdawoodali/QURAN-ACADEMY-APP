@@ -387,7 +387,7 @@ export default function PublicNavbar() {
                 </a>
                 <a href="mailto:info@quranlearnacademy.com" className="flex items-center gap-2 hover:text-amber-300">
                   <Mail size={13} className="text-amber-400" />
-                  <span>{t("topBarEmail")}</span>
+                  <span>{t("topBarEmail")}</span> • <span className="font-mono text-amber-300">v1.1.0</span>
                 </a>
               </div>
             </div>

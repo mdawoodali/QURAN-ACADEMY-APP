@@ -1,4 +1,5 @@
 name: Build Mobile Apps (Android & iOS)
+run-name: "Mobile Release v1.1.0 (${{ github.event.inputs.build_type || 'release' }}) by @${{ github.actor }}"
 
 on:
   workflow_dispatch:
@@ -68,7 +69,7 @@ jobs:
       - name: Upload Android Release Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: android-app-build
+          name: quran-academy-v1.1.0-android-build
           path: |
             apps/web/android/app/build/outputs/bundle/**/*.aab
             apps/web/android/app/build/outputs/apk/**/*.apk
@@ -107,5 +108,5 @@ jobs:
       - name: Upload iOS Xcode Project Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ios-xcode-build
+          name: quran-academy-v1.1.0-ios-xcode-build
           path: apps/web/ios/App
