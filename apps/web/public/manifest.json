@@ -4,11 +4,21 @@
   "description": "Excellence in 1-on-1 Online Quran, Tajweed and Hifz Pedagogy.",
   "start_url": "/",
   "id": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "fullscreen"
+  ],
   "orientation": "portrait-primary",
   "background_color": "#021811",
   "theme_color": "#021811",
   "categories": ["education", "lifestyle", "books"],
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/logo_quran_learn_academy.png",
@@ -26,6 +36,29 @@
       "src": "/favicon.ico",
       "sizes": "48x48",
       "type": "image/x-icon"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Live Classroom",
+      "short_name": "Classroom",
+      "description": "Join your scheduled 1-on-1 Quran lesson",
+      "url": "/classroom/demo",
+      "icons": [{ "src": "/icon.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Digital Mushaf",
+      "short_name": "Mushaf",
+      "description": "Read Quran with interactive Tajweed rules",
+      "url": "/student/quran",
+      "icons": [{ "src": "/icon.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Parent Portal",
+      "short_name": "Portal",
+      "description": "Monitor class attendance and tuition invoices",
+      "url": "/parent",
+      "icons": [{ "src": "/icon.png", "sizes": "192x192" }]
     }
   ]
 }

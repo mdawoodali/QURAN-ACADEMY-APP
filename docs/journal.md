@@ -1122,3 +1122,27 @@ eceipt_uploaded, and payment_verified.
      - `build-ios`: Provisions `macos-latest`, compiles Next.js web bundle, synchronizes Capacitor, and packages the iOS Xcode archive artifact ready for App Store Connect distribution.
 - **Validation**:
   - `docs/journal.md` updated and validated against CI enforcement policies.
+
+
+---
+
+## 9.52 True Native App Experience: PWA Browser Chrome Elimination & Edge-to-Edge Display
+- **Objective**: Ensure the PWA is completely indistinguishable from an App Store application on iOS and Android devices, eliminating all browser bars, rubber-banding, tap highlights, and text callouts.
+- **Architectural Enhancements Implemented**:
+  1. **Manifest Standalone & Window Controls (`apps/web/public/manifest.json`)**:
+     - Configured `display: "standalone"` with `display_override: ["window-controls-overlay", "standalone", "fullscreen"]` to completely eliminate browser address bars and window frames.
+     - Added `launch_handler: { "client_mode": "navigate-existing" }` so app clicks refocus existing sessions instead of launching multiple browser tabs.
+     - Configured 3 deep-link native quick action shortcuts: "Live Classroom", "Digital Mushaf", and "Parent Portal".
+  2. **Viewport & Apple Web App Meta Hardening (`apps/web/src/app/layout.tsx`)**:
+     - Enabled `viewportFit: "cover"` to render content seamlessly behind the iPhone Dynamic Island / notch and Android camera punch hole.
+     - Enforced `userScalable: false` and `maximumScale: 1` to prevent unwanted webpage pinch zooming.
+     - Added `appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "Quran Academy" }` for edge-to-edge transparent iOS status bars.
+  3. **Native Touch & Scrolling CSS Rules (`apps/web/src/app/globals.css`)**:
+     - Added `overscroll-behavior-y: none` to both `html` and `body` to disable the browser pull-to-refresh and rubber-band bounce effect.
+     - Set `-webkit-tap-highlight-color: transparent` to eliminate grey tap boxes.
+     - Set `-webkit-touch-callout: none` to disable the iOS copy/share callout popup on long-press.
+     - Integrated `env(safe-area-inset-*)` padding rules for notched and rounded mobile displays.
+     - Enforced `user-select: none` across interactive navigation and buttons.
+- **Validation**:
+  - `pnpm test`: 18/18 test suites passed, 123/123 tests passing with 100% success rate.
+  - `pnpm --filter frontend build`: 58/58 routes compiled cleanly in Turbopack.

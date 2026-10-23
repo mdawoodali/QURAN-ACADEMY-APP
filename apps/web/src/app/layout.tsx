@@ -17,7 +17,9 @@ export const viewport: Viewport = {
   themeColor: "#021811",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 5,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
 };
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://quranacademyapp.vercel.app";
@@ -32,6 +34,11 @@ export const metadata: Metadata = {
     ],
     shortcut: "/icon.png",
     apple: "/apple-icon.png",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Quran Academy",
   },
   title: {
     template: "%s | Quran Academy",

@@ -25,8 +25,11 @@
   font-family: 'Vileade', 'Villade', var(--font-vidaloka), var(--font-cinzel), var(--font-hero), Georgia, serif;
 }
 
+/* Native App Standalone Mode Enhancements (Eliminates Browser Look & Feel) */
 html {
   scroll-behavior: smooth;
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -38,6 +41,30 @@ body {
   background-attachment: fixed;
   color: #f4f7f5;
   min-height: 100vh;
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* Standalone PWA Notch & Safe Area Inset Support */
+@supports (padding: max(0px)) {
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* Prevent unwanted browser text-selection on buttons, icons & navigation */
+button, a, nav, header, [role="button"] {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Native inertia scrolling for lists and cards */
+.scroll-touch {
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Glassmorphism Design: backdrop-filter: blur() combined with semi-transparent backgrounds */
@@ -73,7 +100,6 @@ body {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
 }
 
-
 /* Welcome Landing Page Button Styles using CSS :hover and :active pseudo-classes */
 .welcome-cta-btn {
   background: rgba(255, 255, 255, 0.12);
@@ -104,7 +130,6 @@ body {
   box-shadow: 0 0 32px rgba(247, 223, 142, 0.8), 0 4px 12px rgba(0, 0, 0, 0.4) !important;
   transform: translateY(1px) scale(0.98);
 }
-
 
 .welcome-lang-btn {
   transition: all 0.25s ease-in-out;
@@ -139,4 +164,3 @@ body {
 .glass-card-pop:active {
   transform: translateY(-2px) scale(0.99) !important;
 }
-
