@@ -1742,3 +1742,4 @@ eceipt_uploaded, and payment_verified.
   - Injected Supabase authentication test environment variables into `vitest.config.mjs` and `.github/workflows/ci.yml` so automated integration tests execute cleanly in CI without 500 error regressions.
   - Replaced legacy localhost 127.0.0.1:54321 fallback URLs in `utils/supabase/server.ts` and `client.ts` with production defaults, ensuring reliable server rendering and test execution in isolated CI environments.
   - Fixed YAML environment string literal syntax in GitHub Actions CI workflow to ensure environment variables are evaluated properly without boolean expression coercion.
+  - Upgraded GitHub Actions Node.js runtime from 20 to 22, unlocking native global WebSocket support required by modern `@supabase/supabase-js` and unblocking automated CI test executions.
