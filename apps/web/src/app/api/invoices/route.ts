@@ -95,9 +95,27 @@ export async function POST(req: NextRequest) {
       receiptUrl = "",
     } = body;
 
-    if (!transactionRef || !amount) {
+    const numAmount = Number(amount);
+    if (isNaN(numAmount) || numAmount <= 0 || !isFinite(numAmount)) {
       return NextResponse.json(
-        { error: "Transaction reference and amount are required." },
+        { error: "Invalid amount. Must be a positive number greater than 0." },
+        { status: 400 }
+      );
+    }
+
+    const SUPPORTED_CURRENCIES = ["PKR", "GBP", "USD", "EUR", "AED", "SAR", "CAD", "AUD"];
+    const normCurrency = String(currency).trim().toUpperCase();
+    if (!SUPPORTED_CURRENCIES.includes(normCurrency)) {
+      return NextResponse.json(
+        { error: `Unsupported currency: ${currency}. Must be one of: ${SUPPORTED_CURRENCIES.join(", ")}` },
+        { status: 400 }
+      );
+    }
+
+    const cleanTxRef = String(transactionRef).trim();
+    if (!cleanTxRef || cleanTxRef.length < 3 || cleanTxRef.length > 100) {
+      return NextResponse.json(
+        { error: "Transaction reference is required (3 to 100 characters)." },
         { status: 400 }
       );
     }
@@ -109,9 +127,9 @@ export async function POST(req: NextRequest) {
       studentName,
       packageTier,
       amount: Number(amount),
-      currency: String(currency).toUpperCase(),
+      currency: normCurrency,
       paymentMethod,
-      transactionRef,
+      transactionRef: cleanTxRef,
       submittedAt: new Date().toISOString(),
       status: "pending_verification",
       receiptUrl,

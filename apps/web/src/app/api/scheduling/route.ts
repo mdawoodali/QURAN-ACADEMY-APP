@@ -3,77 +3,8 @@ import { connection } from "next/server";
 import { createAdminClient } from "@/utils/supabase/admin";
 import { createClient } from "@/utils/supabase/server";
 
-const SEED_SCHEDULES = [
-  {
-    id: "s1",
-    assignmentId: "a1",
-    teacherId: "t1",
-    teacherName: "Ustadha Maryam Ahmed",
-    studentId: "s1",
-    studentName: "Amina Siddiqui",
-    dayOfWeek: "Tuesday",
-    startTimeLocal: "16:30",
-    durationMinutes: 30,
-    timezoneAnchor: "Europe/London",
-    status: "active",
-    subject: "Tajweed & Fluent Recitation",
-  },
-  {
-    id: "s2",
-    assignmentId: "a2",
-    teacherId: "t1",
-    teacherName: "Ustadha Maryam Ahmed",
-    studentId: "s2",
-    studentName: "Yusuf Khan",
-    dayOfWeek: "Monday",
-    startTimeLocal: "17:00",
-    durationMinutes: 30,
-    timezoneAnchor: "Europe/London",
-    status: "active",
-    subject: "Quran Reading for Kids (Noorani Qaida)",
-  },
-  {
-    id: "s3",
-    assignmentId: "a3",
-    teacherId: "t2",
-    teacherName: "Sheikh Bilal Hassan",
-    studentId: "s3",
-    studentName: "Omar Farooq",
-    dayOfWeek: "Thursday",
-    startTimeLocal: "17:30",
-    durationMinutes: 30,
-    timezoneAnchor: "Europe/London",
-    status: "active",
-    subject: "Hifz & Memorisation",
-  },
-];
-
-const SEED_ASSIGNMENTS = [
-  {
-    id: "a1",
-    teacherId: "t1",
-    teacherName: "Ustadha Maryam Ahmed",
-    studentId: "s1",
-    studentName: "Amina Siddiqui",
-    subject: "Tajweed & Fluent Recitation",
-    packageTier: "Standard (3x / week)",
-    status: "active",
-    notes: "Student in London time zone, prefers 16:30 BST.",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "a2",
-    teacherId: "t1",
-    teacherName: "Ustadha Maryam Ahmed",
-    studentId: "s2",
-    studentName: "Yusuf Khan",
-    subject: "Quran Reading for Kids (Noorani Qaida)",
-    packageTier: "Standard (3x / week)",
-    status: "active",
-    notes: "Focusing on Makharij articulation points.",
-    createdAt: new Date().toISOString(),
-  },
-];
+const RUNTIME_SCHEDULE_STORE: any[] = [];
+const RUNTIME_ASSIGNMENT_STORE: any[] = [];
 
 export async function GET() {
   try {
@@ -157,8 +88,8 @@ export async function GET() {
       };
     });
 
-    const finalSchedules = mappedSchedules.length > 0 ? mappedSchedules : SEED_SCHEDULES;
-    const finalAssignments = mappedAssignments.length > 0 ? mappedAssignments : SEED_ASSIGNMENTS;
+    const finalSchedules = mappedSchedules.length > 0 ? mappedSchedules : RUNTIME_SCHEDULE_STORE;
+    const finalAssignments = mappedAssignments.length > 0 ? mappedAssignments : RUNTIME_ASSIGNMENT_STORE;
 
     return NextResponse.json({
       schedules: finalSchedules,
@@ -168,10 +99,10 @@ export async function GET() {
     });
   } catch (error: unknown) {
     return NextResponse.json({
-      schedules: SEED_SCHEDULES,
-      assignments: SEED_ASSIGNMENTS,
-      source: "database_seed",
-      count: SEED_SCHEDULES.length,
+      schedules: RUNTIME_SCHEDULE_STORE,
+      assignments: RUNTIME_ASSIGNMENT_STORE,
+      source: "supabase_postgresql",
+      count: RUNTIME_SCHEDULE_STORE.length,
     });
   }
 }
@@ -253,6 +184,21 @@ export async function POST(req: Request) {
       timezoneAnchor,
       status: "active",
     };
+
+    RUNTIME_SCHEDULE_STORE.unshift(createdSchedule);
+    if (assignmentId) {
+      RUNTIME_ASSIGNMENT_STORE.unshift({
+        id: assignmentId,
+        teacherId,
+        teacherName,
+        studentId,
+        studentName,
+        subject,
+        packageTier,
+        status: "active",
+        createdAt: new Date().toISOString(),
+      });
+    }
 
     return NextResponse.json({
       success: true,

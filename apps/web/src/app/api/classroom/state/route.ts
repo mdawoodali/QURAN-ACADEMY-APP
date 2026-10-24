@@ -10,7 +10,8 @@ export async function GET(req: NextRequest) {
 
   try {
     const { searchParams } = new URL(req.url);
-    const roomId = searchParams.get("roomId") || "default";
+    const rawRoom = searchParams.get("roomId") || "default";
+    const roomId = /^[a-zA-Z0-9_\-]{1,64}$/.test(rawRoom) ? rawRoom : "default";
 
     let supabase: any;
     try {
@@ -85,6 +86,28 @@ export async function POST(req: NextRequest) {
       teacherNotes = "",
       lastUpdatedBy = "instructor",
     } = body;
+
+    if (!/^[a-zA-Z0-9_\-]{1,64}$/.test(String(roomId))) {
+      return NextResponse.json({ error: "Invalid roomId format. Must be alphanumeric (1-64 chars)." }, { status: 400 });
+    }
+    const pageNum = Number(currentPage);
+    if (isNaN(pageNum) || pageNum < 1 || pageNum > 604) {
+      return NextResponse.json({ error: "Invalid currentPage. Must be between 1 and 604." }, { status: 400 });
+    }
+    const surahNum = Number(currentSurah);
+    if (isNaN(surahNum) || surahNum < 1 || surahNum > 114) {
+      return NextResponse.json({ error: "Invalid currentSurah. Must be between 1 and 114." }, { status: 400 });
+    }
+    const ayahNum = Number(currentAyah);
+    if (isNaN(ayahNum) || ayahNum < 1 || ayahNum > 286) {
+      return NextResponse.json({ error: "Invalid currentAyah. Must be between 1 and 286." }, { status: 400 });
+    }
+    if (!Array.isArray(whiteboardStrokes) || whiteboardStrokes.length > 5000) {
+      return NextResponse.json({ error: "whiteboardStrokes must be an array not exceeding 5000 elements." }, { status: 400 });
+    }
+    if (typeof teacherNotes === "string" && teacherNotes.length > 10000) {
+      return NextResponse.json({ error: "teacherNotes exceeds 10,000 character maximum." }, { status: 400 });
+    }
 
     let supabase: any;
     try {

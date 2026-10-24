@@ -2,6 +2,26 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { checkRateLimit } from "@/lib/security/rateLimit";
 
+
+function isRoleAuthorizedForPath(role: string, pathname: string): boolean {
+  if (role === "admin" || role === "superadmin") {
+    return true; // Admins can supervise all portals
+  }
+  if (pathname.startsWith("/admin")) {
+    return false; // Only admin can access /admin
+  }
+  if (pathname.startsWith("/teacher")) {
+    return role === "teacher";
+  }
+  if (pathname.startsWith("/parent")) {
+    return role === "parent";
+  }
+  if (pathname.startsWith("/student")) {
+    return role === "student" || role === "parent" || role === "teacher";
+  }
+  return true;
+}
+
 export async function middleware(request: NextRequest) {
   const url = request.nextUrl.clone();
   const ip =
@@ -47,6 +67,14 @@ export async function middleware(request: NextRequest) {
     "camera=(self), microphone=(self), geolocation=(self)"
   );
 
+  const isAuthRoute =
+    url.pathname.startsWith("/login") || url.pathname.startsWith("/register");
+  const isProtectedRoute =
+    url.pathname.startsWith("/student") ||
+    url.pathname.startsWith("/teacher") ||
+    url.pathname.startsWith("/admin") ||
+    url.pathname.startsWith("/parent");
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -60,18 +88,23 @@ export async function middleware(request: NextRequest) {
 
   // Check for local demo session cookie
   const demoRole = request.cookies.get("demo_role")?.value;
+  const isProd = process.env.NODE_ENV === "production";
+  const allowDemoBypass = !isProd || isDummyConfig || process.env.NEXT_PUBLIC_ENABLE_DEMO_LOGIN === "true";
 
-  if (isDummyConfig || demoRole) {
+  if (demoRole && allowDemoBypass) {
+    // Enforce role boundary even for demo roles to prevent cross-portal access
+    if (isProtectedRoute && !isRoleAuthorizedForPath(demoRole, url.pathname)) {
+      url.pathname = `/${demoRole}`;
+      return NextResponse.redirect(url);
+    }
     return response;
   }
 
-  const isAuthRoute =
-    url.pathname.startsWith("/login") || url.pathname.startsWith("/register");
-  const isProtectedRoute =
-    url.pathname.startsWith("/student") ||
-    url.pathname.startsWith("/teacher") ||
-    url.pathname.startsWith("/admin") ||
-    url.pathname.startsWith("/parent");
+  if (isDummyConfig) {
+    return response;
+  }
+
+
 
   // Fast-path for public marketing and content pages (/, /about-us, /resources, etc.)
   // Never block public page rendering on external Supabase auth round-trips
@@ -114,6 +147,29 @@ export async function middleware(request: NextRequest) {
   if (!user && isProtectedRoute) {
     url.pathname = "/login";
     return NextResponse.redirect(url);
+  }
+
+  if (user && isProtectedRoute) {
+    let userRole = (user.user_metadata?.role as string) || (user.app_metadata?.role as string) || "student";
+    try {
+      const profilePromise = supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+      const profileTimeout = new Promise<{ data: null }>((resolve) =>
+        setTimeout(() => resolve({ data: null }), 1500)
+      );
+      const res: any = await Promise.race([profilePromise, profileTimeout]);
+      if (res?.data?.role) userRole = res.data.role;
+    } catch {
+      // Keep userRole fallback
+    }
+
+    if (!isRoleAuthorizedForPath(userRole, url.pathname)) {
+      url.pathname = `/${userRole}`;
+      return NextResponse.redirect(url);
+    }
   }
 
   if (user && isAuthRoute) {

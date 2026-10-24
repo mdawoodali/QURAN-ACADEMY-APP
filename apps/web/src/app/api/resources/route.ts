@@ -59,6 +59,13 @@ export async function POST(req: NextRequest) {
       fileDataUrl = "",
     } = body;
 
+    if (fileDataUrl && fileDataUrl.length > 25 * 1024 * 1024) {
+      return NextResponse.json(
+        { error: "File exceeds 25MB maximum limit." },
+        { status: 413 }
+      );
+    }
+
     if (!title || !fileName) {
       return NextResponse.json(
         { error: "Title and fileName are required." },

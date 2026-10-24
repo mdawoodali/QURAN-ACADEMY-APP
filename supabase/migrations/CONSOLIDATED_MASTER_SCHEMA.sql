@@ -494,3 +494,70 @@ EXCEPTION WHEN OTHERS THEN null; END $$;
 DO $$ BEGIN
   ALTER PUBLICATION supabase_realtime ADD TABLE class_sessions;
 EXCEPTION WHEN OTHERS THEN null; END $$;
+
+
+-- 21. Academy Resources (Shia & Sunni Dynamic Resource Management)
+CREATE TABLE IF NOT EXISTS academy_resources (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  file_name TEXT NOT NULL,
+  category TEXT NOT NULL,
+  sect TEXT NOT NULL DEFAULT 'universal' CHECK (sect IN ('universal', 'shia', 'sunni')),
+  file_size TEXT NOT NULL,
+  description TEXT,
+  file_data_url TEXT,
+  uploaded_by TEXT DEFAULT 'Super Admin',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE academy_resources ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public Read Access on academy_resources" ON academy_resources;
+CREATE POLICY "Public Read Access on academy_resources" ON academy_resources FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Admin All Access on academy_resources" ON academy_resources;
+CREATE POLICY "Admin All Access on academy_resources" ON academy_resources FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+CREATE INDEX IF NOT EXISTS idx_academy_resources_sect ON academy_resources(sect);
+CREATE INDEX IF NOT EXISTS idx_academy_resources_category ON academy_resources(category);
+
+DO $$ BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE academy_resources;
+EXCEPTION WHEN OTHERS THEN null; END $$;
+
+-- 22. Contact Inquiries & Admission Leads
+CREATE TABLE IF NOT EXISTS public.contact_inquiries (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  phone TEXT,
+  message TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'contacted', 'resolved', 'archived')),
+  source TEXT DEFAULT 'footer_inquiry',
+  admin_notes TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+ALTER TABLE public.contact_inquiries ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Allow public anonymous inquiry submissions" ON public.contact_inquiries;
+CREATE POLICY "Allow public anonymous inquiry submissions" ON public.contact_inquiries FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow authenticated admins to read inquiries" ON public.contact_inquiries;
+CREATE POLICY "Allow authenticated admins to read inquiries" ON public.contact_inquiries FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow authenticated admins to update inquiries" ON public.contact_inquiries;
+CREATE POLICY "Allow authenticated admins to update inquiries" ON public.contact_inquiries FOR UPDATE USING (true);
+
+DROP POLICY IF EXISTS "Allow authenticated admins to delete inquiries" ON public.contact_inquiries;
+CREATE POLICY "Allow authenticated admins to delete inquiries" ON public.contact_inquiries FOR DELETE USING (true);
+
+CREATE INDEX IF NOT EXISTS idx_contact_inquiries_status ON public.contact_inquiries(status);
+CREATE INDEX IF NOT EXISTS idx_contact_inquiries_created_at ON public.contact_inquiries(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_contact_inquiries_email ON public.contact_inquiries(email);
+
+DO $$ BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE contact_inquiries;
+EXCEPTION WHEN OTHERS THEN null; END $$;

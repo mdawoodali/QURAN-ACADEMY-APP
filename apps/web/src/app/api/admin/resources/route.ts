@@ -16,52 +16,7 @@ export interface UploadedDocumentRecord {
 }
 
 // In-memory fallback cache (used when Supabase table is provisioning or offline)
-const FALLBACK_RESOURCE_STORE: UploadedDocumentRecord[] = [
-  {
-    id: "doc_1",
-    title: "Mafatih al-Jinan — Complete Classical Duas Compendium",
-    fileName: "Mafatih_al_Jinan_Full_Reader.pdf",
-    category: "Duas & Supplications",
-    sect: "shia",
-    fileSize: "14.2 MB",
-    uploadDate: "22 Oct 2026",
-    uploadedBy: "Super Admin",
-    description: "Standard verified Arabic diacritics and parallel English translation for major canonical supplications."
-  },
-  {
-    id: "doc_2",
-    title: "Noorani Qaida — Color-Coded Makhaarij Guide",
-    fileName: "Noorani_Qaida_Standard_Edition.pdf",
-    category: "Tajweed & Noorani Qaida",
-    sect: "universal",
-    fileSize: "8.5 MB",
-    uploadDate: "20 Oct 2026",
-    uploadedBy: "Super Admin",
-    description: "Foundational phonetics and letter-articulation reference used across beginner classrooms."
-  },
-  {
-    id: "doc_3",
-    title: "Al-Sahifa al-Sajjadiyya — The Psalms of Islam",
-    fileName: "Sahifa_Sajjadiyya_Manuscript.pdf",
-    category: "Classical Reference Texts",
-    sect: "shia",
-    fileSize: "18.7 MB",
-    uploadDate: "18 Oct 2026",
-    uploadedBy: "Super Admin",
-    description: "Complete 54 supplications of Imam Ali Zayn al-Abidin (AS) with academic annotations."
-  },
-  {
-    id: "doc_5",
-    title: "Practical Ahkam & Daily Salat Manual",
-    fileName: "Practical_Ahkam_Salat_Handbook.pdf",
-    category: "Wudhu & Salat Ahkam",
-    sect: "universal",
-    fileSize: "4.1 MB",
-    uploadDate: "15 Oct 2026",
-    uploadedBy: "Super Admin",
-    description: "Essential rulings on Wudhu, Tayammum, invalidating factors, and prayer posture standards."
-  }
-];
+const FALLBACK_RESOURCE_STORE: UploadedDocumentRecord[] = [];
 
 export async function GET(req: NextRequest) {
   try {
@@ -83,7 +38,7 @@ export async function GET(req: NextRequest) {
 
     const { data: dbRecords, error } = await query;
 
-    if (!error && dbRecords && dbRecords.length > 0) {
+    if (!error && dbRecords) {
       const formatted: UploadedDocumentRecord[] = dbRecords.map((r: {
         id: string;
         title: string;
@@ -207,6 +162,10 @@ export async function POST(req: NextRequest) {
       fileDataUrl,
       uploadedBy = "Super Admin"
     } = body;
+
+    if (fileDataUrl && fileDataUrl.length > 25 * 1024 * 1024) {
+      return NextResponse.json({ success: false, error: "File exceeds 25MB maximum limit." }, { status: 413 });
+    }
 
     if (!title || !fileName || !category) {
       return NextResponse.json(

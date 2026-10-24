@@ -1561,3 +1561,39 @@ eceipt_uploaded, and payment_verified.
   - `vitest run`: 22/22 test suites passed, 146/146 tests passing with 100% success rate (including `safeSync.test.ts`, `backend-database-endpoints.test.ts`, `versionEnforcer.test.ts`, and `Demo Teacher` access assertion alignment).
   - TypeScript: `tsc --noEmit` exited with code 0 (zero errors).
   - Next.js Turbopack build: All 68/68 static pages and dynamic API routes compiled cleanly in production mode.
+
+
+---
+
+## 9.68 Production Security Hardening, Zero-Mock Guarantees, Edge-Case Defenses & Consolidated Schema Synchronization
+
+- **Objective**: Conduct an exhaustive end-to-end security and architectural audit across authentication, authorization boundaries, API routes, SQL schemas, and runtime payloads; remediate all discovered vulnerabilities (broken access control, arbitrary demo cookie bypass, zero-mock contract violations, missing schema tables, unvalidated financial inputs, memory exhaustion attacks); and construct automated integration test coverage.
+- **Vulnerabilities Identified & Remediated**:
+  1. **Broken Access Control & Role Boundaries (`apps/web/src/middleware.ts`)**:
+     - *Issue*: Authenticated users could navigate cross-portal (e.g. students accessing `/admin/*` or `/teacher/*`). Unauthenticated `demo_role` cookies previously allowed arbitrary bypass across all portals.
+     - *Fix*: Implemented strict role boundary enforcement via `isRoleAuthorizedForPath`. Students attempting to access `/admin`, `/teacher`, or `/parent` are redirected to `/student`. Teachers attempting to access `/admin` are redirected to `/teacher`. In production with live Supabase credentials, arbitrary `demo_role` cookies are strictly gated behind `NEXT_PUBLIC_ENABLE_DEMO_LOGIN`.
+  2. **Consolidated Master Schema Integrity (`supabase/migrations/CONSOLIDATED_MASTER_SCHEMA.sql`)**:
+     - *Issue*: `academy_resources` and `contact_inquiries` existed as standalone migration files but were completely missing from the master schema. Running the consolidated schema caused staging and production databases to fall back to memory stores.
+     - *Fix*: Added Sections 21 (`academy_resources`) and 22 (`contact_inquiries`) into `CONSOLIDATED_MASTER_SCHEMA.sql` with full table definitions, RLS policies, indexing, and `supabase_realtime` publications.
+  3. **Zero-Mock Contract Eradication across Admin Endpoints**:
+     - *`/api/admin/resources`*: Emptied hardcoded `FALLBACK_RESOURCE_STORE` to `[]`. The endpoint returns clean real data from PostgreSQL `academy_resources` table.
+     - *`/api/inquiries`*: Emptied `FALLBACK_INQUIRIES_STORE` (removed fake contact leads Sister Zainab, Brother Ali, Muhammad Usman) to `[]`.
+     - *`/api/scheduling`*: Removed hardcoded `SEED_SCHEDULES` and `SEED_ASSIGNMENTS`.
+  4. **Financial Ledger & Currency Validation (`apps/web/src/app/api/invoices/route.ts`)**:
+     - *Issue*: Missing bounds allowed negative payment amounts, zero values, unsupported currency strings, or malformed transaction references.
+     - *Fix*: Enforced `numAmount > 0`, finite number validation, supported currency whitelist (`PKR`, `GBP`, `USD`, `EUR`, `AED`, `SAR`, `CAD`, `AUD`), and sanitized 3-100 character transaction reference requirements with HTTP 400 Bad Request responses.
+  5. **Classroom State Path-Traversal & Payload Bounds (`apps/web/src/app/api/classroom/state/route.ts`)**:
+     - *Issue*: Unsanitized `roomId` allowed path traversal patterns; unvalidated payloads could trigger memory exhaustion via massive stroke arrays or out-of-range Quran navigation.
+     - *Fix*: In `GET`, sanitized `roomId` using regex `^[a-zA-Z0-9_\-]{1,64}$` defaulting to `"default"`. In `POST`, enforced strict validation on `currentPage` (1–604), `currentSurah` (1–114), `currentAyah` (1–286), capped `whiteboardStrokes` to 5000 elements, and limited `teacherNotes` to 10,000 characters.
+  6. **File Upload Size Limits & DoS Prevention (`/api/resources`, `/api/admin/resources`, `/api/admin/resources/split-hadith`)**:
+     - *Issue*: Upload endpoints accepted unbounded Base64 strings causing memory bloat and potential heap exhaustion.
+     - *Fix*: Enforced a 25MB payload ceiling with HTTP 413 Payload Too Large responses.
+  7. **Demo Access Parameter Boundary Normalization (`apps/web/src/app/api/demo-access/route.ts`)**:
+     - *Issue*: Unvalidated `role` parameter allowed unknown role cookies.
+     - *Fix*: Whitelisted canonical roles (`admin`, `teacher`, `parent`, `student`) and normalized all unknown or malicious inputs safely to `student`.
+- **Automated Test Suite Expansion**:
+  - Authored `apps/web/src/__tests__/security-audit-loopholes.test.ts` featuring 24 rigorous test cases covering middleware role authorization, zero-mock guarantees, multi-currency invoice validation, classroom state bounds, upload payload limits, and demo parameter boundaries.
+- **Validation**:
+  - `vitest run`: 23/23 test files passed, 170/170 tests passing (100% green).
+  - TypeScript: `tsc --noEmit` passed with 0 errors across all workspaces.
+  - Next.js Turbopack build: All 72/72 static and dynamic routes compiled cleanly in production mode.
