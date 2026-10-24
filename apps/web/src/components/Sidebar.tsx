@@ -7,63 +7,91 @@ import { createBrowserClient } from '@supabase/ssr'
 import { useLanguage } from './LanguageContext';
 import { APP_VERSION } from '@quran/contracts';
 
-const STUDENT_LINKS = [
-  { href: "/student", label: "Home", icon: Home },
-  { href: "/student/classes", label: "Classes", icon: PlaySquare },
-  { href: "/student/quran", label: "Quran & Duas", icon: Book },
-  { href: "/student/progress", label: "Progress", icon: TrendingUp },
-  { href: "/student/billing", label: "Billing", icon: CreditCard },
-  { href: "/student/profile", label: "Profile", icon: User },
-  { href: "/student/support", label: "Support", icon: HelpCircle },
-];
-
-const TEACHER_LINKS = [
-  { href: "/teacher", label: "Schedule", icon: Home },
-  { href: "/teacher/students", label: "My Students", icon: User },
-  { href: "/teacher/earnings", label: "Earnings", icon: CreditCard },
-];
-
-const ADMIN_LINKS = [
-  { href: "/admin", label: "Overview", icon: Home },
-  { href: "/admin/inquiries", label: "Inquiries", icon: Mail },
-  { href: "/admin/resources", label: "PDF & Content", icon: FileUp },
-  { href: "/admin/enrolments", label: "Enrolments", icon: Book },
-  { href: "/admin/scheduling", label: "Scheduling", icon: PlaySquare },
-  { href: "/admin/teachers", label: "Teachers", icon: User },
-  { href: "/admin/finance", label: "Finance", icon: CreditCard },
-  { href: "/admin/diagnostics", label: "Diagnostics", icon: Activity },
-];
-
-const PARENT_LINKS = [
-  { href: "/parent", label: "Family", icon: Home },
-  { href: "/parent/classes", label: "Classes", icon: PlaySquare },
-  { href: "/parent/progress", label: "Progress", icon: TrendingUp },
-  { href: "/parent/billing", label: "Billing", icon: CreditCard },
-  { href: "/parent/support", label: "Support", icon: HelpCircle },
-];
-
 export default function Sidebar({ onClose, role, userName, initials }: { onClose?: () => void; role?: string; userName?: string; initials?: string }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
   
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321',
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy'
   );
 
-  let links = STUDENT_LINKS;
-  let portalName = "STUDENT";
+  const isTeacher = pathname.startsWith("/teacher") || role === "teacher";
+  const isAdmin = pathname.startsWith("/admin") || role === "admin";
+  const isParent = pathname.startsWith("/parent") || role === "parent";
 
-  if (pathname.startsWith("/teacher") || role === "teacher") {
-    links = TEACHER_LINKS;
-    portalName = "TEACHER";
-  } else if (pathname.startsWith("/admin") || role === "admin") {
-    links = ADMIN_LINKS;
-    portalName = "ADMIN";
-  } else if (pathname.startsWith("/parent") || role === "parent") {
-    links = PARENT_LINKS;
-    portalName = "PARENT";
+  // Role-appropriate display name
+  let effectiveName = userName || "Demo Student";
+  if (isTeacher && (effectiveName === "Demo Student" || !effectiveName || effectiveName.includes("Maryam Ahmed"))) {
+    effectiveName = "Demo Teacher";
+  } else if (isAdmin && (effectiveName === "Demo Student" || !effectiveName)) {
+    effectiveName = "Super Admin";
+  } else if (isParent && (effectiveName === "Demo Student" || !effectiveName)) {
+    effectiveName = "Family Guardian";
+  }
+
+  // Localized user name
+  const localizedUserName =
+    effectiveName === "Demo Teacher"
+      ? t("demoTeacher")
+      : effectiveName === "Demo Student"
+      ? t("demoStudent")
+      : effectiveName === "Super Admin"
+      ? t("superAdmin")
+      : effectiveName === "Family Guardian"
+      ? t("familyGuardian")
+      : effectiveName;
+
+  // Localized Initials
+  const effectiveInitials =
+    effectiveName === "Demo Teacher"
+      ? "DT"
+      : effectiveName === "Demo Student"
+      ? "DS"
+      : effectiveName === "Super Admin"
+      ? "SA"
+      : initials || (effectiveName.slice(0, 2).toUpperCase() || "U");
+
+  let links = [
+    { href: "/student", label: t("navHome"), icon: Home },
+    { href: "/student/classes", label: t("navClasses"), icon: PlaySquare },
+    { href: "/student/quran", label: t("navQuranDuas"), icon: Book },
+    { href: "/student/progress", label: t("navProgress"), icon: TrendingUp },
+    { href: "/student/billing", label: t("navBilling"), icon: CreditCard },
+    { href: "/student/profile", label: t("navProfile"), icon: User },
+    { href: "/student/support", label: t("navSupport"), icon: HelpCircle },
+  ];
+  let portalName = t("studentPortal").toUpperCase();
+
+  if (isTeacher) {
+    links = [
+      { href: "/teacher", label: t("navSchedule"), icon: Home },
+      { href: "/teacher/students", label: t("navMyStudents"), icon: User },
+      { href: "/teacher/earnings", label: t("navEarnings"), icon: CreditCard },
+    ];
+    portalName = t("teacherPortal").toUpperCase();
+  } else if (isAdmin) {
+    links = [
+      { href: "/admin", label: t("navOverview"), icon: Home },
+      { href: "/admin/inquiries", label: t("navInquiries"), icon: Mail },
+      { href: "/admin/resources", label: t("navPdfContent"), icon: FileUp },
+      { href: "/admin/enrolments", label: t("navEnrolments"), icon: Book },
+      { href: "/admin/scheduling", label: t("navScheduling"), icon: PlaySquare },
+      { href: "/admin/teachers", label: t("navTeachers"), icon: User },
+      { href: "/admin/finance", label: t("navFinance"), icon: CreditCard },
+      { href: "/admin/diagnostics", label: t("navDiagnostics"), icon: Activity },
+    ];
+    portalName = t("adminPortal").toUpperCase();
+  } else if (isParent) {
+    links = [
+      { href: "/parent", label: t("navFamily"), icon: Home },
+      { href: "/parent/classes", label: t("navClasses"), icon: PlaySquare },
+      { href: "/parent/progress", label: t("navProgress"), icon: TrendingUp },
+      { href: "/parent/billing", label: t("navBilling"), icon: CreditCard },
+      { href: "/parent/support", label: t("navSupport"), icon: HelpCircle },
+    ];
+    portalName = t("parentPortal").toUpperCase();
   }
 
   const handleSignOut = async () => {
@@ -132,18 +160,18 @@ export default function Sidebar({ onClose, role, userName, initials }: { onClose
 
       <div className="mt-auto p-6 flex flex-col gap-3 border-t border-white/10">
         <div className="flex items-center gap-4">
-          <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center font-bold text-sm">
-            {initials || 'U'}
+          <div className="w-8 h-8 rounded-full bg-emerald-800/80 border border-amber-400/30 text-amber-300 flex items-center justify-center font-bold text-xs shadow-xs">
+            {effectiveInitials}
           </div>
           <div className="text-sm font-bold text-emerald-100 cursor-pointer hover:text-white transition line-clamp-1">
-            {userName || 'Account'}
+            {localizedUserName}
           </div>
         </div>
         
         <div className="flex items-center justify-between mt-1">
           <button onClick={handleSignOut} className="text-left text-sm font-bold text-red-300 hover:text-red-400 transition flex items-center gap-2 cursor-pointer">
             <LogOut size={16} />
-            Sign Out
+            {t("signOutLabel")}
           </button>
           
           <button 
@@ -164,7 +192,7 @@ export default function Sidebar({ onClose, role, userName, initials }: { onClose
             <span>v{APP_VERSION}</span>
           </span>
           <span className="text-[10px] bg-emerald-950/80 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-700/40">
-            Live
+            {t("liveStatusBadge")}
           </span>
         </div>
       </div>

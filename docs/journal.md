@@ -1505,3 +1505,24 @@ eceipt_uploaded, and payment_verified.
 - **Validation**:
   - `pnpm typecheck`: 0 TypeScript errors.
   - `pnpm --filter frontend lint`: 0 errors.
+
+---
+
+## 9.66 Portal Localization (EN/UR), Demo Teacher Standardization & Mock Data Architecture Audit
+
+- **Objective**:
+  1. Fix teacher account name resolution across portals so the teacher view consistently displays "Demo Teacher" (and "DT" initials) rather than falling back to "Demo Student".
+  2. Activate English/Urdu bilingual language switching across all portal sidebars, top headers, and role badges.
+  3. Conduct an end-to-end audit of mock data, database persistence coverage, and multi-tenant scalability (multiple teachers and students).
+- **Implementation Details**:
+  1. **Demo Teacher Identity Standardization (`apps/web/src/app/(portal)/layout.tsx`, `PortalLayoutClient.tsx`, `Sidebar.tsx`, `apps/web/src/app/api/demo-access/route.ts`, `apps/web/src/app/(portal)/teacher/page.tsx`)**:
+     - Standardized teacher role cookie and server layout fallback from `"Maryam Ahmed (Teacher)"` to `"Demo Teacher"`.
+     - Added client route pathname inference in `PortalLayoutClient.tsx`: automatically resolves effective user name to `"Demo Teacher"` when navigating on `/teacher` routes, eliminating `"Demo Student"` leakage.
+     - Updated header initials from `"U"` to `"DT"` for teacher accounts.
+  2. **Active Urdu / English Portal Localization (`apps/web/src/components/LanguageContext.tsx`, `Sidebar.tsx`, `PortalLayoutClient.tsx`)**:
+     - Added full Urdu and English translation key definitions for all portal navigation links (`navHome`, `navClasses`, `navQuranDuas`, `navProgress`, `navBilling`, `navProfile`, `navSupport`, `navSchedule`, `navMyStudents`, `navEarnings`, `navOverview`, `navInquiries`, `navPdfContent`, `navEnrolments`, `navScheduling`, `navTeachers`, `navFinance`, `navDiagnostics`, `navFamily`).
+     - Localized role badges (`demoTeacher` -> `ڈیمو استاد`, `demoStudent` -> `ڈیمو طالب علم`, `superAdmin` -> `سپر ایڈمن`, `familyGuardian` -> `سرپرست / والدین`).
+     - Localized portal titles (`portalDashboard` -> `پورٹل ڈیش بورڈ`) and utility actions (`signOutLabel` -> `سائن آؤٹ`, `liveStatusBadge` -> `لائیو`).
+- **Validation**:
+  - `pnpm typecheck`: 0 TypeScript errors.
+  - `pnpm --filter frontend lint`: 0 errors.

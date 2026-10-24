@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     role === "admin"
       ? "Super Admin"
       : role === "teacher"
-      ? "Maryam Ahmed (Teacher)"
+      ? "Demo Teacher"
       : role === "parent"
       ? "Family Guardian"
       : "Demo Student";

@@ -27,7 +27,7 @@ export default function TeacherDashboard() {
 
       {/* Greeting */}
       <div className="mb-8">
-        <h1 className="text-3xl md:text-4xl font-serif text-white mb-2">Assalamu alaikum, Ustadha Maryam</h1>
+        <h1 className="text-3xl md:text-4xl font-serif text-white mb-2">Assalamu alaikum, Demo Teacher</h1>
         <p className="text-emerald-100/80 text-sm">Your teaching agenda, lesson notes, and student progress in one unified cockpit.</p>
       </div>
 

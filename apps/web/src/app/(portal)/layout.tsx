@@ -18,7 +18,7 @@ export default async function PortalLayout({ children }: { children: React.React
     if (demoRole === "admin") {
       fullName = "Super Admin";
     } else if (demoRole === "teacher") {
-      fullName = "Maryam Ahmed (Teacher)";
+      fullName = "Demo Teacher";
     } else if (demoRole === "parent") {
       fullName = "Family Guardian";
     } else if (demoUser) {
