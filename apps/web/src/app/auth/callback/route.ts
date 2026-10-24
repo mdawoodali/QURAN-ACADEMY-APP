@@ -28,13 +28,22 @@ export async function GET(request: Request) {
           data.user.email ||
           "Student";
 
+        const targetPath =
+          role === "admin"
+            ? "/admin"
+            : role === "teacher"
+            ? "/teacher"
+            : role === "parent"
+            ? "/parent"
+            : "/student";
+
         cookieStore.set("demo_role", role, { path: "/", maxAge: 60 * 60 * 24 * 7 });
         cookieStore.set("demo_user", name, { path: "/", maxAge: 60 * 60 * 24 * 7 });
 
-        if (role === "admin") return NextResponse.redirect(new URL("/admin", origin));
-        if (role === "teacher") return NextResponse.redirect(new URL("/teacher", origin));
-        if (role === "parent") return NextResponse.redirect(new URL("/parent", origin));
-        return NextResponse.redirect(new URL("/student", origin));
+        const redirectResponse = NextResponse.redirect(new URL(targetPath, origin));
+        redirectResponse.cookies.set("demo_role", role, { path: "/", maxAge: 60 * 60 * 24 * 7 });
+        redirectResponse.cookies.set("demo_user", name, { path: "/", maxAge: 60 * 60 * 24 * 7 });
+        return redirectResponse;
       }
     } catch (err) {
       console.error("[AuthCallback] OAuth exchange error:", err);

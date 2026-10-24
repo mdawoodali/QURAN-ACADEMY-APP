@@ -1756,3 +1756,15 @@ eceipt_uploaded, and payment_verified.
 - **Verification**:
   - Vitest suite: 170/170 tests passing.
   - ESLint: 0 errors.
+
+---
+
+## 9.78 OAuth Code Interception in Middleware & Direct Response Cookie Binding (2026-10-25)
+
+- **Root `?code=` Interception (`middleware.ts`)**:
+  - Intercepted any incoming requests containing `?code=` that land on non-callback routes (e.g. Supabase fallback to `/?code=...`).
+  - Automatically redirects immediately to `/auth/callback?code=...` to ensure seamless session exchange into the dashboard.
+- **Direct Cookie Binding on OAuth Callback (`auth/callback/route.ts`)**:
+  - Bound `demo_role` and `demo_user` session cookies directly to the outgoing `NextResponse.redirect` object, ensuring browser persistence across all preview and production environments.
+- **Verification**:
+  - 170/170 tests passing across 23 test suites.

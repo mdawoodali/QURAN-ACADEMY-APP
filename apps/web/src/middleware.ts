@@ -24,6 +24,15 @@ function isRoleAuthorizedForPath(role: string, pathname: string): boolean {
 
 export async function middleware(request: NextRequest) {
   const url = request.nextUrl.clone();
+
+  // 0. OAuth Auth Code Interception: If Supabase redirects auth code to root /?code=... or any non-callback route,
+  // immediately forward to /auth/callback to finalize session exchange and enter the dashboard.
+  if (url.searchParams.has("code") && url.pathname !== "/auth/callback") {
+    const callbackUrl = new URL("/auth/callback", request.url);
+    callbackUrl.search = url.search;
+    return NextResponse.redirect(callbackUrl);
+  }
+
   const ip =
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     request.headers.get("x-real-ip") ||
