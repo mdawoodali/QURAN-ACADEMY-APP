@@ -1739,3 +1739,4 @@ eceipt_uploaded, and payment_verified.
 - **CI ESLint Hardening (`safeSync.ts`)**:
   - Resolved `prefer-const` ESLint violation on `currentPayload` in `safeSupabaseUpdate`.
   - Re-ran `eslint` across workspace: 0 errors confirmed, unblocking GitHub Actions CI pipeline.
+  - Injected Supabase authentication test environment variables into `vitest.config.mjs` and `.github/workflows/ci.yml` so automated integration tests execute cleanly in CI without 500 error regressions.
