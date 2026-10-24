@@ -1740,3 +1740,4 @@ eceipt_uploaded, and payment_verified.
   - Resolved `prefer-const` ESLint violation on `currentPayload` in `safeSupabaseUpdate`.
   - Re-ran `eslint` across workspace: 0 errors confirmed, unblocking GitHub Actions CI pipeline.
   - Injected Supabase authentication test environment variables into `vitest.config.mjs` and `.github/workflows/ci.yml` so automated integration tests execute cleanly in CI without 500 error regressions.
+  - Replaced legacy localhost 127.0.0.1:54321 fallback URLs in `utils/supabase/server.ts` and `client.ts` with production defaults, ensuring reliable server rendering and test execution in isolated CI environments.
