@@ -44,7 +44,9 @@ export default function AdminScheduling() {
       subject
     });
 
-    setSchedules((prev) => [...prev, created]);
+    if (created) {
+      setSchedules((prev) => [...prev, created]);
+    }
     setShowAddModal(false);
     setStudentName("");
     toast.success(`Schedule persisted for ${studentName} (${dayOfWeek} ${time})`);

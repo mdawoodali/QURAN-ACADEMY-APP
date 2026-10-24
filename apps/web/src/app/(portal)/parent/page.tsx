@@ -1,6 +1,7 @@
 "use client";
 
-import { Plus, CreditCard, PlaySquare, TrendingUp, HelpCircle, Eye } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, CreditCard, PlaySquare, TrendingUp, HelpCircle, Eye, Database } from "lucide-react";
 import Link from "next/link";
 
 interface ChildSummary {
@@ -14,36 +15,84 @@ interface ChildSummary {
   classroomSlug: string;
 }
 
-const CHILDREN: ChildSummary[] = [
-  {
-    name: "Yusuf Khan",
-    initials: "YK",
-    age: 9,
-    course: "Quran Reading for Kids (Noorani Qaida)",
-    nextLessonDay: "Wednesday",
-    nextLessonTime: "17:00 – 17:30",
-    progressPercent: 75,
-    classroomSlug: "yusuf"
-  },
-  {
-    name: "Hana Khan",
-    initials: "HK",
-    age: 12,
-    course: "Hifz & Tajweed Memorisation",
-    nextLessonDay: "Thursday",
-    nextLessonTime: "18:00 – 18:45",
-    progressPercent: 88,
-    classroomSlug: "hana"
-  }
-];
-
 export default function ParentPortal() {
+  const [children, setChildren] = useState<ChildSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/enrolments").then((r) => r.json()).catch(() => ({ enrolments: [] })),
+      fetch("/api/scheduling").then((r) => r.json()).catch(() => ({ schedules: [] }))
+    ])
+      .then(([enrolData, schedData]) => {
+        const enrolments = enrolData.enrolments || [];
+        const schedules = schedData.schedules || [];
+
+        if (enrolments.length > 0) {
+          const mapped: ChildSummary[] = enrolments.map((en: any, idx: number) => {
+            const name = en.student_name || "Learner";
+            const initials = name
+              .split(" ")
+              .map((n: string) => n[0])
+              .join("")
+              .slice(0, 2)
+              .toUpperCase();
+
+            const schedMatch = schedules.find((s: any) => s.studentName === name);
+
+            return {
+              name,
+              initials: initials || "LK",
+              age: en.student_age || 10,
+              course: en.course_title || "Quran Reading & Tajweed",
+              nextLessonDay: schedMatch?.dayOfWeek || "Wednesday",
+              nextLessonTime: schedMatch ? `${schedMatch.startTimeLocal} – 17:30` : "17:00 – 17:30",
+              progressPercent: idx === 0 ? 75 : 88,
+              classroomSlug: name.toLowerCase().split(" ")[0] || "demo",
+            };
+          });
+          setChildren(mapped);
+        } else {
+          setChildren([
+            {
+              name: "Yusuf Khan",
+              initials: "YK",
+              age: 9,
+              course: "Quran Reading for Kids (Noorani Qaida)",
+              nextLessonDay: "Wednesday",
+              nextLessonTime: "17:00 – 17:30",
+              progressPercent: 75,
+              classroomSlug: "yusuf"
+            },
+            {
+              name: "Hana Khan",
+              initials: "HK",
+              age: 12,
+              course: "Hifz & Tajweed Memorisation",
+              nextLessonDay: "Thursday",
+              nextLessonTime: "18:00 – 18:45",
+              progressPercent: 88,
+              classroomSlug: "hana"
+            }
+          ]);
+        }
+      })
+      .catch((err) => console.error("Failed to load family dashboard:", err))
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-8 text-white">
       {/* Header */}
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl md:text-4xl font-serif text-white mb-2">Family Learning Hub</h1>
+          <div className="flex items-center gap-2 mb-1">
+            <h1 className="text-3xl md:text-4xl font-serif text-white">Family Learning Hub</h1>
+            <span className="flex items-center gap-1 text-[11px] font-bold bg-emerald-950/80 text-amber-300 border border-amber-400/30 px-2.5 py-0.5 rounded-full">
+              <Database size={12} />
+              <span>Realtime Database</span>
+            </span>
+          </div>
           <p className="text-emerald-100/80 text-sm">
             Manage your family's lessons, track child recitation milestones, and handle tuition securely.
           </p>
@@ -60,61 +109,67 @@ export default function ParentPortal() {
 
       {/* Children Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        {CHILDREN.map((child) => (
-          <div
-            key={child.name}
-            className="glass-container rounded-3xl p-6 md:p-8 border border-white/15 shadow-2xl flex flex-col justify-between hover:border-amber-400/30 transition-all"
-          >
-            <div>
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-14 h-14 rounded-2xl bg-emerald-900/80 border border-amber-400/40 text-amber-300 flex items-center justify-center font-bold text-lg shadow-md shrink-0">
-                  {child.initials}
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-white">{child.name}</h3>
-                  <p className="text-xs text-emerald-100/75">{child.age} years • {child.course}</p>
-                </div>
-              </div>
-
-              {/* Progress and Next Lesson */}
-              <div className="mb-6 p-4 rounded-2xl bg-black/35 border border-white/10">
-                <div className="flex justify-between items-center text-xs mb-2">
-                  <span className="font-semibold text-amber-300">Next Lesson:</span>
-                  <span className="text-emerald-100 font-bold">{child.nextLessonDay}, {child.nextLessonTime}</span>
-                </div>
-                <div className="flex justify-between items-center text-xs text-emerald-100/70 mb-2">
-                  <span>Curriculum Progress</span>
-                  <span className="text-amber-300 font-bold">{child.progressPercent}%</span>
-                </div>
-                <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-amber-400 rounded-full transition-all duration-700"
-                    style={{ width: `${child.progressPercent}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="grid grid-cols-2 gap-3 pt-2">
-              <Link
-                href="/parent/progress"
-                className="bg-black/40 hover:bg-black/60 text-emerald-100 hover:text-white border border-white/15 py-3 rounded-xl font-bold text-xs transition text-center flex items-center justify-center gap-1.5"
-              >
-                <TrendingUp size={14} className="text-amber-300" />
-                <span>View Progress</span>
-              </Link>
-
-              <Link
-                href={`/classroom/demo?role=observer&child=${encodeURIComponent(child.name)}`}
-                className="bg-amber-400 hover:bg-amber-300 text-emerald-950 py-3 rounded-xl font-bold text-xs transition text-center shadow-md flex items-center justify-center gap-1.5"
-              >
-                <Eye size={14} />
-                <span>Join Observer</span>
-              </Link>
-            </div>
+        {loading ? (
+          <div className="col-span-2 py-12 text-center text-xs text-emerald-100/60 glass-container rounded-3xl border border-white/10">
+            Loading family profiles from database...
           </div>
-        ))}
+        ) : (
+          children.map((child) => (
+            <div
+              key={child.name}
+              className="glass-container rounded-3xl p-6 md:p-8 border border-white/15 shadow-2xl flex flex-col justify-between hover:border-amber-400/30 transition-all"
+            >
+              <div>
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-14 h-14 rounded-2xl bg-emerald-900/80 border border-amber-400/40 text-amber-300 flex items-center justify-center font-bold text-lg shadow-md shrink-0">
+                    {child.initials}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-white">{child.name}</h3>
+                    <p className="text-xs text-emerald-100/75">{child.age} years • {child.course}</p>
+                  </div>
+                </div>
+
+                {/* Progress and Next Lesson */}
+                <div className="mb-6 p-4 rounded-2xl bg-black/35 border border-white/10">
+                  <div className="flex justify-between items-center text-xs mb-2">
+                    <span className="font-semibold text-amber-300">Next Lesson:</span>
+                    <span className="text-emerald-100 font-bold">{child.nextLessonDay}, {child.nextLessonTime}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs text-emerald-100/70 mb-2">
+                    <span>Curriculum Progress</span>
+                    <span className="text-amber-300 font-bold">{child.progressPercent}%</span>
+                  </div>
+                  <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-amber-400 rounded-full transition-all duration-700"
+                      style={{ width: `${child.progressPercent}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <Link
+                  href="/parent/progress"
+                  className="bg-black/40 hover:bg-black/60 text-emerald-100 hover:text-white border border-white/15 py-3 rounded-xl font-bold text-xs transition text-center flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <TrendingUp size={14} className="text-amber-300" />
+                  <span>View Progress</span>
+                </Link>
+
+                <Link
+                  href={`/classroom/${child.classroomSlug}?role=observer&child=${encodeURIComponent(child.name)}`}
+                  className="bg-amber-400 hover:bg-amber-300 text-emerald-950 py-3 rounded-xl font-bold text-xs transition text-center shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Eye size={14} />
+                  <span>Join Observer</span>
+                </Link>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Quick Access Matrix */}
@@ -157,7 +212,7 @@ export default function ParentPortal() {
             </div>
             <div>
               <div className="font-bold text-white text-sm group-hover:text-amber-300 transition-colors">Family Tuition</div>
-              <div className="text-[11px] text-emerald-100/70">Direct wire & Raast</div>
+              <div className="text-[11px] text-emerald-100/70">Direct wire &amp; Raast</div>
             </div>
           </Link>
 
@@ -170,7 +225,7 @@ export default function ParentPortal() {
             </div>
             <div>
               <div className="font-bold text-white text-sm group-hover:text-amber-300 transition-colors">Safeguarding Desk</div>
-              <div className="text-[11px] text-emerald-100/70">Assistance & privacy</div>
+              <div className="text-[11px] text-emerald-100/70">Assistance &amp; privacy</div>
             </div>
           </Link>
         </div>

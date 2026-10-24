@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Calendar, Video, CheckCircle2, Ban, User, MessageSquare } from "lucide-react";
 import toast from "react-hot-toast";
@@ -15,57 +15,77 @@ interface TeacherSlot {
   classroomSlug?: string;
 }
 
-const INITIAL_SCHEDULE: TeacherSlot[] = [
-  // Monday
-  { id: "m1", day: "Mon", time: "16:00", status: "available" },
-  { id: "m2", day: "Mon", time: "16:30", status: "booked", studentName: "Yusuf Khan", course: "Noorani Qaida", classroomSlug: "yusuf" },
-  { id: "m3", day: "Mon", time: "17:00", status: "booked", studentName: "Amina Khan", course: "Tajweed Fluency", classroomSlug: "amina" },
-  { id: "m4", day: "Mon", time: "17:30", status: "available" },
-  { id: "m5", day: "Mon", time: "18:00", status: "blocked" },
-
-  // Tuesday
-  { id: "t1", day: "Tue", time: "16:00", status: "available" },
-  { id: "t2", day: "Tue", time: "16:30", status: "available" },
-  { id: "t3", day: "Tue", time: "17:00", status: "booked", studentName: "Omar Ali", course: "Hifz Juz 30", classroomSlug: "omar" },
-  { id: "t4", day: "Tue", time: "17:30", status: "available" },
-  { id: "t5", day: "Tue", time: "18:00", status: "available" },
-
-  // Wednesday
-  { id: "w1", day: "Wed", time: "16:00", status: "blocked" },
-  { id: "w2", day: "Wed", time: "16:30", status: "available" },
-  { id: "w3", day: "Wed", time: "17:00", status: "booked", studentName: "Yusuf Khan", course: "Noorani Qaida", classroomSlug: "yusuf" },
-  { id: "w4", day: "Wed", time: "17:30", status: "booked", studentName: "Zayd Farooq", course: "Beginner Qaida", classroomSlug: "zayd" },
-  { id: "w5", day: "Wed", time: "18:00", status: "available" },
-
-  // Thursday
-  { id: "th1", day: "Thu", time: "16:00", status: "available" },
-  { id: "th2", day: "Thu", time: "16:30", status: "booked", studentName: "Hana Khan", course: "Hifz Amma", classroomSlug: "hana" },
-  { id: "th3", day: "Thu", time: "17:00", status: "available" },
-  { id: "th4", day: "Thu", time: "17:30", status: "available" },
-  { id: "th5", day: "Thu", time: "18:00", status: "blocked" },
-
-  // Friday
-  { id: "f1", day: "Fri", time: "16:00", status: "available" },
-  { id: "f2", day: "Fri", time: "16:30", status: "available" },
-  { id: "f3", day: "Fri", time: "17:00", status: "booked", studentName: "Yusuf Khan", course: "Noorani Qaida", classroomSlug: "yusuf" },
-  { id: "f4", day: "Fri", time: "17:30", status: "booked", studentName: "Amina Khan", course: "Tajweed Fluency", classroomSlug: "amina" },
-  { id: "f5", day: "Fri", time: "18:00", status: "available" },
-
-  // Saturday
-  { id: "s1", day: "Sat", time: "10:00", status: "available" },
-  { id: "s2", day: "Sat", time: "10:30", status: "booked", studentName: "Hana Khan", course: "Hifz Amma", classroomSlug: "hana" },
-  { id: "s3", day: "Sat", time: "11:00", status: "available" },
-  { id: "s4", day: "Sat", time: "11:30", status: "available" },
-  { id: "s5", day: "Sat", time: "12:00", status: "blocked" },
-];
-
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const TIMES = ["16:00", "16:30", "17:00", "17:30", "18:00"];
 
 export default function TeacherSchedule() {
-  const [slots, setSlots] = useState<TeacherSlot[]>(INITIAL_SCHEDULE);
+  const [slots, setSlots] = useState<TeacherSlot[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const toggleSlotAvailability = (slotId: string) => {
+  useEffect(() => {
+    fetch("/api/scheduling")
+      .then((res) => res.json())
+      .then((data) => {
+        const schedules = data.schedules || [];
+        // Build complete grid from days and times
+        const builtSlots: TeacherSlot[] = [];
+        DAYS.forEach((day) => {
+          TIMES.forEach((time) => {
+            const slotId = `${day.toLowerCase()}_${time.replace(":", "")}`;
+            // Match if any recurring schedule falls on this day & time
+            const dayFull =
+              day === "Mon" ? "Monday" :
+              day === "Tue" ? "Tuesday" :
+              day === "Wed" ? "Wednesday" :
+              day === "Thu" ? "Thursday" :
+              day === "Fri" ? "Friday" : "Saturday";
+
+            const match = schedules.find(
+              (s: any) => s.dayOfWeek === dayFull && s.startTimeLocal === time
+            );
+
+            if (match) {
+              builtSlots.push({
+                id: match.id || slotId,
+                day,
+                time,
+                status: "booked",
+                studentName: match.studentName,
+                course: match.subject || "Quran Recitation",
+                classroomSlug: (match.studentName || "demo").toLowerCase().split(" ")[0],
+              });
+            } else {
+              builtSlots.push({
+                id: slotId,
+                day,
+                time,
+                status: "available",
+              });
+            }
+          });
+        });
+        setSlots(builtSlots);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch schedules:", err);
+        // Fallback default grid
+        const defaultSlots: TeacherSlot[] = [];
+        DAYS.forEach((day) => {
+          TIMES.forEach((time) => {
+            defaultSlots.push({
+              id: `${day.toLowerCase()}_${time.replace(":", "")}`,
+              day,
+              time,
+              status: "available",
+            });
+          });
+        });
+        setSlots(defaultSlots);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const toggleSlotAvailability = async (slotId: string) => {
     setSlots((prev) =>
       prev.map((s) => {
         if (s.id !== slotId) return s;
@@ -98,10 +118,10 @@ export default function TeacherSchedule() {
           Weekly Schedule
         </Link>
         <Link href="/teacher/students" className="text-emerald-100/70 hover:text-white px-2 py-1 transition">
-          My Students & Notes
+          My Students &amp; Notes
         </Link>
         <Link href="/teacher/earnings" className="text-emerald-100/70 hover:text-white px-2 py-1 transition">
-          Earnings & Bank Payouts
+          Earnings &amp; Bank Payouts
         </Link>
       </div>
 
@@ -109,13 +129,13 @@ export default function TeacherSchedule() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-3xl md:text-4xl font-serif text-white">Teaching Schedule & Availability</h1>
+            <h1 className="text-3xl md:text-4xl font-serif text-white">Teaching Schedule &amp; Availability</h1>
             <span className="flex items-center gap-1 text-[11px] font-bold bg-emerald-950/80 text-amber-300 border border-amber-400/30 px-2.5 py-0.5 rounded-full">
               Asia/Karachi
             </span>
           </div>
           <p className="text-emerald-100/80 text-sm">
-            Manage your open weekly recurring slots. Click available slots to toggle rest/blocked hours.
+            Live database weekly recurring slots. Click available slots to toggle rest/blocked hours.
           </p>
         </div>
 
@@ -133,7 +153,7 @@ export default function TeacherSchedule() {
         <div className="glass-container rounded-3xl p-5 border border-white/15 shadow-xl flex items-center justify-between">
           <div>
             <div className="text-xs font-bold text-amber-300 uppercase tracking-wider mb-1">Booked Lessons</div>
-            <div className="text-3xl font-bold text-white">{bookedCount} sessions</div>
+            <div className="text-3xl font-bold text-white">{loading ? "..." : `${bookedCount} sessions`}</div>
             <p className="text-xs text-emerald-100/70">{(bookedCount * 0.5).toFixed(1)} hrs / week</p>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-amber-400/20 text-amber-300 border border-amber-400/40 flex items-center justify-center font-bold">
@@ -144,7 +164,7 @@ export default function TeacherSchedule() {
         <div className="glass-container rounded-3xl p-5 border border-white/15 shadow-xl flex items-center justify-between">
           <div>
             <div className="text-xs font-bold text-emerald-300 uppercase tracking-wider mb-1">Open for Booking</div>
-            <div className="text-3xl font-bold text-white">{availableCount} slots</div>
+            <div className="text-3xl font-bold text-white">{loading ? "..." : `${availableCount} slots`}</div>
             <p className="text-xs text-emerald-100/70">Ready for trial matching</p>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-emerald-900/60 text-emerald-300 border border-emerald-500/30 flex items-center justify-center font-bold">
@@ -155,7 +175,7 @@ export default function TeacherSchedule() {
         <div className="glass-container rounded-3xl p-5 border border-white/15 shadow-xl flex items-center justify-between">
           <div>
             <div className="text-xs font-bold text-emerald-100/60 uppercase tracking-wider mb-1">Blocked / Rest</div>
-            <div className="text-3xl font-bold text-white">{blockedCount} slots</div>
+            <div className="text-3xl font-bold text-white">{loading ? "..." : `${blockedCount} slots`}</div>
             <p className="text-xs text-emerald-100/70">Unavailable for bookings</p>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-black/40 text-emerald-100/40 border border-white/10 flex items-center justify-center font-bold">

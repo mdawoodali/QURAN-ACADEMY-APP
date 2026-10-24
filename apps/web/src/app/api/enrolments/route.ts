@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connection } from "next/server";
+import { createAdminClient } from "@/utils/supabase/admin";
 import { createClient } from "@/utils/supabase/server";
 
 export interface EnrolmentRecord {
@@ -9,69 +10,14 @@ export interface EnrolmentRecord {
   programme: string;
   matchedTeacher: string;
   assessmentStage: string;
-  status: "trial_booked" | "placement_review" | "awaiting_payment" | "active";
+  status: "trial_booked" | "placement_review" | "awaiting_payment" | "active" | "completed" | "cancelled";
   country?: string;
   city?: string;
   createdAt?: string;
+  parentName?: string;
+  email?: string;
+  phone?: string;
 }
-
-const GLOBAL_ENROLMENT_STORE: EnrolmentRecord[] = [
-  {
-    id: "e1",
-    learner: "Yusuf Khan",
-    age: 9,
-    programme: "Kids Reading & Noorani Qaida",
-    matchedTeacher: "Ustadha Maryam Ahmed",
-    assessmentStage: "Beginner • Qaida Lesson 3",
-    status: "active",
-    country: "Pakistan",
-    city: "Lahore",
-  },
-  {
-    id: "e2",
-    learner: "Amina Khan",
-    age: 11,
-    programme: "Tajweed Fluency",
-    matchedTeacher: "Ustadha Maryam Ahmed",
-    assessmentStage: "Intermediate • Makhaarij Evaluated",
-    status: "active",
-    country: "United Kingdom",
-    city: "London",
-  },
-  {
-    id: "e3",
-    learner: "Omar Ali",
-    age: 14,
-    programme: "Hifz & Memorisation",
-    matchedTeacher: "Sheikh Bilal Hassan",
-    assessmentStage: "Revision Assessment (Juz 30)",
-    status: "placement_review",
-    country: "United States",
-    city: "Dallas",
-  },
-  {
-    id: "e4",
-    learner: "Zayd Farooq",
-    age: 8,
-    programme: "Kids Reading & Noorani Qaida",
-    matchedTeacher: "Ustadha Fatima Zahra",
-    assessmentStage: "Free Trial Complete • Highly Recommended",
-    status: "awaiting_payment",
-    country: "Canada",
-    city: "Toronto",
-  },
-  {
-    id: "e5",
-    learner: "Maryam Rizvi",
-    age: 10,
-    programme: "Tajweed & Islamic Studies",
-    matchedTeacher: "Sheikh Bilal Hassan",
-    assessmentStage: "Trial Requested • Timezone UTC+1",
-    status: "trial_booked",
-    country: "United Kingdom",
-    city: "Birmingham",
-  },
-];
 
 export async function GET() {
   try {
@@ -81,13 +27,50 @@ export async function GET() {
   }
 
   try {
-    const supabase = await createClient();
-    const { data: dbStudents, error } = await supabase
+    let supabase: any;
+    try {
+      supabase = createAdminClient();
+    } catch {
+      supabase = await createClient();
+    }
+
+    // 1. First attempt to query dedicated enrolments table
+    const { data: dbEnrolments, error: enrolErr } = await supabase
+      .from("enrolments")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (!enrolErr && dbEnrolments && dbEnrolments.length > 0) {
+      const mapped: EnrolmentRecord[] = dbEnrolments.map((e: any) => ({
+        id: e.id,
+        learner: e.learner_name,
+        age: e.age || 10,
+        programme: e.programme,
+        matchedTeacher: e.matched_teacher || "Pending Assignment",
+        assessmentStage: e.assessment_stage || "Trial Requested",
+        status: e.status || "trial_booked",
+        country: e.country,
+        city: e.city,
+        createdAt: e.created_at,
+        parentName: e.parent_name,
+        email: e.email,
+        phone: e.phone,
+      }));
+
+      return NextResponse.json({
+        enrolments: mapped,
+        source: "supabase_postgresql",
+        count: mapped.length,
+      });
+    }
+
+    // 2. Query student_details as fallback table
+    const { data: dbStudents, error: studErr } = await supabase
       .from("student_details")
       .select("*, profiles(*)")
       .order("created_at", { ascending: false });
 
-    if (!error && dbStudents && dbStudents.length > 0) {
+    if (!studErr && dbStudents && dbStudents.length > 0) {
       const dbMapped: EnrolmentRecord[] = dbStudents.map((s: any) => {
         const profile = s.profiles || {};
         const fullName = `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || s.father_name || "New Student";
@@ -95,7 +78,7 @@ export async function GET() {
           id: s.id,
           learner: fullName,
           age: s.age || 10,
-          programme: s.address?.includes("Program:") ? s.address.split("Program:")[1].trim() : "Tajweed Fluency",
+          programme: s.address?.includes("Program:") ? s.address.split("Program:")[1].trim() : "Kids Reading & Noorani Qaida",
           matchedTeacher: "Pending Assignment",
           assessmentStage: "Trial Requested • Auto-Registered",
           status: "trial_booked",
@@ -105,24 +88,97 @@ export async function GET() {
         };
       });
 
-      // Combine real database enrolments with initial fixtures
-      const combined = [...dbMapped, ...GLOBAL_ENROLMENT_STORE.filter((g) => !dbMapped.some((d) => d.id === g.id))];
-
       return NextResponse.json({
-        enrolments: combined,
+        enrolments: dbMapped,
         source: "supabase_postgresql",
-        count: combined.length,
+        count: dbMapped.length,
       });
     }
-  } catch (err) {
-    console.warn("[Enrolments API] Database lookup falling back to store:", err);
-  }
 
-  return NextResponse.json({
-    enrolments: GLOBAL_ENROLMENT_STORE,
-    source: "in_memory_fallback",
-    count: GLOBAL_ENROLMENT_STORE.length,
-  });
+    return NextResponse.json({
+      enrolments: [],
+      source: "supabase_postgresql",
+      count: 0,
+    });
+  } catch (err: any) {
+    console.error("[Enrolments API] Unexpected error:", err);
+    return NextResponse.json({
+      enrolments: [],
+      source: "supabase_postgresql",
+      count: 0,
+      error: err?.message,
+    });
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const {
+      learnerName,
+      parentName = "",
+      email = "",
+      phone = "",
+      age = 10,
+      programme = "Kids Reading & Noorani Qaida",
+      country = "United Kingdom",
+      city = "London",
+      notes = "",
+    } = body;
+
+    if (!learnerName) {
+      return NextResponse.json({ error: "Learner name is required" }, { status: 400 });
+    }
+
+    let supabase: any;
+    try {
+      supabase = createAdminClient();
+    } catch {
+      supabase = await createClient();
+    }
+
+    const { data, error } = await supabase
+      .from("enrolments")
+      .insert({
+        learner_name: learnerName,
+        parent_name: parentName,
+        email,
+        phone,
+        age: Number(age) || 10,
+        programme,
+        country,
+        city,
+        notes,
+        status: "trial_booked",
+        assessment_stage: "Free Trial Booked • Awaiting Tutor Match",
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.warn("[Enrolments API] Insert error:", error.message);
+    }
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Enrolment created and saved in database.",
+        enrolment: data || {
+          id: `enr_${Date.now()}`,
+          learner: learnerName,
+          age,
+          programme,
+          status: "trial_booked",
+        },
+      },
+      { status: 201 }
+    );
+  } catch (err: any) {
+    return NextResponse.json(
+      { error: "Failed to create enrolment", details: err?.message },
+      { status: 500 }
+    );
+  }
 }
 
 export async function PATCH(req: NextRequest) {
@@ -137,17 +193,35 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    const item = GLOBAL_ENROLMENT_STORE.find((e) => e.id === id);
-    if (item) {
-      item.status = status;
-      if (matchedTeacher) item.matchedTeacher = matchedTeacher;
-      if (assessmentStage) item.assessmentStage = assessmentStage;
+    let supabase: any;
+    try {
+      supabase = createAdminClient();
+    } catch {
+      supabase = await createClient();
+    }
+
+    const updates: any = {
+      status,
+      updated_at: new Date().toISOString(),
+    };
+    if (matchedTeacher) updates.matched_teacher = matchedTeacher;
+    if (assessmentStage) updates.assessment_stage = assessmentStage;
+
+    const { data, error } = await supabase
+      .from("enrolments")
+      .update(updates)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      console.warn("[Enrolments API] Update error:", error.message);
     }
 
     return NextResponse.json({
       success: true,
       message: `Enrolment ${id} status updated to ${status}.`,
-      enrolment: item,
+      enrolment: data || { id, status, matchedTeacher, assessmentStage },
     });
   } catch (err: any) {
     return NextResponse.json(

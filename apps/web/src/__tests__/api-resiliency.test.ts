@@ -252,7 +252,7 @@ describe("API Endpoint Resiliency & Parameter Boundary Verification Suite", () =
   describe("5. Demo Fast-Track Access Redirection Endpoint (/api/demo-access)", () => {
     it.each([
       ["admin", "/admin", "Super Admin"],
-      ["teacher", "/teacher", "Maryam Ahmed (Teacher)"],
+      ["teacher", "/teacher", "Demo Teacher"],
       ["parent", "/parent", "Family Guardian"],
       ["student", "/student", "Demo Student"],
     ])("redirects %s to %s and sets demo cookies", async (role, expectedPath, expectedUser) => {

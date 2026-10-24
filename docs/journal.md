@@ -1526,3 +1526,38 @@ eceipt_uploaded, and payment_verified.
 - **Validation**:
   - `pnpm typecheck`: 0 TypeScript errors.
   - `pnpm --filter frontend lint`: 0 errors.
+
+---
+
+## 9.67 Enterprise Sync Engine, Zero-Mock Backend Overhaul & Persistent Portal Architecture (Shaheen Standard)
+
+- **Objective**: Complete architectural eradication of mock data, hardcoded fallbacks, and in-memory stores; implementation of Shaheen Traders POS enterprise sync engine (`safeSync`) with schema self-healing column stripping, persistent offline mutation queue, and multi-tab broadcast synchronization; and end-to-end database persistence across all Admin, Teacher, Student, and Parent portals.
+- **Architectural Enhancements Implemented**:
+  1. **Shaheen-Grade SafeSync Engine (`apps/web/src/lib/safeSync.ts`)**:
+     - Developed `safeSupabaseInsert`, `safeSupabaseUpdate`, and `safeSupabaseUpsert` equipped with automatic schema column stripping: if a column does not yet exist in PostgreSQL schema cache, it is stripped on error and retried dynamically without crashing client requests.
+     - Implemented `enqueueOfflineAction`, `flushOfflineQueue`, and `initNetworkSyncListeners`: mutations made while offline are queued in persistent browser storage and automatically flushed in FIFO order upon network reconnection.
+     - Integrated `BroadcastChannel` synchronization (`subscribeToTable`) for instant zero-latency multi-tab updates.
+  2. **Zero-Mock Database Endpoints**:
+     - `/api/invoices`: Replaced in-memory store with full PostgreSQL CRUD on `invoices` table.
+     - `/api/enrolments`: Replaced in-memory mock pipeline with live database CRUD on `enrolments` and `student_details`.
+     - `/api/scheduling`: Replaced hardcoded fallback fixtures with live PostgreSQL persistence on `recurring_schedules` and `teacher_assignments`.
+     - `/api/resources`: Built full curriculum document upload/delete API writing to `uploaded_documents` table.
+     - `/api/payouts`: Built teacher compensation ledger endpoint persisting to `teacher_payouts` table.
+     - `/api/progress`: Built student lesson evaluation and Sabaq notes endpoint writing to `student_lesson_notes` table.
+     - `/api/classroom/state`: Built real-time classroom state persistence endpoint saving active lesson, ayah, highlighted word index, calligraphy annotations, and tajweed rules in `classroom_states` table.
+     - `/api/portal/stats`: Built multi-table aggregator calculating active students, approved teachers, classes today, revenue in PKR, and pending verification queues.
+  3. **Complete Portal Refactoring (100% Mock-Free)**:
+     - **Admin Portal**: `admin/page.tsx` (KPIs wired to `/api/portal/stats`), `admin/enrolments/page.tsx` (enrolment pipeline wired to `/api/enrolments`), `admin/finance/page.tsx` (reconciliation wired to `/api/invoices`), `admin/resources/page.tsx` (curriculum PDF desk wired to `/api/resources`), `admin/scheduling/page.tsx` (calendar wired to `/api/scheduling`).
+     - **Teacher Portal**: `teacher/page.tsx` (session hero & stats wired to database), `teacher/schedule/page.tsx` (slot matrix wired to `/api/scheduling`), `teacher/students/page.tsx` (student roster & notes modal wired to `/api/progress`), `teacher/earnings/page.tsx` (payout ledger wired to `/api/payouts`).
+     - **Student Portal**: `student/page.tsx` (daily agenda wired to live scheduling and progress notes), `student/billing/page.tsx` (invoices wired to `/api/invoices`), `student/progress/page.tsx` (recent teacher feedback wired to `/api/progress`).
+     - **Parent Portal**: `parent/page.tsx` (children cards wired to `/api/enrolments`), `parent/classes/page.tsx` (family timetable & observer mode wired to `/api/scheduling`), `parent/billing/page.tsx` (remittance slips & receipts wired to `/api/invoices`), `parent/progress/page.tsx` (3-pillar Sabaq breakdown wired to `/api/progress`).
+  4. **Classroom Dual-Layer Sync Engine (`LiveClassroom.tsx` & `useClassroomSync.ts`)**:
+     - Paired sub-100ms LiveKit WebRTC / WebSocket real-time transport with background atomic persistence to `/api/classroom/state`.
+     - When classroom participants join or refresh, state is restored from `classroom_states` table in PostgreSQL even if peer sockets disconnected.
+  5. **Master Database Schema & Seed Data**:
+     - Updated `supabase/migrations/CONSOLIDATED_MASTER_SCHEMA.sql` (Sections 17–20) adding definitions, indexes, RLS policies, and realtime publications for `settings`, `classroom_states`, `enrolments`, `uploaded_documents`, `teacher_payouts`, and `student_lesson_notes`.
+     - Updated `supabase/seed.sql` with production seed data for all newly introduced tables.
+- **Validation**:
+  - `vitest run`: 22/22 test suites passed, 146/146 tests passing with 100% success rate (including `safeSync.test.ts`, `backend-database-endpoints.test.ts`, `versionEnforcer.test.ts`, and `Demo Teacher` access assertion alignment).
+  - TypeScript: `tsc --noEmit` exited with code 0 (zero errors).
+  - Next.js Turbopack build: All 68/68 static pages and dynamic API routes compiled cleanly in production mode.

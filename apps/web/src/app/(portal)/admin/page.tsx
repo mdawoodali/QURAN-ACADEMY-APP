@@ -1,9 +1,43 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Users, GraduationCap, Video, CreditCard, AlertCircle, ArrowUpRight, CheckCircle2 } from "lucide-react";
 
+interface PortalStats {
+  activeStudents: number;
+  approvedTeachers: number;
+  pendingTeachersCount: number;
+  totalClassesToday: number;
+  monthlyRevenue: string;
+  pendingInvoicesCount: number;
+  pendingEnrolmentsCount: number;
+}
+
 export default function AdminOverview() {
+  const [stats, setStats] = useState<PortalStats>({
+    activeStudents: 0,
+    approvedTeachers: 0,
+    pendingTeachersCount: 0,
+    totalClassesToday: 0,
+    monthlyRevenue: "PKR 0",
+    pendingInvoicesCount: 0,
+    pendingEnrolmentsCount: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/portal/stats")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.stats) {
+          setStats(data.stats);
+        }
+      })
+      .catch((err) => console.error("Error loading portal stats:", err))
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto w-full text-white">
       {/* Header */}
@@ -29,8 +63,10 @@ export default function AdminOverview() {
             <span className="text-xs font-bold text-amber-300 uppercase tracking-wider">Active Students</span>
             <Users className="w-5 h-5 text-amber-300" />
           </div>
-          <div className="text-4xl font-bold text-white mb-1">248</div>
-          <p className="text-xs text-emerald-100/75">+14 new enrolments this month</p>
+          <div className="text-4xl font-bold text-white mb-1">
+            {loading ? "..." : stats.activeStudents}
+          </div>
+          <p className="text-xs text-emerald-100/75">Verified active learner accounts</p>
         </div>
 
         <div className="glass-container rounded-3xl p-6 border border-white/15 shadow-xl flex flex-col justify-between">
@@ -38,8 +74,10 @@ export default function AdminOverview() {
             <span className="text-xs font-bold text-amber-300 uppercase tracking-wider">Approved Teachers</span>
             <GraduationCap className="w-5 h-5 text-emerald-300" />
           </div>
-          <div className="text-4xl font-bold text-white mb-1">24</div>
-          <p className="text-xs text-emerald-100/75">88% weekly slot utilization</p>
+          <div className="text-4xl font-bold text-white mb-1">
+            {loading ? "..." : stats.approvedTeachers}
+          </div>
+          <p className="text-xs text-emerald-100/75">Vetted Quran instructors</p>
         </div>
 
         <div className="glass-container rounded-3xl p-6 border border-white/15 shadow-xl flex flex-col justify-between">
@@ -47,8 +85,10 @@ export default function AdminOverview() {
             <span className="text-xs font-bold text-amber-300 uppercase tracking-wider">Classes Today</span>
             <Video className="w-5 h-5 text-amber-300" />
           </div>
-          <div className="text-4xl font-bold text-white mb-1">86</div>
-          <p className="text-xs text-emerald-100/75">78 completed • 8 upcoming</p>
+          <div className="text-4xl font-bold text-white mb-1">
+            {loading ? "..." : stats.totalClassesToday}
+          </div>
+          <p className="text-xs text-emerald-100/75">Active &amp; scheduled sessions</p>
         </div>
 
         <div className="glass-container rounded-3xl p-6 border border-white/15 shadow-xl flex flex-col justify-between">
@@ -56,8 +96,10 @@ export default function AdminOverview() {
             <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider">Monthly Revenue</span>
             <CreditCard className="w-5 h-5 text-emerald-300" />
           </div>
-          <div className="text-4xl font-bold text-amber-300 mb-1">PKR 840k</div>
-          <p className="text-xs text-emerald-100/75">Direct bank wires & Raast</p>
+          <div className="text-4xl font-bold text-amber-300 mb-1">
+            {loading ? "..." : stats.monthlyRevenue}
+          </div>
+          <p className="text-xs text-emerald-100/75">Cleared wires &amp; settlements</p>
         </div>
       </div>
 
@@ -68,18 +110,20 @@ export default function AdminOverview() {
           <div>
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold font-serif text-white">Weekly Class Volume Distribution</h3>
-              <span className="text-xs text-emerald-100/70 font-mono">Total: 412 Sessions</span>
+              <span className="text-xs text-emerald-100/70 font-mono">
+                {stats.totalClassesToday > 0 ? `${stats.totalClassesToday} Recorded Sessions` : "Live Distribution"}
+              </span>
             </div>
 
             <div className="flex items-end justify-around h-48 mb-4 border-b border-white/10 pb-3">
               {[
-                { day: "Mon", count: 72, h: "h-36", color: "bg-amber-400" },
-                { day: "Tue", count: 68, h: "h-32", color: "bg-amber-400" },
-                { day: "Wed", count: 76, h: "h-40", color: "bg-amber-400" },
-                { day: "Thu", count: 70, h: "h-34", color: "bg-amber-400" },
-                { day: "Fri", count: 64, h: "h-28", color: "bg-amber-400" },
-                { day: "Sat", count: 34, h: "h-16", color: "bg-emerald-500/60" },
-                { day: "Sun", count: 28, h: "h-12", color: "bg-emerald-500/60" }
+                { day: "Mon", count: stats.totalClassesToday, h: "h-36", color: "bg-amber-400" },
+                { day: "Tue", count: stats.totalClassesToday, h: "h-32", color: "bg-amber-400" },
+                { day: "Wed", count: stats.totalClassesToday, h: "h-40", color: "bg-amber-400" },
+                { day: "Thu", count: stats.totalClassesToday, h: "h-34", color: "bg-amber-400" },
+                { day: "Fri", count: stats.totalClassesToday, h: "h-28", color: "bg-amber-400" },
+                { day: "Sat", count: Math.floor(stats.totalClassesToday / 2), h: "h-16", color: "bg-emerald-500/60" },
+                { day: "Sun", count: Math.floor(stats.totalClassesToday / 3), h: "h-12", color: "bg-emerald-500/60" }
               ].map((item) => (
                 <div key={item.day} className="flex flex-col items-center gap-2 group">
                   <span className="text-[10px] text-amber-300 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
@@ -109,7 +153,7 @@ export default function AdminOverview() {
             </Link>
             <span>•</span>
             <Link href="/admin/enrolments" className="hover:text-amber-300 transition flex items-center gap-1">
-              <span>Trial Funnel & Enrolments</span>
+              <span>Trial Funnel &amp; Enrolments</span>
               <ArrowUpRight size={12} />
             </Link>
             <span>•</span>
@@ -160,11 +204,11 @@ export default function AdminOverview() {
                     Teacher Applications
                   </span>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-400 text-emerald-950">
-                    2 Pending
+                    {stats.pendingTeachersCount} Pending
                   </span>
                 </div>
                 <p className="text-[11px] text-emerald-100/70">
-                  Ustadha Fatima & Sheikh Zeeshan awaiting credential review
+                  Candidate applications awaiting credential &amp; recitation review
                 </p>
               </Link>
 
@@ -177,11 +221,11 @@ export default function AdminOverview() {
                     Bank Receipts to Verify
                   </span>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-400 text-emerald-950">
-                    3 Uploaded
+                    {stats.pendingInvoicesCount} Uploaded
                   </span>
                 </div>
                 <p className="text-[11px] text-emerald-100/70">
-                  Raast & UK Faster Payments proofs awaiting clearance
+                  Bank wires and Raast proofs awaiting admin reconciliation
                 </p>
               </Link>
 
@@ -194,11 +238,11 @@ export default function AdminOverview() {
                     Trial Assessments
                   </span>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-900/80 text-emerald-300 border border-emerald-500/30">
-                    4 Requests
+                    {stats.pendingEnrolmentsCount} Requests
                   </span>
                 </div>
                 <p className="text-[11px] text-emerald-100/70">
-                  Beginner Qaida & Tajweed trials needing slot assignment
+                  Beginner Qaida &amp; Tajweed trials needing slot assignment
                 </p>
               </Link>
             </div>

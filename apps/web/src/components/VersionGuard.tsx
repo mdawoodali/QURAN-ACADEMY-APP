@@ -3,11 +3,13 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { APP_VERSION, MIN_SUPPORTED_VERSION, compareSemanticVersions } from "@quran/contracts";
 import { AlertTriangle, RefreshCw, ShieldAlert, Sparkles } from "lucide-react";
+import { fetchRemoteVersionInfo, purgeCachesAndHardReload } from "@/lib/versionEnforcer";
+import { createClient } from "@/utils/supabase/client";
 
 interface ServerVersionData {
   version: string;
   minSupportedVersion: string;
-  buildTime: string;
+  buildTime?: string;
   commitHash?: string;
 }
 
@@ -29,18 +31,12 @@ export default function VersionGuard() {
 
   const checkVersion = useCallback(async () => {
     try {
-      // Bust browser & proxy caching with a random query param
-      const res = await fetch(`/api/version?_t=${Date.now()}`, {
-        cache: "no-store",
-        headers: { Pragma: "no-cache", "Cache-Control": "no-cache" },
-      });
-
-      if (!res.ok) return;
-      const data: ServerVersionData = await res.json();
-      setServerVersion(data.version);
+      // 1. Dual-source version check: API endpoint + remote Supabase settings
+      const remoteInfo = await fetchRemoteVersionInfo();
+      setServerVersion(remoteInfo.latestVersion);
 
       const clientVer = getEffectiveClientVersion();
-      const minSupported = data.minSupportedVersion || MIN_SUPPORTED_VERSION;
+      const minSupported = remoteInfo.minRequiredVersion || MIN_SUPPORTED_VERSION;
 
       // 1. Hard Block: Client version is below the minimum required version
       if (compareSemanticVersions(clientVer, minSupported) < 0) {
@@ -50,7 +46,7 @@ export default function VersionGuard() {
       }
 
       // 2. Soft Update: Client version is behind server version, but meets minimum requirement
-      if (compareSemanticVersions(clientVer, data.version) < 0) {
+      if (compareSemanticVersions(clientVer, remoteInfo.latestVersion) < 0) {
         setIsBlocked(false);
         setIsSoftUpdateAvailable(true);
         return;
@@ -68,7 +64,28 @@ export default function VersionGuard() {
     // 1. Initial check on mount
     checkVersion();
 
-    // 2. Check whenever user refocuses tab / brings PWA from background
+    // 2. Realtime listener on Supabase settings table (0ms instant version enforcement like Shaheen Traders POS)
+    let versionChannel: any = null;
+    try {
+      const supabase = createClient();
+      versionChannel = supabase
+        .channel("version-gate-realtime")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "settings" },
+          (payload: any) => {
+            const key = payload?.new?.key;
+            if (key === "min_required_version" || key === "app_latest_version") {
+              checkVersion();
+            }
+          }
+        )
+        .subscribe();
+    } catch (err) {
+      console.warn("[VersionGuard] Realtime channel subscription skipped:", err);
+    }
+
+    // 3. Check whenever user refocuses tab / brings PWA from background
     const handleVisibility = () => {
       if (document.visibilityState === "visible") {
         checkVersion();
@@ -76,14 +93,20 @@ export default function VersionGuard() {
     };
     document.addEventListener("visibilitychange", handleVisibility);
 
-    // 3. Periodic check every 3 minutes
-    const interval = setInterval(checkVersion, 3 * 60 * 1000);
+    // 4. Periodic check every 2 minutes
+    const interval = setInterval(checkVersion, 2 * 60 * 1000);
 
-    // 4. Custom developer module event
+    // 5. Custom developer module event
     const handleDevEvent = () => checkVersion();
     window.addEventListener("dev_version_changed", handleDevEvent);
 
     return () => {
+      if (versionChannel) {
+        try {
+          const supabase = createClient();
+          supabase.removeChannel(versionChannel);
+        } catch {}
+      }
       document.removeEventListener("visibilitychange", handleVisibility);
       window.removeEventListener("dev_version_changed", handleDevEvent);
       clearInterval(interval);
@@ -94,30 +117,8 @@ export default function VersionGuard() {
   const handleForceUpdate = async () => {
     setIsUpdating(true);
     try {
-      // Clear localStorage simulated version if set
       localStorage.removeItem("dev_simulated_version");
-
-      // 1. Notify & purge Service Worker caches
-      if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-        const registrations = await navigator.serviceWorker.getRegistrations();
-        for (const registration of registrations) {
-          registration.active?.postMessage("SKIP_WAITING");
-          registration.active?.postMessage("PURGE_CACHES");
-          await registration.unregister();
-        }
-      }
-
-      // 2. Clear all CacheStorage keys
-      if (typeof window !== "undefined" && "caches" in window) {
-        const keys = await caches.keys();
-        await Promise.all(keys.map((k) => caches.delete(k)));
-      }
-
-      // 3. Clear transient session storage
-      sessionStorage.clear();
-
-      // 4. Hard reload bypassing cache
-      window.location.reload();
+      await purgeCachesAndHardReload();
     } catch (err) {
       console.error("[VersionGuard] Cache clearance error, forcing reload:", err);
       window.location.reload();

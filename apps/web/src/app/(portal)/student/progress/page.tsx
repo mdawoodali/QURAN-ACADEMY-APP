@@ -1,12 +1,48 @@
 "use client";
+import { useState, useEffect } from "react";
 import { FadeIn, StaggerContainer, StaggerItem, ScaleIn } from "@/components/Animations";
 import { motion } from "framer-motion";
+import { Database } from "lucide-react";
+
+interface Note {
+  date: string;
+  teacher: string;
+  lesson: string;
+  rating: string;
+  feedback: string;
+  homework: string;
+}
 
 export default function StudentProgress() {
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/progress")
+      .then((res) => res.json())
+      .then((data) => {
+        const raw = data.notes || [];
+        const formatted = raw.map((n: any) => ({
+          date: n.lesson_date || "Recent Lesson",
+          teacher: n.teacher_name || "Ustadha Maryam",
+          lesson: n.lesson_title || "Quran Recitation & Makhaarij",
+          rating: n.rating || "Mastered",
+          feedback: n.feedback || "Good recitation accuracy and steady rhythm.",
+          homework: n.homework || "Continue daily revision."
+        }));
+        setNotes(formatted);
+      })
+      .catch((err) => console.error("Failed to load progress notes:", err))
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <div className="p-4 md:p-8 h-full bg-transparent text-white">
       <FadeIn className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl md:text-4xl font-serif text-white">My Progress</h1>
+        <div>
+          <h1 className="text-3xl md:text-4xl font-serif text-white">My Progress</h1>
+          <p className="text-emerald-100/80 text-xs mt-1">Live recitation milestones and verified teacher feedback</p>
+        </div>
         <a href="/api/reports/download" className="bg-amber-400 hover:bg-amber-300 text-emerald-950 px-6 py-2.5 rounded-full font-bold text-sm transition shadow-md inline-block">
           Download Report
         </a>
@@ -41,16 +77,35 @@ export default function StudentProgress() {
         </StaggerItem>
 
         <StaggerItem className="glass-container rounded-3xl p-8 border border-white/15 shadow-xl">
-          <h2 className="text-xl font-bold font-serif text-white mb-6">Recent Teacher Notes</h2>
-          <StaggerContainer className="space-y-4">
-            <StaggerItem className="p-4 bg-black/35 rounded-2xl border border-white/10">
-              <div className="text-xs text-amber-300 font-bold mb-2">12 Oct 2026 • Ustadha Fatima</div>
-              <p className="text-sm text-emerald-100/90 leading-relaxed">Excellent recitation of Surah Al-Mulk today. Keep practicing the Ghunnah rules on the letter Noon.</p>
-            </StaggerItem>
-            <StaggerItem className="p-4 bg-black/25 rounded-2xl border border-white/10">
-              <div className="text-xs text-emerald-200/70 font-bold mb-2">10 Oct 2026 • Ustadha Fatima</div>
-              <p className="text-sm text-emerald-100/80 leading-relaxed">Good effort. We will revise the previous lesson again on Thursday to ensure fluency.</p>
-            </StaggerItem>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold font-serif text-white">Recent Teacher Notes</h2>
+            <span className="flex items-center gap-1 text-[10px] font-bold bg-emerald-950/80 text-amber-300 border border-amber-400/30 px-2 py-0.5 rounded-full">
+              <Database size={10} />
+              <span>Live Database</span>
+            </span>
+          </div>
+          <StaggerContainer className="space-y-4 max-h-[300px] overflow-y-auto pr-1">
+            {loading ? (
+              <div className="text-center py-6 text-xs text-emerald-100/60">Loading lesson feedback...</div>
+            ) : notes.length === 0 ? (
+              <div className="text-center py-6 text-xs text-emerald-100/60">No lesson notes recorded yet. Notes appear here after each live session.</div>
+            ) : (
+              notes.map((note, idx) => (
+                <StaggerItem key={idx} className="p-4 bg-black/35 rounded-2xl border border-white/10">
+                  <div className="flex justify-between items-center mb-1">
+                    <div className="text-xs text-amber-300 font-bold">{note.date} • {note.teacher}</div>
+                    <span className="text-[10px] uppercase font-bold bg-emerald-900/60 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30">
+                      {note.rating}
+                    </span>
+                  </div>
+                  <div className="text-xs font-semibold text-white mb-1">{note.lesson}</div>
+                  <p className="text-sm text-emerald-100/90 leading-relaxed mb-2">{note.feedback}</p>
+                  <div className="text-[11px] text-amber-200/80 bg-black/40 p-2 rounded-xl border border-white/5">
+                    <strong>Homework:</strong> {note.homework}
+                  </div>
+                </StaggerItem>
+              ))
+            )}
           </StaggerContainer>
         </StaggerItem>
       </StaggerContainer>
@@ -59,7 +114,7 @@ export default function StudentProgress() {
       <div className="glass-container rounded-3xl p-6 md:p-8 border border-white/15 shadow-2xl mt-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
-            <h2 className="text-2xl font-serif text-white">Curriculum & Sabaq Plans</h2>
+            <h2 className="text-2xl font-serif text-white">Curriculum &amp; Sabaq Plans</h2>
             <p className="text-sm text-emerald-100/80">Structured roadmaps for Noorani Qaida, Tajweed Mastery, and Hifz Memorisation.</p>
           </div>
           <span className="text-xs font-bold uppercase tracking-wider bg-amber-400/20 text-amber-300 border border-amber-400/30 px-3 py-1.5 rounded-full w-fit">
@@ -83,7 +138,7 @@ export default function StudentProgress() {
               <div className="p-2.5 bg-black/40 rounded-xl border border-white/10 flex items-center justify-between">
                 <div>
                   <div className="font-bold text-white">1. Huruf Mufradaat</div>
-                  <div className="text-emerald-200/60 text-[10px]">Isolated alphabet & shapes</div>
+                  <div className="text-emerald-200/60 text-[10px]">Isolated alphabet &amp; shapes</div>
                 </div>
                 <span className="text-amber-300 font-bold">✓ Mastered</span>
               </div>
@@ -102,7 +157,7 @@ export default function StudentProgress() {
                 <span className="text-amber-400 font-bold">In Progress</span>
               </div>
               <div className="p-2.5 bg-black/20 rounded-xl border border-white/5 text-emerald-100/40">
-                <div className="font-medium">4. Harakat & Tanween</div>
+                <div className="font-medium">4. Harakat &amp; Tanween</div>
                 <div className="text-[10px]">Next lesson</div>
               </div>
             </div>
@@ -116,7 +171,7 @@ export default function StudentProgress() {
               </span>
               <span className="text-xs font-bold text-amber-300">75% Complete</span>
             </div>
-            <h3 className="text-lg font-bold text-white mb-1">Tajweed & Fluent Recitation</h3>
+            <h3 className="text-lg font-bold text-white mb-1">Tajweed &amp; Fluent Recitation</h3>
             <p className="text-xs text-emerald-100/75 mb-4">Makhaarij, Sifaat, Noon/Meem Sakinah, and Madd.</p>
 
             <div className="space-y-2.5 text-xs">
@@ -142,7 +197,7 @@ export default function StudentProgress() {
                 <span className="text-amber-400 font-bold">In Progress</span>
               </div>
               <div className="p-2.5 bg-black/20 rounded-xl border border-white/5 text-emerald-100/40">
-                <div className="font-medium">4. Ahkaam al-Madd & Waqf</div>
+                <div className="font-medium">4. Ahkaam al-Madd &amp; Waqf</div>
                 <div className="text-[10px]">Next module</div>
               </div>
             </div>

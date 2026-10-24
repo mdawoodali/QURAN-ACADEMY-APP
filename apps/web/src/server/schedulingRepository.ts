@@ -45,117 +45,26 @@ export interface ClassSessionRecord {
 export async function getAcademySchedules(): Promise<{
   schedules: RecurringScheduleRecord[];
   assignments: TeacherAssignmentRecord[];
-  source: "supabase_postgresql" | "database_fixtures";
+  source: "supabase_postgresql";
 }> {
   try {
-    const res = await fetch("/api/scheduling", { cache: "no-store" });
+    const res = await fetch(`/api/scheduling?_t=${Date.now()}`, { cache: "no-store" });
     if (res.ok) {
-      return await res.json();
+      const data = await res.json();
+      return {
+        schedules: data.schedules || [],
+        assignments: data.assignments || [],
+        source: "supabase_postgresql",
+      };
     }
   } catch (err) {
-    console.warn("Could not fetch from /api/scheduling, using fallback", err);
+    console.warn("[SchedulingRepo] Could not fetch from /api/scheduling:", err);
   }
 
   return {
-    schedules: [
-      {
-        id: "s1",
-        assignmentId: "a1",
-        teacherId: "t1",
-        teacherName: "Ustadha Maryam",
-        studentId: "s1",
-        studentName: "Amina Siddiqui",
-        dayOfWeek: "Tuesday",
-        startTimeLocal: "16:30",
-        durationMinutes: 30,
-        timezoneAnchor: "Europe/London",
-        status: "active",
-        subject: "Tajweed & Fluent Recitation"
-      },
-      {
-        id: "s2",
-        assignmentId: "a2",
-        teacherId: "t1",
-        teacherName: "Ustadha Maryam",
-        studentId: "s2",
-        studentName: "Yusuf Khan",
-        dayOfWeek: "Monday",
-        startTimeLocal: "17:00",
-        durationMinutes: 30,
-        timezoneAnchor: "Europe/London",
-        status: "active",
-        subject: "Noorani Qaida"
-      },
-      {
-        id: "s3",
-        assignmentId: "a2",
-        teacherId: "t1",
-        teacherName: "Ustadha Maryam",
-        studentId: "s2",
-        studentName: "Yusuf Khan",
-        dayOfWeek: "Wednesday",
-        startTimeLocal: "17:00",
-        durationMinutes: 30,
-        timezoneAnchor: "Europe/London",
-        status: "active",
-        subject: "Noorani Qaida"
-      },
-      {
-        id: "s4",
-        assignmentId: "a2",
-        teacherId: "t1",
-        teacherName: "Ustadha Maryam",
-        studentId: "s2",
-        studentName: "Yusuf Khan",
-        dayOfWeek: "Friday",
-        startTimeLocal: "17:00",
-        durationMinutes: 30,
-        timezoneAnchor: "Europe/London",
-        status: "active",
-        subject: "Noorani Qaida"
-      },
-      {
-        id: "s5",
-        assignmentId: "a3",
-        teacherId: "t2",
-        teacherName: "Shaykh Bilal Ahmad",
-        studentId: "s3",
-        studentName: "Omar Farooq",
-        dayOfWeek: "Thursday",
-        startTimeLocal: "17:30",
-        durationMinutes: 30,
-        timezoneAnchor: "Europe/London",
-        status: "active",
-        subject: "Hifz Memorisation"
-      }
-    ],
-    assignments: [
-      {
-        id: "a1",
-        teacherId: "t1",
-        teacherName: "Ustadha Maryam",
-        studentId: "s1",
-        studentName: "Amina Siddiqui",
-        subject: "Tajweed & Fluent Recitation",
-        packageTier: "Standard (3x / week)",
-        status: "active",
-        notes: "Student in London time zone, prefers 16:30 BST.",
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: "a2",
-        teacherId: "t1",
-        teacherName: "Ustadha Maryam",
-        studentId: "s2",
-        studentName: "Yusuf Khan",
-        subject: "Noorani Qaida Foundation",
-        packageTier: "Standard (3x / week)",
-        status: "active",
-        notes: "Focusing on Makharij articulation points.",
-        createdAt: new Date().toISOString()
-      }
-    ],
-    source: "database_fixtures"
+    schedules: [],
+    assignments: [],
+    source: "supabase_postgresql",
   };
 }
 
@@ -168,33 +77,19 @@ export async function addRecurringSchedule(data: {
   startTimeLocal: string;
   durationMinutes: number;
   subject: string;
-}): Promise<RecurringScheduleRecord> {
+}): Promise<RecurringScheduleRecord | null> {
   try {
     const res = await fetch("/api/scheduling", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
     if (res.ok) {
       const json = await res.json();
       return json.schedule;
     }
   } catch (err) {
-    console.error("Failed to post schedule", err);
+    console.error("[SchedulingRepo] Failed to post schedule:", err);
   }
-
-  return {
-    id: `sched_${Date.now()}`,
-    assignmentId: `assign_${Date.now()}`,
-    teacherId: data.teacherId,
-    teacherName: data.teacherName,
-    studentId: data.studentId,
-    studentName: data.studentName,
-    dayOfWeek: data.dayOfWeek,
-    startTimeLocal: data.startTimeLocal,
-    durationMinutes: data.durationMinutes,
-    timezoneAnchor: "Europe/London",
-    status: "active",
-    subject: data.subject
-  };
+  return null;
 }

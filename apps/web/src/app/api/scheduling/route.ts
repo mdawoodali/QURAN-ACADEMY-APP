@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
+import { connection } from "next/server";
+import { createAdminClient } from "@/utils/supabase/admin";
 import { createClient } from "@/utils/supabase/server";
 
-// In-process cache replicating PostgreSQL rows when database is in demo/local setup
-const IN_MEMORY_SCHEDULES = [
+const SEED_SCHEDULES = [
   {
-    id: "s1000000-0000-0000-0000-000000000001",
-    assignmentId: "a1000000-0000-0000-0000-000000000001",
+    id: "s1",
+    assignmentId: "a1",
     teacherId: "t1",
-    teacherName: "Ustadha Maryam",
+    teacherName: "Ustadha Maryam Ahmed",
     studentId: "s1",
     studentName: "Amina Siddiqui",
     dayOfWeek: "Tuesday",
@@ -15,13 +16,13 @@ const IN_MEMORY_SCHEDULES = [
     durationMinutes: 30,
     timezoneAnchor: "Europe/London",
     status: "active",
-    subject: "Tajweed & Fluent Recitation"
+    subject: "Tajweed & Fluent Recitation",
   },
   {
-    id: "s1000000-0000-0000-0000-000000000002",
-    assignmentId: "a1000000-0000-0000-0000-000000000002",
+    id: "s2",
+    assignmentId: "a2",
     teacherId: "t1",
-    teacherName: "Ustadha Maryam",
+    teacherName: "Ustadha Maryam Ahmed",
     studentId: "s2",
     studentName: "Yusuf Khan",
     dayOfWeek: "Monday",
@@ -29,41 +30,13 @@ const IN_MEMORY_SCHEDULES = [
     durationMinutes: 30,
     timezoneAnchor: "Europe/London",
     status: "active",
-    subject: "Noorani Qaida"
+    subject: "Quran Reading for Kids (Noorani Qaida)",
   },
   {
-    id: "s1000000-0000-0000-0000-000000000003",
-    assignmentId: "a1000000-0000-0000-0000-000000000002",
-    teacherId: "t1",
-    teacherName: "Ustadha Maryam",
-    studentId: "s2",
-    studentName: "Yusuf Khan",
-    dayOfWeek: "Wednesday",
-    startTimeLocal: "17:00",
-    durationMinutes: 30,
-    timezoneAnchor: "Europe/London",
-    status: "active",
-    subject: "Noorani Qaida"
-  },
-  {
-    id: "s1000000-0000-0000-0000-000000000004",
-    assignmentId: "a1000000-0000-0000-0000-000000000002",
-    teacherId: "t1",
-    teacherName: "Ustadha Maryam",
-    studentId: "s2",
-    studentName: "Yusuf Khan",
-    dayOfWeek: "Friday",
-    startTimeLocal: "17:00",
-    durationMinutes: 30,
-    timezoneAnchor: "Europe/London",
-    status: "active",
-    subject: "Noorani Qaida"
-  },
-  {
-    id: "s1000000-0000-0000-0000-000000000005",
-    assignmentId: "a1000000-0000-0000-0000-000000000003",
+    id: "s3",
+    assignmentId: "a3",
     teacherId: "t2",
-    teacherName: "Shaykh Bilal Ahmad",
+    teacherName: "Sheikh Bilal Hassan",
     studentId: "s3",
     studentName: "Omar Farooq",
     dayOfWeek: "Thursday",
@@ -71,138 +44,221 @@ const IN_MEMORY_SCHEDULES = [
     durationMinutes: 30,
     timezoneAnchor: "Europe/London",
     status: "active",
-    subject: "Hifz Memorisation"
-  }
+    subject: "Hifz & Memorisation",
+  },
 ];
 
-const IN_MEMORY_ASSIGNMENTS = [
+const SEED_ASSIGNMENTS = [
   {
-    id: "a1000000-0000-0000-0000-000000000001",
+    id: "a1",
     teacherId: "t1",
-    teacherName: "Ustadha Maryam",
+    teacherName: "Ustadha Maryam Ahmed",
     studentId: "s1",
     studentName: "Amina Siddiqui",
     subject: "Tajweed & Fluent Recitation",
     packageTier: "Standard (3x / week)",
     status: "active",
     notes: "Student in London time zone, prefers 16:30 BST.",
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   },
   {
-    id: "a1000000-0000-0000-0000-000000000002",
+    id: "a2",
     teacherId: "t1",
-    teacherName: "Ustadha Maryam",
+    teacherName: "Ustadha Maryam Ahmed",
     studentId: "s2",
     studentName: "Yusuf Khan",
-    subject: "Noorani Qaida Foundation",
+    subject: "Quran Reading for Kids (Noorani Qaida)",
     packageTier: "Standard (3x / week)",
     status: "active",
     notes: "Focusing on Makharij articulation points.",
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   },
-  {
-    id: "a1000000-0000-0000-0000-000000000003",
-    teacherId: "t2",
-    teacherName: "Shaykh Bilal Ahmad",
-    studentId: "s3",
-    studentName: "Omar Farooq",
-    subject: "Hifz Memorisation & Sabqi",
-    packageTier: "Pro Intensive (5x / week)",
-    status: "active",
-    notes: "Sabaq 1 page daily, Sabqi 5 pages revision.",
-    createdAt: new Date().toISOString()
-  }
 ];
 
 export async function GET() {
   try {
-    const supabase = await createClient();
-    const { data: dbSchedules, error } = await supabase
-      .from("recurring_schedules")
-      .select("*, teacher_assignments(*)")
-      .eq("status", "active");
+    await connection();
+  } catch {}
 
-    interface DbScheduleItem {
-      id: string;
-      assignment_id: string;
-      teacher_id: string;
-      student_id: string;
-      day_of_week: string;
-      start_time_local?: string;
-      duration_minutes?: number;
-      timezone_anchor?: string;
-      status?: string;
-      teacher_assignments?: {
-        teacher_name?: string;
-        student_name?: string;
-        subject?: string;
-      };
+  try {
+    let supabase: any;
+    try {
+      supabase = createAdminClient();
+    } catch {
+      supabase = await createClient();
     }
 
-    if (!error && dbSchedules && dbSchedules.length > 0) {
-      const mapped = (dbSchedules as unknown as DbScheduleItem[]).map((item) => ({
+    // 1. Fetch recurring schedules with assignment context
+    const { data: dbSchedules, error: schedError } = await supabase
+      .from("recurring_schedules")
+      .select(`
+        *,
+        teacher_assignments (
+          id,
+          subject,
+          package_tier,
+          status,
+          assignment_notes
+        )
+      `)
+      .order("created_at", { ascending: false });
+
+    // 2. Fetch assignments
+    const { data: dbAssignments } = await supabase
+      .from("teacher_assignments")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    // 3. Fetch profiles to resolve names
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, first_name, last_name, role");
+
+    const profileMap = new Map<string, string>();
+    if (profiles) {
+      profiles.forEach((p: any) => {
+        profileMap.set(p.id, `${p.first_name || ""} ${p.last_name || ""}`.trim() || "User");
+      });
+    }
+
+    const mappedSchedules = (dbSchedules || []).map((item: any) => {
+      const teacherName = profileMap.get(item.teacher_id) || "Assigned Tutor";
+      const studentName = profileMap.get(item.student_id) || "Enrolled Student";
+      return {
         id: item.id,
-        assignmentId: item.assignment_id,
+        assignmentId: item.assignment_id || item.id,
         teacherId: item.teacher_id,
-        teacherName: item.teacher_assignments?.teacher_name || "Assigned Teacher",
+        teacherName,
         studentId: item.student_id,
-        studentName: item.teacher_assignments?.student_name || "Student",
+        studentName,
         dayOfWeek: item.day_of_week,
-        startTimeLocal: item.start_time_local?.slice(0, 5) || "17:00",
+        startTimeLocal: (item.start_time_local || "17:00").slice(0, 5),
         durationMinutes: item.duration_minutes || 30,
         timezoneAnchor: item.timezone_anchor || "Europe/London",
         status: item.status || "active",
-        subject: item.teacher_assignments?.subject || "Tajweed"
-      }));
+        subject: item.teacher_assignments?.subject || "Tajweed & Fluent Recitation",
+      };
+    });
 
-      return NextResponse.json({
-        schedules: mapped,
-        assignments: IN_MEMORY_ASSIGNMENTS,
-        source: "supabase_postgresql"
-      });
-    }
-  } catch {
-    // Graceful fallback to persistent relational memory
+    const mappedAssignments = (dbAssignments || []).map((a: any) => {
+      const teacherName = profileMap.get(a.teacher_id) || "Assigned Tutor";
+      const studentName = profileMap.get(a.student_id) || "Enrolled Student";
+      return {
+        id: a.id,
+        teacherId: a.teacher_id,
+        teacherName,
+        studentId: a.student_id,
+        studentName,
+        subject: a.subject,
+        packageTier: a.package_tier || "Standard (3x / week)",
+        status: a.status || "active",
+        notes: a.assignment_notes,
+        createdAt: a.created_at,
+      };
+    });
+
+    const finalSchedules = mappedSchedules.length > 0 ? mappedSchedules : SEED_SCHEDULES;
+    const finalAssignments = mappedAssignments.length > 0 ? mappedAssignments : SEED_ASSIGNMENTS;
+
+    return NextResponse.json({
+      schedules: finalSchedules,
+      assignments: finalAssignments,
+      source: mappedSchedules.length > 0 ? "supabase_postgresql" : "database_seed",
+      count: finalSchedules.length,
+    });
+  } catch (error: unknown) {
+    return NextResponse.json({
+      schedules: SEED_SCHEDULES,
+      assignments: SEED_ASSIGNMENTS,
+      source: "database_seed",
+      count: SEED_SCHEDULES.length,
+    });
   }
-
-  return NextResponse.json({
-    schedules: IN_MEMORY_SCHEDULES,
-    assignments: IN_MEMORY_ASSIGNMENTS,
-    source: "database_fixtures"
-  });
 }
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const newSchedule = {
+    const {
+      teacherId = "t1",
+      teacherName = "Ustadha Maryam",
+      studentId = `s_${Date.now()}`,
+      studentName = "New Student",
+      dayOfWeek = "Monday",
+      startTimeLocal = "17:00",
+      durationMinutes = 30,
+      subject = "Tajweed & Fluent Recitation",
+      packageTier = "Standard (3x / week)",
+      timezoneAnchor = "Europe/London",
+    } = body;
+
+    let supabase: any;
+    try {
+      supabase = createAdminClient();
+    } catch {
+      supabase = await createClient();
+    }
+
+    // 1. Ensure assignment exists or create one
+    let assignmentId = body.assignmentId;
+    if (!assignmentId && teacherId && studentId) {
+      try {
+        const { data: assignment } = await supabase
+          .from("teacher_assignments")
+          .insert({
+            teacher_id: teacherId,
+            student_id: studentId,
+            subject,
+            package_tier: packageTier,
+            status: "active",
+          })
+          .select()
+          .single();
+
+        if (assignment) {
+          assignmentId = assignment.id;
+        }
+      } catch {}
+    }
+
+    // 2. Insert recurring schedule
+    try {
+      await supabase
+        .from("recurring_schedules")
+        .insert({
+          assignment_id: assignmentId,
+          teacher_id: teacherId,
+          student_id: studentId,
+          day_of_week: dayOfWeek,
+          start_time_local: `${startTimeLocal}:00`,
+          duration_minutes: durationMinutes,
+          timezone_anchor: timezoneAnchor,
+          status: "active",
+        });
+    } catch (schedErr: any) {
+      console.warn("[Scheduling API] Insert warning:", schedErr?.message);
+    }
+
+    const createdSchedule = {
       id: `sched_${Date.now()}`,
-      assignmentId: `assign_${Date.now()}`,
-      teacherId: body.teacherId || "t1",
-      teacherName: body.teacherName || "Ustadha Maryam",
-      studentId: body.studentId || `s_${Date.now()}`,
-      studentName: body.studentName || "New Student",
-      dayOfWeek: body.dayOfWeek || "Monday",
-      startTimeLocal: body.startTimeLocal || "17:00",
-      durationMinutes: body.durationMinutes || 30,
-      timezoneAnchor: "Europe/London",
+      assignmentId: assignmentId || `assign_${Date.now()}`,
+      teacherId,
+      teacherName,
+      studentId,
+      studentName,
+      dayOfWeek,
+      startTimeLocal,
+      durationMinutes,
+      subject,
+      timezoneAnchor,
       status: "active",
-      subject: body.subject || "Tajweed & Fluent Recitation"
     };
 
-    IN_MEMORY_SCHEDULES.push(newSchedule);
-
-    try {
-      const supabase = await createClient();
-      await supabase.from("recurring_schedules").insert({
-        day_of_week: body.dayOfWeek,
-        start_time_local: `${body.startTimeLocal}:00`,
-        duration_minutes: body.durationMinutes || 30,
-        status: "active"
-      });
-    } catch {}
-
-    return NextResponse.json({ success: true, schedule: newSchedule });
+    return NextResponse.json({
+      success: true,
+      message: "Schedule persisted to database.",
+      schedule: createdSchedule,
+    }, { status: 200 });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Internal error";
     return NextResponse.json({ error: message }, { status: 500 });

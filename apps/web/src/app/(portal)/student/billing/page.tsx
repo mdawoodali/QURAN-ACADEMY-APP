@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { 
@@ -11,7 +11,8 @@ import {
   ShieldCheck, 
   CheckCircle2,
   ExternalLink,
-  Receipt
+  Receipt,
+  Database
 } from "lucide-react";
 
 interface StudentInvoice {
@@ -24,39 +25,31 @@ interface StudentInvoice {
   plan: string;
 }
 
-const STUDENT_INVOICES: StudentInvoice[] = [
-  { 
-    id: "INV-2026-1001", 
-    date: "1 Oct 2026", 
-    amount: "65.00", 
-    currency: "GBP", 
-    status: "Paid", 
-    ref: "BARC-FPS-8921",
-    plan: "Standard Plan (3 Days/Week)"
-  },
-  { 
-    id: "INV-2026-0901", 
-    date: "1 Sep 2026", 
-    amount: "65.00", 
-    currency: "GBP", 
-    status: "Paid", 
-    ref: "BARC-FPS-7140",
-    plan: "Standard Plan (3 Days/Week)"
-  },
-  { 
-    id: "INV-2026-0801", 
-    date: "1 Aug 2026", 
-    amount: "65.00", 
-    currency: "GBP", 
-    status: "Paid", 
-    ref: "BARC-FPS-6209",
-    plan: "Standard Plan (3 Days/Week)"
-  }
-];
-
 export default function StudentBilling() {
+  const [invoices, setInvoices] = useState<StudentInvoice[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [currentPlan, setCurrentPlan] = useState("Standard Plan • £65/mo (3 Days/Wk)");
+
+  useEffect(() => {
+    fetch("/api/invoices")
+      .then((res) => res.json())
+      .then((data) => {
+        const raw = data.invoices || [];
+        const formatted: StudentInvoice[] = raw.map((inv: any) => ({
+          id: inv.invoice_number || inv.id || "INV-2026",
+          date: inv.created_at ? new Date(inv.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "October 2026",
+          amount: String(inv.amount || "65.00"),
+          currency: inv.currency || "GBP",
+          status: inv.status === "paid" ? "Paid" : "Pending",
+          ref: inv.transaction_ref || inv.transactionRef || "DIRECT-RAIL",
+          plan: inv.package_tier || inv.packageTier || "Standard Plan (3 Days/Week)"
+        }));
+        setInvoices(formatted);
+      })
+      .catch((err) => console.error("Failed to load invoices:", err))
+      .finally(() => setLoading(false));
+  }, []);
 
   const handleUpdatePlan = (newPlan: string) => {
     setCurrentPlan(newPlan);
@@ -81,8 +74,8 @@ export default function StudentBilling() {
         <div className="flex items-center gap-2 mb-1">
           <h1 className="text-3xl md:text-4xl font-serif text-white">Billing &amp; Tuition Ledger</h1>
           <span className="flex items-center gap-1 text-[11px] font-bold bg-emerald-950/80 text-amber-300 border border-amber-400/30 px-2.5 py-0.5 rounded-full">
-            <ShieldCheck size={12} />
-            <span>Direct Settlement Rail</span>
+            <Database size={12} />
+            <span>Database Persisted</span>
           </span>
         </div>
         <p className="text-emerald-100/80 text-sm">
@@ -101,10 +94,10 @@ export default function StudentBilling() {
             </div>
             <div className="text-2xl sm:text-3xl font-serif text-white mb-2">{currentPlan}</div>
             <div className="text-xs text-emerald-200/80 mb-6">
-              Assigned Tutor: <strong className="text-white">Ustadha Fatima</strong> &bull; 12 Classes / Month
+              Assigned Tutor: <strong className="text-white">Ustadha Maryam</strong> &bull; 12 Classes / Month
             </div>
             <div className="text-xs text-emerald-100/70 mb-6">
-              Next scheduled billing cycle: <strong className="text-amber-300">1st Nov 2026</strong>
+              Next scheduled billing cycle: <strong className="text-amber-300">1st of upcoming month</strong>
             </div>
           </div>
           <button 
@@ -132,13 +125,13 @@ export default function StudentBilling() {
                   <Building2 size={18} />
                 </div>
                 <div>
-                  <div className="font-bold text-white text-sm">Barclays UK Faster Payments (FPS)</div>
-                  <div className="text-xs text-emerald-100/70">Meezan Raast / Multi-Currency Hub</div>
+                  <div className="font-bold text-white text-sm">Barclays UK Faster Payments / Meezan Raast</div>
+                  <div className="text-xs text-emerald-100/70">Multi-Currency Bank Remittance Rail</div>
                 </div>
               </div>
               <div className="text-xs text-emerald-100/80 font-mono mt-2 pt-2 border-t border-white/10 flex justify-between">
-                <span>Last Cleared Reference:</span>
-                <span className="text-amber-300 font-bold">BARC-FPS-8921</span>
+                <span>Total Invoices Recorded:</span>
+                <span className="text-amber-300 font-bold">{loading ? "..." : invoices.length}</span>
               </div>
             </div>
           </div>
@@ -168,44 +161,50 @@ export default function StudentBilling() {
         </div>
 
         <div className="space-y-3">
-          {STUDENT_INVOICES.map((inv) => (
-            <div 
-              key={inv.id} 
-              className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-black/25 rounded-2xl border border-white/10 hover:border-amber-400/30 transition gap-4"
-            >
-              <div className="flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-emerald-950/80 border border-white/15 flex items-center justify-center text-amber-300 shrink-0">
-                  <Receipt size={18} />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-white text-sm font-mono">{inv.id}</span>
-                    <span className="text-[10px] text-emerald-300 font-bold bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-full">
-                      {inv.status}
-                    </span>
+          {loading ? (
+            <div className="py-8 text-center text-xs text-emerald-100/60">Loading invoices from database...</div>
+          ) : invoices.length === 0 ? (
+            <div className="py-8 text-center text-xs text-emerald-100/60">No invoices logged yet. Invoices appear automatically upon monthly renewal or wire upload.</div>
+          ) : (
+            invoices.map((inv) => (
+              <div 
+                key={inv.id} 
+                className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-black/25 rounded-2xl border border-white/10 hover:border-amber-400/30 transition gap-4"
+              >
+                <div className="flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-950/80 border border-white/15 flex items-center justify-center text-amber-300 shrink-0">
+                    <Receipt size={18} />
                   </div>
-                  <div className="text-xs text-emerald-100/70 mt-0.5">
-                    {inv.date} &bull; Ref: <span className="font-mono text-white/80">{inv.ref}</span>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-white text-sm font-mono">{inv.id}</span>
+                      <span className="text-[10px] text-emerald-300 font-bold bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                        {inv.status}
+                      </span>
+                    </div>
+                    <div className="text-xs text-emerald-100/70 mt-0.5">
+                      {inv.date} &bull; Ref: <span className="font-mono text-white/80">{inv.ref}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
-                <div className="text-right">
-                  <span className="font-bold text-amber-300 text-base">{inv.currency} {inv.amount}</span>
-                  <span className="text-[10px] text-emerald-200/70 block">Cleared</span>
+                <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
+                  <div className="text-right">
+                    <span className="font-bold text-amber-300 text-base">{inv.currency} {inv.amount}</span>
+                    <span className="text-[10px] text-emerald-200/70 block">Cleared</span>
+                  </div>
+                  <button 
+                    onClick={() => handleDownloadInvoice(inv)} 
+                    className="bg-white/10 hover:bg-amber-400 hover:text-emerald-950 text-white p-2.5 rounded-xl transition cursor-pointer flex items-center gap-1.5 text-xs font-bold shadow"
+                    title="Download Stamped PDF Invoice"
+                  >
+                    <ArrowDownToLine size={15} />
+                    <span className="hidden sm:inline">PDF</span>
+                  </button>
                 </div>
-                <button 
-                  onClick={() => handleDownloadInvoice(inv)} 
-                  className="bg-white/10 hover:bg-amber-400 hover:text-emerald-950 text-white p-2.5 rounded-xl transition cursor-pointer flex items-center gap-1.5 text-xs font-bold shadow"
-                  title="Download Stamped PDF Invoice"
-                >
-                  <ArrowDownToLine size={15} />
-                  <span className="hidden sm:inline">PDF</span>
-                </button>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
 

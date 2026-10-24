@@ -1,7 +1,8 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { CheckCircle2, Clock, Building2, Download, ShieldCheck, ArrowDownToLine } from "lucide-react";
+import { CheckCircle2, Clock, Building2, Download, ShieldCheck, ArrowDownToLine, Database } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface PayoutRecord {
@@ -16,43 +17,31 @@ interface PayoutRecord {
   reference: string;
 }
 
-const PAYOUT_HISTORY: PayoutRecord[] = [
-  {
-    period: "September 2026",
-    completedClasses: 64,
-    hours: "32.0 hrs",
-    ratePerClass: "PKR 500",
-    adjustments: "PKR 0",
-    payable: "PKR 32,000",
-    status: "Processing",
-    payoutDate: "01 Nov 2026",
-    reference: "PAY-2026-09-T1"
-  },
-  {
-    period: "August 2026",
-    completedClasses: 60,
-    hours: "30.0 hrs",
-    ratePerClass: "PKR 500",
-    adjustments: "PKR -500",
-    payable: "PKR 29,500",
-    status: "Paid",
-    payoutDate: "01 Sep 2026",
-    reference: "PAY-2026-08-T1"
-  },
-  {
-    period: "July 2026",
-    completedClasses: 58,
-    hours: "29.0 hrs",
-    ratePerClass: "PKR 500",
-    adjustments: "PKR 0",
-    payable: "PKR 29,000",
-    status: "Paid",
-    payoutDate: "01 Aug 2026",
-    reference: "PAY-2026-07-T1"
-  }
-];
-
 export default function TeacherEarnings() {
+  const [payouts, setPayouts] = useState<PayoutRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/payouts")
+      .then((res) => res.json())
+      .then((data) => {
+        const records = (data.payouts || []).map((p: any) => ({
+          period: p.period || "October 2026",
+          completedClasses: Number(p.completed_classes || p.completedClasses || 0),
+          hours: `${(Number(p.completed_classes || p.completedClasses || 0) * 0.5).toFixed(1)} hrs`,
+          ratePerClass: `PKR ${p.rate_per_class || p.ratePerClass || 500}`,
+          adjustments: `PKR ${p.adjustments || 0}`,
+          payable: `PKR ${(Number(p.payable_amount || p.payableAmount || 0)).toLocaleString()}`,
+          status: (p.status === "paid" ? "Paid" : p.status === "processing" ? "Processing" : "Pending Verification") as PayoutRecord["status"],
+          payoutDate: p.payout_date || p.payoutDate || "01 Nov 2026",
+          reference: p.reference || `PAY-${Date.now()}`
+        }));
+        setPayouts(records);
+      })
+      .catch((err) => console.error("Failed to load payouts:", err))
+      .finally(() => setLoading(false));
+  }, []);
+
   const handleDownloadStatement = (period: string) => {
     toast.success(`Downloading payout statement for ${period}...`);
     const a = document.createElement("a");
@@ -60,6 +49,14 @@ export default function TeacherEarnings() {
     a.download = `payout-statement-${period.toLowerCase().replace(/\s+/g, "-")}.csv`;
     a.click();
   };
+
+  const totalPayableCycle = payouts
+    .filter((p) => p.status === "Processing" || p.status === "Pending Verification")
+    .reduce((sum, p) => sum + parseInt(p.payable.replace(/[^0-9]/g, "") || "0", 10), 0);
+
+  const totalClassesThisCycle = payouts
+    .filter((p) => p.status === "Processing" || p.status === "Pending Verification")
+    .reduce((sum, p) => sum + p.completedClasses, 0);
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto w-full text-white">
@@ -72,13 +69,13 @@ export default function TeacherEarnings() {
           Weekly Schedule
         </Link>
         <Link href="/teacher/students" className="text-emerald-100/70 hover:text-white px-2 py-1 transition">
-          My Students & Notes
+          My Students &amp; Notes
         </Link>
         <Link
           href="/teacher/earnings"
           className="text-amber-300 border-b-2 border-amber-400 pb-2 px-2 transition font-bold"
         >
-          Earnings & Bank Payouts
+          Earnings &amp; Bank Payouts
         </Link>
       </div>
 
@@ -86,10 +83,10 @@ export default function TeacherEarnings() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-3xl md:text-4xl font-serif text-white">Teacher Compensation & Records</h1>
+            <h1 className="text-3xl md:text-4xl font-serif text-white">Teacher Compensation &amp; Records</h1>
             <span className="flex items-center gap-1 text-[11px] font-bold bg-emerald-950/80 text-amber-300 border border-amber-400/30 px-2.5 py-0.5 rounded-full">
-              <ShieldCheck size={12} />
-              <span>Direct Bank Settlement</span>
+              <Database size={12} />
+              <span>Database Persisted</span>
             </span>
           </div>
           <p className="text-emerald-100/80 text-sm">
@@ -115,7 +112,7 @@ export default function TeacherEarnings() {
             <p className="text-xs text-emerald-100/80">Per 30-minute 1-on-1 completed class (PKR 1,000/hr)</p>
           </div>
           <div className="mt-4 pt-3 border-t border-white/10 text-[11px] text-amber-300 font-semibold">
-            Standard Quran & Tajweed Tier
+            Standard Quran &amp; Tajweed Tier
           </div>
         </div>
 
@@ -124,12 +121,14 @@ export default function TeacherEarnings() {
             <div className="text-xs font-bold text-emerald-300 uppercase tracking-widest mb-2">
               Payable This Cycle
             </div>
-            <div className="text-3xl font-bold text-amber-300 mb-1">PKR 32,000</div>
-            <p className="text-xs text-emerald-100/80">64 classes completed • 0 missed sessions</p>
+            <div className="text-3xl font-bold text-amber-300 mb-1">
+              {loading ? "..." : `PKR ${totalPayableCycle.toLocaleString()}`}
+            </div>
+            <p className="text-xs text-emerald-100/80">{totalClassesThisCycle} classes pending settlement</p>
           </div>
           <div className="mt-4 pt-3 border-t border-white/10 text-[11px] text-emerald-200/80 flex items-center gap-1.5">
             <Clock size={12} />
-            <span>Disbursement scheduled for 01 Nov 2026</span>
+            <span>Disbursement scheduled for 01 of upcoming month</span>
           </div>
         </div>
 
@@ -169,36 +168,50 @@ export default function TeacherEarnings() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/10 text-sm">
-              {PAYOUT_HISTORY.map((row, idx) => (
-                <tr key={idx} className="hover:bg-white/5 transition">
-                  <td className="py-4 font-bold text-white">{row.period}</td>
-                  <td className="py-4 text-emerald-100">{row.completedClasses} classes</td>
-                  <td className="py-4 text-emerald-100/80">{row.hours}</td>
-                  <td className="py-4 text-emerald-100/80">{row.ratePerClass}</td>
-                  <td className="py-4 font-bold text-amber-300">{row.payable}</td>
-                  <td className="py-4">
-                    <span
-                      className={`text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider inline-flex items-center gap-1 ${
-                        row.status === "Paid"
-                          ? "bg-emerald-900/80 text-emerald-300 border border-emerald-500/30"
-                          : "bg-amber-400/20 text-amber-300 border border-amber-400/30"
-                      }`}
-                    >
-                      {row.status === "Paid" ? <CheckCircle2 size={11} /> : <Clock size={11} />}
-                      {row.status}
-                    </span>
-                  </td>
-                  <td className="py-4 text-right">
-                    <button
-                      onClick={() => handleDownloadStatement(row.period)}
-                      className="text-emerald-100/70 hover:text-amber-300 p-2 transition"
-                      title="Download Statement"
-                    >
-                      <ArrowDownToLine size={16} />
-                    </button>
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="py-8 text-center text-xs text-emerald-100/60">
+                    Loading payout ledger from database...
                   </td>
                 </tr>
-              ))}
+              ) : payouts.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-8 text-center text-xs text-emerald-100/60">
+                    No payout records generated yet. Ledger updates automatically upon session completion.
+                  </td>
+                </tr>
+              ) : (
+                payouts.map((row, idx) => (
+                  <tr key={idx} className="hover:bg-white/5 transition">
+                    <td className="py-4 font-bold text-white">{row.period}</td>
+                    <td className="py-4 text-emerald-100">{row.completedClasses} classes</td>
+                    <td className="py-4 text-emerald-100/80">{row.hours}</td>
+                    <td className="py-4 text-emerald-100/80">{row.ratePerClass}</td>
+                    <td className="py-4 font-bold text-amber-300">{row.payable}</td>
+                    <td className="py-4">
+                      <span
+                        className={`text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider inline-flex items-center gap-1 ${
+                          row.status === "Paid"
+                            ? "bg-emerald-900/80 text-emerald-300 border border-emerald-500/30"
+                            : "bg-amber-400/20 text-amber-300 border border-amber-400/30"
+                        }`}
+                      >
+                        {row.status === "Paid" ? <CheckCircle2 size={11} /> : <Clock size={11} />}
+                        {row.status}
+                      </span>
+                    </td>
+                    <td className="py-4 text-right">
+                      <button
+                        onClick={() => handleDownloadStatement(row.period)}
+                        className="text-emerald-100/70 hover:text-amber-300 p-2 transition cursor-pointer"
+                        title="Download Statement"
+                      >
+                        <ArrowDownToLine size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

@@ -330,3 +330,167 @@ CREATE TRIGGER trg_prevent_audit_log_mutation
   BEFORE UPDATE OR DELETE ON audit_logs
   FOR EACH ROW
   EXECUTE FUNCTION enforce_audit_log_immutability();
+
+
+-- ==============================================================================
+-- 17. Shaheen-Traders-POS Level Enterprise Sync Tables
+-- ==============================================================================
+
+-- 17.1 Global System Settings & Dynamic Version Gating
+CREATE TABLE IF NOT EXISTS settings (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  description TEXT,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+INSERT INTO settings (key, value, description)
+VALUES 
+  ('min_required_version', '1.1.0', 'Minimum supported app version across web, mobile and desktop'),
+  ('app_latest_version', '1.1.0', 'Latest published version'),
+  ('maintenance_mode', 'false', 'Global academy maintenance mode flag'),
+  ('announcement_banner', '', 'Academy broadcast message to all active portals')
+ON CONFLICT (key) DO UPDATE SET
+  value = EXCLUDED.value,
+  description = EXCLUDED.description;
+
+-- 17.2 Classroom State Persistence (0ms Dual-Layer Realtime Room State)
+CREATE TABLE IF NOT EXISTS classroom_states (
+  room_id TEXT PRIMARY KEY,
+  current_page INTEGER DEFAULT 1,
+  current_surah INTEGER DEFAULT 1,
+  current_ayah INTEGER DEFAULT 1,
+  tajweed_mode TEXT DEFAULT 'color',
+  script_mode TEXT DEFAULT 'uthmani',
+  selected_rule TEXT,
+  active_tab TEXT DEFAULT 'mushaf',
+  whiteboard_strokes JSONB DEFAULT '[]'::jsonb,
+  teacher_notes TEXT DEFAULT '',
+  last_updated_by TEXT,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 17.3 Enrolment Desk Pipeline
+CREATE TABLE IF NOT EXISTS enrolments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  learner_name TEXT NOT NULL,
+  parent_name TEXT,
+  email TEXT,
+  phone TEXT,
+  age INTEGER DEFAULT 10,
+  programme TEXT NOT NULL DEFAULT 'Kids Reading & Noorani Qaida',
+  matched_teacher TEXT DEFAULT 'Pending Assignment',
+  assessment_stage TEXT DEFAULT 'Trial Requested • Auto-Registered',
+  status TEXT NOT NULL DEFAULT 'trial_booked' CHECK (status IN ('trial_booked', 'placement_review', 'awaiting_payment', 'active', 'completed', 'cancelled')),
+  country TEXT DEFAULT 'United Kingdom',
+  city TEXT DEFAULT 'London',
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 17.4 Academy Uploaded Documents & Curriculum Library
+CREATE TABLE IF NOT EXISTS uploaded_documents (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  file_name TEXT NOT NULL,
+  category TEXT NOT NULL CHECK (category IN ('Duas & Ziyarat', 'Classical Texts', 'Tajweed & Qaida', 'Ahkam Fiqh', 'Curriculum')),
+  sect TEXT NOT NULL DEFAULT 'universal' CHECK (sect IN ('universal', 'shia', 'sunni')),
+  file_size TEXT NOT NULL,
+  upload_date TIMESTAMPTZ DEFAULT NOW(),
+  uploaded_by TEXT NOT NULL DEFAULT 'Academy Super Admin',
+  description TEXT NOT NULL,
+  file_data_url TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 17.5 Teacher Monthly Payouts Ledger
+CREATE TABLE IF NOT EXISTS teacher_payouts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  teacher_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
+  teacher_name TEXT NOT NULL,
+  period TEXT NOT NULL,
+  completed_classes INTEGER DEFAULT 0,
+  hours TEXT DEFAULT '0.0 hrs',
+  rate_per_class NUMERIC(10, 2) DEFAULT 500.00,
+  adjustments NUMERIC(10, 2) DEFAULT 0.00,
+  payable NUMERIC(10, 2) NOT NULL,
+  currency TEXT DEFAULT 'PKR',
+  status TEXT NOT NULL DEFAULT 'Paid' CHECK (status IN ('Paid', 'Pending Verification', 'Processing')),
+  payout_date DATE,
+  reference TEXT NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 17.6 Student Lesson Progress & Continuous Feedback Notes
+CREATE TABLE IF NOT EXISTS student_lesson_notes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  student_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  student_name TEXT NOT NULL,
+  teacher_name TEXT NOT NULL,
+  lesson_date DATE NOT NULL DEFAULT CURRENT_DATE,
+  lesson_title TEXT NOT NULL,
+  grade TEXT NOT NULL DEFAULT 'Excellent',
+  rating INTEGER CHECK (rating >= 1 AND rating <= 5) DEFAULT 5,
+  feedback TEXT NOT NULL,
+  homework TEXT,
+  sabaq TEXT,
+  sabqi TEXT,
+  manzil TEXT,
+  tajweed_score TEXT DEFAULT '4.8 / 5.0',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 18. Enable Row-Level Security on New Tables
+ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE classroom_states ENABLE ROW LEVEL SECURITY;
+ALTER TABLE enrolments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE uploaded_documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE teacher_payouts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE student_lesson_notes ENABLE ROW LEVEL SECURITY;
+
+-- 19. RLS Policies
+DROP POLICY IF EXISTS "Public read settings" ON settings;
+CREATE POLICY "Public read settings" ON settings FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Service role admin write settings" ON settings;
+CREATE POLICY "Service role admin write settings" ON settings FOR ALL USING (true);
+
+DROP POLICY IF EXISTS "Classroom participants full access state" ON classroom_states;
+CREATE POLICY "Classroom participants full access state" ON classroom_states FOR ALL USING (true);
+
+DROP POLICY IF EXISTS "Admin and applicant access enrolments" ON enrolments;
+CREATE POLICY "Admin and applicant access enrolments" ON enrolments FOR ALL USING (true);
+
+DROP POLICY IF EXISTS "Public read documents" ON uploaded_documents;
+CREATE POLICY "Public read documents" ON uploaded_documents FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Admin write documents" ON uploaded_documents;
+CREATE POLICY "Admin write documents" ON uploaded_documents FOR ALL USING (true);
+
+DROP POLICY IF EXISTS "Teacher view own payouts" ON teacher_payouts;
+CREATE POLICY "Teacher view own payouts" ON teacher_payouts FOR ALL USING (true);
+
+DROP POLICY IF EXISTS "Student and teacher view lesson notes" ON student_lesson_notes;
+CREATE POLICY "Student and teacher view lesson notes" ON student_lesson_notes FOR ALL USING (true);
+
+-- 20. Realtime Publications
+DO $$ BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE settings;
+EXCEPTION WHEN OTHERS THEN null; END $$;
+
+DO $$ BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE classroom_states;
+EXCEPTION WHEN OTHERS THEN null; END $$;
+
+DO $$ BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE invoices;
+EXCEPTION WHEN OTHERS THEN null; END $$;
+
+DO $$ BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE enrolments;
+EXCEPTION WHEN OTHERS THEN null; END $$;
+
+DO $$ BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE class_sessions;
+EXCEPTION WHEN OTHERS THEN null; END $$;

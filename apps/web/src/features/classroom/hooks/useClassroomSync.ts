@@ -277,6 +277,22 @@ export function useClassroomSync({
     [role, broadcast, applyFullSnapshot]
   );
 
+  const persistStateDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const persistRoomState = useCallback((stateToPersist: any) => {
+    if (role !== 'teacher') return;
+    if (persistStateDebounceRef.current) clearTimeout(persistStateDebounceRef.current);
+    persistStateDebounceRef.current = setTimeout(() => {
+      fetch('/api/classroom/state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          classId,
+          state: stateToPersist,
+        }),
+      }).catch((err) => console.warn('Failed to persist classroom state:', err));
+    }, 600);
+  }, [classId, role]);
+
   // Emitters with anti-spam deduplication & throttling
   const sendHighlight = useCallback(
     (index: number | null) => {
@@ -286,6 +302,7 @@ export function useClassroomSync({
       highlightedIndexRef.current = index;
       setHighlightedIndex(index);
       broadcast({ type: "highlight", index });
+      persistRoomState({ ...stateSnapshotRef.current, highlightedIndex: index });
     },
     [broadcast, role]
   );
@@ -318,6 +335,7 @@ export function useClassroomSync({
       setCircles({});
       setColorHighlights({});
       broadcast({ type: "change_lesson", lessonId });
+      persistRoomState({ ...stateSnapshotRef.current, activeLessonId: lessonId, highlightedIndex: 0 });
       toast.success("Classroom Lesson Switched");
     },
     [broadcast, role]
@@ -351,6 +369,7 @@ export function useClassroomSync({
       if (partialState.activeLessonId !== undefined) setActiveLessonId(partialState.activeLessonId);
       if (partialState.bandwidthMode !== undefined) setBandwidthMode(partialState.bandwidthMode);
 
+      persistRoomState({ ...stateSnapshotRef.current, ...partialState });
       broadcast({
         type: "tool_sync",
         state: {
@@ -471,6 +490,16 @@ export function useClassroomSync({
 
   useEffect(() => {
     isUnmountedRef.current = false;
+
+    // 0. Restore persistent classroom state from Supabase
+    fetch(`/api/classroom/state?classId=${encodeURIComponent(classId)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!isUnmountedRef.current && data.state) {
+          applyFullSnapshot(data.state);
+        }
+      })
+      .catch((err) => console.warn('Classroom state restore fallback:', err));
 
     // 1. Fetch LiveKit Token from server
     fetch(

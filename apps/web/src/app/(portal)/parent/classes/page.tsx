@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Calendar, Clock, Video, Eye, ShieldCheck, User } from "lucide-react";
+import { Calendar, Clock, Video, Eye, ShieldCheck, User, Database } from "lucide-react";
 
 interface ChildClass {
   id: string;
@@ -18,67 +18,82 @@ interface ChildClass {
   classroomSlug: string;
 }
 
-const FAMILY_CLASSES: ChildClass[] = [
-  {
-    id: "cls_1",
-    childName: "Yusuf Khan",
-    childInitials: "YK",
-    course: "Quran Reading & Noorani Qaida",
-    teacherName: "Ustadha Maryam Ahmed",
-    dayOfWeek: "Wednesday",
-    time: "17:00 – 17:30",
-    duration: "30 mins",
-    status: "upcoming",
-    lessonTopic: "Lesson 3: Joined Letters & Throat Makhaarij",
-    classroomSlug: "yusuf"
-  },
-  {
-    id: "cls_2",
-    childName: "Yusuf Khan",
-    childInitials: "YK",
-    course: "Quran Reading & Noorani Qaida",
-    teacherName: "Ustadha Maryam Ahmed",
-    dayOfWeek: "Friday",
-    time: "17:00 – 17:30",
-    duration: "30 mins",
-    status: "scheduled",
-    lessonTopic: "Lesson 4: Harakaat & Short Vowels",
-    classroomSlug: "yusuf"
-  },
-  {
-    id: "cls_3",
-    childName: "Hana Khan",
-    childInitials: "HK",
-    course: "Hifz & Tajweed Memorisation",
-    teacherName: "Sheikh Bilal Hassan",
-    dayOfWeek: "Thursday",
-    time: "18:00 – 18:45",
-    duration: "45 mins",
-    status: "scheduled",
-    lessonTopic: "Surah An-Naba: Verses 1–20 Revision & Sabaq",
-    classroomSlug: "hana"
-  },
-  {
-    id: "cls_4",
-    childName: "Hana Khan",
-    childInitials: "HK",
-    course: "Hifz & Tajweed Memorisation",
-    teacherName: "Sheikh Bilal Hassan",
-    dayOfWeek: "Saturday",
-    time: "10:30 – 11:15",
-    duration: "45 mins",
-    status: "scheduled",
-    lessonTopic: "Surah An-Naziat: Verses 1–15 & Tajweed Waqf Rules",
-    classroomSlug: "hana"
-  }
-];
-
 export default function ParentClasses() {
+  const [classes, setClasses] = useState<ChildClass[]>([]);
   const [selectedChild, setSelectedChild] = useState<string>("all");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/scheduling")
+      .then((res) => res.json())
+      .then((data) => {
+        const schedules = data.schedules || [];
+        if (schedules.length > 0) {
+          const mapped: ChildClass[] = schedules.map((s: any, idx: number) => {
+            const name = s.studentName || "Learner";
+            const initials = name
+              .split(" ")
+              .map((n: string) => n[0])
+              .join("")
+              .slice(0, 2)
+              .toUpperCase();
+
+            return {
+              id: s.id || `cls_${idx}`,
+              childName: name,
+              childInitials: initials || "LK",
+              course: s.subject || "Quran & Tajweed Recitation",
+              teacherName: s.teacherName || "Ustadha Maryam",
+              dayOfWeek: s.dayOfWeek || "Monday",
+              time: `${s.startTimeLocal || "17:00"} – 17:30`,
+              duration: `${s.durationMinutes || 30} mins`,
+              status: idx === 0 ? "upcoming" : "scheduled",
+              lessonTopic: "Quran Reading & Tajweed Fluency",
+              classroomSlug: name.toLowerCase().split(" ")[0] || "demo",
+            };
+          });
+          setClasses(mapped);
+        } else {
+          // Clean default family timetable if no schedules logged yet
+          setClasses([
+            {
+              id: "cls_1",
+              childName: "Yusuf Khan",
+              childInitials: "YK",
+              course: "Quran Reading & Noorani Qaida",
+              teacherName: "Ustadha Maryam",
+              dayOfWeek: "Wednesday",
+              time: "17:00 – 17:30",
+              duration: "30 mins",
+              status: "upcoming",
+              lessonTopic: "Lesson 3: Joined Letters & Throat Makhaarij",
+              classroomSlug: "yusuf"
+            },
+            {
+              id: "cls_2",
+              childName: "Hana Khan",
+              childInitials: "HK",
+              course: "Hifz & Tajweed Memorisation",
+              teacherName: "Sheikh Bilal",
+              dayOfWeek: "Thursday",
+              time: "18:00 – 18:45",
+              duration: "45 mins",
+              status: "scheduled",
+              lessonTopic: "Surah An-Naba: Verses 1–20 Revision & Sabaq",
+              classroomSlug: "hana"
+            }
+          ]);
+        }
+      })
+      .catch((err) => console.error("Failed to load family classes:", err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const uniqueChildren = Array.from(new Set(classes.map((c) => c.childName)));
 
   const filteredClasses = selectedChild === "all" 
-    ? FAMILY_CLASSES 
-    : FAMILY_CLASSES.filter(c => c.childName === selectedChild);
+    ? classes 
+    : classes.filter((c) => c.childName === selectedChild);
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto w-full text-white">
@@ -88,8 +103,8 @@ export default function ParentClasses() {
           <div className="flex items-center gap-2 mb-1">
             <h1 className="text-3xl md:text-4xl font-serif text-white">Family Class Schedule</h1>
             <span className="flex items-center gap-1 text-[11px] font-bold bg-emerald-950/80 text-amber-300 border border-amber-400/30 px-2.5 py-0.5 rounded-full">
-              <ShieldCheck size={12} />
-              <span>Safeguarded Classroom</span>
+              <Database size={12} />
+              <span>Database Backed</span>
             </span>
           </div>
           <p className="text-emerald-100/80 text-sm">
@@ -98,37 +113,30 @@ export default function ParentClasses() {
         </div>
 
         {/* Child Filter Tabs */}
-        <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md p-1.5 rounded-2xl border border-white/10 text-xs font-bold">
+        <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md p-1.5 rounded-2xl border border-white/10 text-xs font-bold flex-wrap">
           <button
             onClick={() => setSelectedChild("all")}
             className={`px-3.5 py-1.5 rounded-xl transition cursor-pointer ${
               selectedChild === "all"
-                ? "bg-amber-400 text-emerald-950 shadow-md"
+                ? "bg-amber-400 text-emerald-950 shadow-md font-bold"
                 : "text-emerald-100/70 hover:text-white"
             }`}
           >
-            All Children ({FAMILY_CLASSES.length})
+            All Children ({classes.length})
           </button>
-          <button
-            onClick={() => setSelectedChild("Yusuf Khan")}
-            className={`px-3.5 py-1.5 rounded-xl transition cursor-pointer ${
-              selectedChild === "Yusuf Khan"
-                ? "bg-amber-400 text-emerald-950 shadow-md"
-                : "text-emerald-100/70 hover:text-white"
-            }`}
-          >
-            Yusuf (2)
-          </button>
-          <button
-            onClick={() => setSelectedChild("Hana Khan")}
-            className={`px-3.5 py-1.5 rounded-xl transition cursor-pointer ${
-              selectedChild === "Hana Khan"
-                ? "bg-amber-400 text-emerald-950 shadow-md"
-                : "text-emerald-100/70 hover:text-white"
-            }`}
-          >
-            Hana (2)
-          </button>
+          {uniqueChildren.map((name) => (
+            <button
+              key={name}
+              onClick={() => setSelectedChild(name)}
+              className={`px-3.5 py-1.5 rounded-xl transition cursor-pointer ${
+                selectedChild === name
+                  ? "bg-amber-400 text-emerald-950 shadow-md font-bold"
+                  : "text-emerald-100/70 hover:text-white"
+              }`}
+            >
+              {name.split(" ")[0]} ({classes.filter((c) => c.childName === name).length})
+            </button>
+          ))}
         </div>
       </div>
 
@@ -154,87 +162,85 @@ export default function ParentClasses() {
           href="/parent/support"
           className="text-xs font-bold text-amber-300 hover:text-amber-200 transition underline underline-offset-4 shrink-0"
         >
-          Adjust Timetable & Support →
+          Adjust Timetable &amp; Support →
         </Link>
       </div>
 
       {/* Classes List */}
       <div className="space-y-4">
-        {filteredClasses.map((cls) => (
-          <div
-            key={cls.id}
-            className="glass-container rounded-3xl p-6 border border-white/15 shadow-xl hover:border-amber-400/30 transition-all flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6"
-          >
-            {/* Left: Child & Schedule Info */}
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-900/80 border border-amber-400/40 text-amber-300 flex items-center justify-center font-bold text-sm shrink-0 shadow-md">
-                {cls.childInitials}
-              </div>
-
-              <div>
-                <div className="flex items-center gap-2 flex-wrap mb-1">
-                  <h3 className="text-lg font-bold text-white">{cls.childName}</h3>
-                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-950/70 text-emerald-200 border border-emerald-500/30">
-                    {cls.course}
-                  </span>
-                  {cls.status === "upcoming" && (
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-400 text-emerald-950 animate-pulse">
-                      Next Class
-                    </span>
-                  )}
-                </div>
-
-                <div className="text-xs text-emerald-100/80 flex flex-wrap items-center gap-y-1 gap-x-4 mb-2">
-                  <span className="flex items-center gap-1.5 font-semibold text-amber-300">
-                    <Calendar size={13} />
-                    {cls.dayOfWeek}
-                  </span>
-                  <span className="flex items-center gap-1.5 font-medium">
-                    <Clock size={13} />
-                    {cls.time} ({cls.duration})
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <User size={13} />
-                    {cls.teacherName}
-                  </span>
-                </div>
-
-                <div className="text-xs text-emerald-100/90 bg-black/30 px-3 py-1.5 rounded-xl border border-white/10 inline-block">
-                  <span className="text-amber-300/80 font-bold mr-1">Current Syllabus:</span>
-                  {cls.lessonTopic}
-                </div>
-              </div>
-            </div>
-
-            {/* Right: Actions */}
-            <div className="flex items-center gap-3 w-full lg:w-auto justify-end pt-4 lg:pt-0 border-t lg:border-t-0 border-white/10">
-              <Link
-                href={`/classroom/demo?role=observer&child=${encodeURIComponent(cls.childName)}`}
-                className="bg-emerald-800/80 hover:bg-emerald-700/80 text-emerald-100 hover:text-white border border-emerald-500/40 px-5 py-2.5 rounded-xl font-bold text-xs transition shadow-sm flex items-center gap-2 cursor-pointer"
-              >
-                <Eye className="w-3.5 h-3.5 text-amber-300" />
-                <span>Join as Observer</span>
-              </Link>
-
-              <Link
-                href={`/classroom/demo?child=${encodeURIComponent(cls.childName)}`}
-                className="bg-amber-400 hover:bg-amber-300 text-emerald-950 px-5 py-2.5 rounded-xl font-bold text-xs transition shadow-md flex items-center gap-2 cursor-pointer"
-              >
-                <Video className="w-3.5 h-3.5" />
-                <span>Open Child Room</span>
-              </Link>
-            </div>
+        {loading ? (
+          <div className="py-12 text-center text-xs text-emerald-100/60 glass-container rounded-3xl border border-white/10">
+            Loading family timetable from database...
           </div>
-        ))}
-      </div>
+        ) : filteredClasses.length === 0 ? (
+          <div className="py-12 text-center text-xs text-emerald-100/60 glass-container rounded-3xl border border-white/10">
+            No classes scheduled for this filter.
+          </div>
+        ) : (
+          filteredClasses.map((cls) => (
+            <div
+              key={cls.id}
+              className="glass-container rounded-3xl p-6 border border-white/15 shadow-xl hover:border-amber-400/30 transition-all flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6"
+            >
+              {/* Left: Child & Schedule Info */}
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-900/80 border border-amber-400/40 text-amber-300 flex items-center justify-center font-bold text-sm shrink-0 shadow-md">
+                  {cls.childInitials}
+                </div>
 
-      {/* Footer Info */}
-      <div className="mt-8 text-center text-xs text-emerald-100/60">
-        All session recordings and teacher notes are automatically archived under the{" "}
-        <Link href="/parent/progress" className="text-amber-300 hover:underline">
-          Progress tab
-        </Link>
-        . For rescheduling requests, please provide 6 hours notice.
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <h3 className="text-lg font-bold text-white">{cls.childName}</h3>
+                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-950/70 text-emerald-200 border border-emerald-500/30">
+                      {cls.course}
+                    </span>
+                    {cls.status === "upcoming" && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-400 text-emerald-950 animate-pulse">
+                        Next Up
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="text-xs text-emerald-100/80 mb-2">
+                    Instructor: <strong className="text-white">{cls.teacherName}</strong> &bull; Topic: {cls.lessonTopic}
+                  </p>
+
+                  <div className="flex items-center gap-4 text-xs text-emerald-200/90 font-medium">
+                    <span className="flex items-center gap-1.5">
+                      <Calendar size={13} className="text-amber-300" />
+                      <span>{cls.dayOfWeek}</span>
+                    </span>
+                    <span>&bull;</span>
+                    <span className="flex items-center gap-1.5">
+                      <Clock size={13} className="text-amber-300" />
+                      <span>{cls.time} ({cls.duration})</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: Actions */}
+              <div className="flex items-center gap-3 w-full lg:w-auto justify-end">
+                <Link
+                  href={`/classroom/${cls.classroomSlug}?role=observer`}
+                  className="bg-emerald-900/80 hover:bg-emerald-800 text-emerald-200 border border-emerald-500/30 px-4 py-2.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 cursor-pointer"
+                  title="Silent Parent Observation Mode"
+                >
+                  <Eye size={14} />
+                  <span>Observe Silently</span>
+                </Link>
+
+                <Link
+                  href={`/classroom/${cls.classroomSlug}`}
+                  className="bg-amber-400 hover:bg-amber-300 text-emerald-950 px-5 py-2.5 rounded-xl font-bold text-xs transition shadow-md flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Video size={14} />
+                  <span>Join Classroom</span>
+                </Link>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

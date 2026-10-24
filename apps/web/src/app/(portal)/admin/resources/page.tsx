@@ -38,52 +38,7 @@ export interface UploadedDocument {
   createdAt?: string;
 }
 
-const INITIAL_DOCUMENTS: UploadedDocument[] = [
-  {
-    id: "doc_1",
-    title: "Mafatih al-Jinan — Complete Classical Duas Compendium",
-    fileName: "Mafatih_al_Jinan_Full_Reader.pdf",
-    category: "Duas & Supplications",
-    sect: "shia",
-    fileSize: "14.2 MB",
-    uploadDate: "22 Oct 2026",
-    uploadedBy: "Super Admin",
-    description: "Standard verified Arabic diacritics and parallel English translation for major canonical supplications."
-  },
-  {
-    id: "doc_2",
-    title: "Noorani Qaida — Color-Coded Makhaarij Guide",
-    fileName: "Noorani_Qaida_Standard_Edition.pdf",
-    category: "Tajweed & Noorani Qaida",
-    sect: "universal",
-    fileSize: "8.5 MB",
-    uploadDate: "20 Oct 2026",
-    uploadedBy: "Super Admin",
-    description: "Foundational phonetics and letter-articulation reference used across beginner classrooms."
-  },
-  {
-    id: "doc_3",
-    title: "Al-Sahifa al-Sajjadiyya — The Psalms of Islam",
-    fileName: "Sahifa_Sajjadiyya_Manuscript.pdf",
-    category: "Classical Reference Texts",
-    sect: "shia",
-    fileSize: "18.7 MB",
-    uploadDate: "18 Oct 2026",
-    uploadedBy: "Super Admin",
-    description: "Complete 54 supplications of Imam Ali Zayn al-Abidin (AS) with academic annotations."
-  },
-  {
-    id: "doc_5",
-    title: "Practical Ahkam & Daily Salat Manual",
-    fileName: "Practical_Ahkam_Salat_Handbook.pdf",
-    category: "Wudhu & Salat Ahkam",
-    sect: "universal",
-    fileSize: "4.1 MB",
-    uploadDate: "15 Oct 2026",
-    uploadedBy: "Super Admin",
-    description: "Essential rulings on Wudhu, Tayammum, invalidating factors, and prayer posture standards."
-  }
-];
+const INITIAL_DOCUMENTS: UploadedDocument[] = [];
 
 export interface ParsedHadithPreview {
   id: string;

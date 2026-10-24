@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { compressReceiptImage } from "@/lib/imageCompressor";
 import { 
@@ -11,7 +11,8 @@ import {
   Clock, 
   FileText, 
   ShieldCheck, 
-  ArrowDownToLine
+  ArrowDownToLine,
+  Database
 } from "lucide-react";
 
 interface BankDetails {
@@ -75,6 +76,22 @@ export default function ParentBilling() {
   const [transactionRef, setTransactionRef] = useState("");
   const [amountPaid, setAmountPaid] = useState("");
   const [receiptSuccess, setReceiptSuccess] = useState(false);
+  const [invoices, setInvoices] = useState<any[]>([]);
+  const [loadingInvoices, setLoadingInvoices] = useState(true);
+
+  const fetchInvoices = () => {
+    fetch("/api/invoices")
+      .then((res) => res.json())
+      .then((data) => {
+        setInvoices(data.invoices || []);
+      })
+      .catch((err) => console.error("Failed to load invoices:", err))
+      .finally(() => setLoadingInvoices(false));
+  };
+
+  useEffect(() => {
+    fetchInvoices();
+  }, []);
 
   const bank = BANK_CHANNELS[selectedCurrency];
 
@@ -125,8 +142,9 @@ export default function ParentBilling() {
 
       setIsUploading(false);
       setReceiptSuccess(true);
+      fetchInvoices();
       toast.success("Receipt submitted and persisted to Academy Accounts! Verification usually within 2 business hours.", { id: "receipt" });
-    } catch (err: any) {
+    } catch {
       setIsUploading(false);
       toast.error("Could not record receipt. Please check your network and try again.", { id: "receipt" });
     }
@@ -137,10 +155,10 @@ export default function ParentBilling() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-1">
-          <h1 className="text-3xl md:text-4xl font-serif text-white">Family Tuition & Billing</h1>
+          <h1 className="text-3xl md:text-4xl font-serif text-white">Family Tuition &amp; Billing</h1>
           <span className="flex items-center gap-1 text-[11px] font-bold bg-emerald-950/80 text-amber-300 border border-amber-400/30 px-2.5 py-0.5 rounded-full">
-            <ShieldCheck size={12} />
-            <span>Direct Multi-Currency Settlement</span>
+            <Database size={12} />
+            <span>Direct Multi-Currency Rail</span>
           </span>
         </div>
         <p className="text-emerald-100/80 text-sm">
@@ -367,53 +385,65 @@ export default function ParentBilling() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/10 text-sm">
-              <tr className="hover:bg-white/5 transition">
-                <td className="py-4 font-mono font-bold text-white">#QA-2026-10</td>
-                <td className="py-4 text-emerald-100">November 2026 Tuition (Yusuf & Hana)</td>
-                <td className="py-4 font-bold text-amber-300">PKR 18,000</td>
-                <td className="py-4 text-emerald-100/75 text-xs">20 Oct 2026</td>
-                <td className="py-4">
-                  <span className="flex items-center gap-1.5 text-xs font-bold text-amber-300 bg-amber-400/20 border border-amber-400/30 px-2.5 py-1 rounded-full w-fit">
-                    <Clock size={12} />
-                    <span>Under Admin Verification</span>
-                  </span>
-                </td>
-                <td className="py-4 text-right">
-                  <a
-                    href="/api/invoices/QA-2026-10/download?amount=18000&currency=PKR&student=Yusuf+and+Hana&parent=Ahmed+Khan&ref=RAAST-89213890"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-emerald-100/70 hover:text-amber-300 p-2 transition inline-block"
-                    title="Download PDF"
-                  >
-                    <ArrowDownToLine size={16} />
-                  </a>
-                </td>
-              </tr>
+              {loadingInvoices ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-xs text-emerald-100/60">
+                    Loading invoices from database...
+                  </td>
+                </tr>
+              ) : invoices.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-xs text-emerald-100/60">
+                    No invoices recorded yet. Upload a receipt above to record your tuition remittance.
+                  </td>
+                </tr>
+              ) : (
+                invoices.map((inv: any) => {
+                  const invId = inv.invoice_number || inv.id || "QA-2026";
+                  const dateStr = inv.created_at
+                    ? new Date(inv.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+                    : "October 2026";
+                  const isPaid = inv.status === "paid";
+                  const isPending = inv.status === "pending_verification";
 
-              <tr className="hover:bg-white/5 transition">
-                <td className="py-4 font-mono font-bold text-white">#QA-2026-09</td>
-                <td className="py-4 text-emerald-100">October 2026 Tuition (Yusuf & Hana)</td>
-                <td className="py-4 font-bold text-amber-300">PKR 18,000</td>
-                <td className="py-4 text-emerald-100/75 text-xs">01 Oct 2026</td>
-                <td className="py-4">
-                  <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-300 bg-emerald-900/60 border border-emerald-500/30 px-2.5 py-1 rounded-full w-fit">
-                    <CheckCircle2 size={12} />
-                    <span>Paid & Verified</span>
-                  </span>
-                </td>
-                <td className="py-4 text-right">
-                  <a
-                    href="/api/invoices/QA-2026-09/download?amount=18000&currency=PKR&student=Yusuf+and+Hana&parent=Ahmed+Khan&ref=RAAST-77401928"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-emerald-100/70 hover:text-amber-300 p-2 transition inline-block"
-                    title="Download PDF"
-                  >
-                    <ArrowDownToLine size={16} />
-                  </a>
-                </td>
-              </tr>
+                  return (
+                    <tr key={invId} className="hover:bg-white/5 transition">
+                      <td className="py-4 font-mono font-bold text-white">#{invId}</td>
+                      <td className="py-4 text-emerald-100">{inv.package_tier || inv.packageTier || "Tuition Fee"}</td>
+                      <td className="py-4 font-bold text-amber-300">{inv.currency} {Number(inv.amount).toLocaleString()}</td>
+                      <td className="py-4 text-emerald-100/75 text-xs">{dateStr}</td>
+                      <td className="py-4">
+                        {isPaid ? (
+                          <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-300 bg-emerald-900/60 border border-emerald-500/30 px-2.5 py-1 rounded-full w-fit">
+                            <CheckCircle2 size={12} />
+                            <span>Paid &amp; Verified</span>
+                          </span>
+                        ) : isPending ? (
+                          <span className="flex items-center gap-1.5 text-xs font-bold text-amber-300 bg-amber-400/20 border border-amber-400/30 px-2.5 py-1 rounded-full w-fit">
+                            <Clock size={12} />
+                            <span>Under Admin Verification</span>
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-100/70 bg-black/40 border border-white/10 px-2.5 py-1 rounded-full w-fit">
+                            <span>Pending</span>
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-4 text-right">
+                        <a
+                          href={`/api/invoices/${invId}/download?amount=${inv.amount}&currency=${inv.currency}&student=Yusuf+and+Hana&parent=Ahmed+Khan&ref=${inv.transaction_ref || inv.transactionRef || "BANK-WIRE"}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-emerald-100/70 hover:text-amber-300 p-2 transition inline-block cursor-pointer"
+                          title="Download PDF"
+                        >
+                          <ArrowDownToLine size={16} />
+                        </a>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
