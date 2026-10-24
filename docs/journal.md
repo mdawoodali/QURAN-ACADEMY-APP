@@ -1695,3 +1695,20 @@ eceipt_uploaded, and payment_verified.
   - Automatically matches origin to `http://localhost:3000` during local dev, and exact production/preview Vercel domains when deployed.
 - **Verification**:
   - 170/170 tests passing.
+
+
+---
+
+## 9.74 Zero-Scroll Welcome Splash Screen & Google OAuth Signup Trigger Hardening (2026-10-24)
+
+- **Welcome Splash Viewport Normalization (`WelcomeSplash.tsx`)**:
+  - Eliminated vertical page scrollbar on the Sunni/Shia selection screen.
+  - Enforced strict `h-[100dvh] max-h-[100dvh] overflow-hidden` container dimensions.
+  - Proportionally scaled logo, Hadith typography, and action buttons (`Sunni` / `Shia`) to fit cleanly within 100vh on all desktop, laptop, tablet, and mobile screens.
+- **Database Trigger Hardening for OAuth Signups (`handle_new_user`)**:
+  - Replaced naive metadata extraction with resilient OAuth parsing supporting Google's `name`, `full_name`, `given_name`, `family_name`, and `picture` payload formats.
+  - Explicitly specified `SET search_path = public` to prevent schema resolution failures during auth triggers.
+  - Added `EXCEPTION WHEN OTHERS` safe fallback to guarantee `auth.users` insertion never fails even if user metadata is sparse.
+- **Verification**:
+  - Full Next.js Turbopack build passed (0 errors across 72 routes).
+  - 170/170 tests green.

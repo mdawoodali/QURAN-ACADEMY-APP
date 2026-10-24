@@ -292,25 +292,69 @@ CREATE POLICY "Service role / Admin full access invoices" ON invoices FOR ALL US
 DROP POLICY IF EXISTS "Service role / Admin full access audit_logs" ON audit_logs;
 CREATE POLICY "Service role / Admin full access audit_logs" ON audit_logs FOR ALL USING (true);
 
--- 15. Automatic User Profile Creation Trigger on Auth Signup
+-- 15. Automatic User Profile Creation Trigger on Auth Signup (Resilient & Google OAuth Safe)
 CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS trigger AS $$
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $
+DECLARE
+  assigned_role user_role := 'student';
+  meta_role text;
+  first_n text;
+  last_n text;
 BEGIN
-  INSERT INTO public.profiles (id, role, first_name, last_name, email)
+  -- Extract and validate role safely
+  meta_role := lower(trim(coalesce(new.raw_user_meta_data->>'role', 'student')));
+  IF meta_role IN ('student', 'teacher', 'admin', 'parent') THEN
+    assigned_role := meta_role::user_role;
+  ELSE
+    assigned_role := 'student'::user_role;
+  END IF;
+
+  -- Extract name across OAuth providers (Google sends name, full_name, given_name, family_name)
+  first_n := coalesce(
+    new.raw_user_meta_data->>'first_name',
+    new.raw_user_meta_data->>'given_name',
+    split_part(coalesce(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name', ''), ' ', 1),
+    ''
+  );
+  last_n := coalesce(
+    new.raw_user_meta_data->>'last_name',
+    new.raw_user_meta_data->>'family_name',
+    nullif(substr(coalesce(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name', ''), length(first_n) + 2), ''),
+    ''
+  );
+
+  INSERT INTO public.profiles (id, role, first_name, last_name, email, avatar_url)
   VALUES (
     new.id,
-    COALESCE((new.raw_user_meta_data->>'role')::user_role, 'student'::user_role),
-    COALESCE(new.raw_user_meta_data->>'first_name', ''),
-    COALESCE(new.raw_user_meta_data->>'last_name', ''),
-    new.email
+    assigned_role,
+    coalesce(first_n, ''),
+    coalesce(last_n, ''),
+    coalesce(new.email, ''),
+    coalesce(new.raw_user_meta_data->>'avatar_url', new.raw_user_meta_data->>'picture', '')
   )
   ON CONFLICT (id) DO UPDATE SET
-    first_name = EXCLUDED.first_name,
-    last_name = EXCLUDED.last_name,
+    first_name = CASE WHEN profiles.first_name = '' THEN EXCLUDED.first_name ELSE profiles.first_name END,
+    last_name = CASE WHEN profiles.last_name = '' THEN EXCLUDED.last_name ELSE profiles.last_name END,
+    avatar_url = COALESCE(NULLIF(profiles.avatar_url, ''), EXCLUDED.avatar_url),
     email = EXCLUDED.email;
+
+  RETURN new;
+EXCEPTION WHEN OTHERS THEN
+  -- Safe fallback: never block user signup on auth.users
+  BEGIN
+    INSERT INTO public.profiles (id, role, first_name, last_name, email)
+    VALUES (new.id, 'student'::user_role, '', '', coalesce(new.email, ''))
+    ON CONFLICT (id) DO NOTHING;
+  EXCEPTION WHEN OTHERS THEN
+    NULL;
+  END;
   RETURN new;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$;
 
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
