@@ -128,6 +128,75 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+
+    // -------------------------------------------------------------------------
+    // Batch Insert Handler (used by Smart Hadith Splitter)
+    // -------------------------------------------------------------------------
+    if (body.batch && Array.isArray(body.documents) && body.documents.length > 0) {
+      const nowIso = new Date().toISOString();
+      const uploadDateStr = new Date().toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+      });
+
+      const newRecords: UploadedDocumentRecord[] = body.documents.map(
+        (doc: Partial<UploadedDocumentRecord>, index: number) => ({
+          id: doc.id || `hadith_batch_${Date.now()}_${index}_${Math.random().toString(36).slice(2, 6)}`,
+          title: doc.title || `Hadith #${index + 1}`,
+          fileName: doc.fileName || `Hadith_${index + 1}.pdf`,
+          category: doc.category || "Hadith & Sunnah Compendiums",
+          sect: (doc.sect as "universal" | "shia" | "sunni") || "universal",
+          fileSize: doc.fileSize || "1.0 MB",
+          uploadDate: doc.uploadDate || uploadDateStr,
+          uploadedBy: doc.uploadedBy || "Super Admin",
+          description: doc.description || "",
+          fileDataUrl: doc.fileDataUrl,
+          createdAt: nowIso
+        })
+      );
+
+      // Persist to Supabase PostgreSQL Database
+      try {
+        const supabase = createAdminClient();
+        const dbPayload = newRecords.map((r) => ({
+          id: r.id,
+          title: r.title,
+          file_name: r.fileName,
+          category: r.category,
+          sect: r.sect,
+          file_size: r.fileSize,
+          description: r.description,
+          file_data_url: r.fileDataUrl || null,
+          uploaded_by: r.uploadedBy,
+          created_at: nowIso,
+          updated_at: nowIso
+        }));
+
+        const { error: dbError } = await supabase
+          .from("academy_resources")
+          .upsert(dbPayload);
+
+        if (dbError) {
+          console.warn("[Admin Resources API] Batch DB Upsert error:", dbError.message);
+        }
+      } catch (dbEx) {
+        console.warn("[Admin Resources API] DB exception on batch POST:", dbEx);
+      }
+
+      // Add to in-memory store
+      FALLBACK_RESOURCE_STORE.unshift(...newRecords);
+
+      return NextResponse.json(
+        {
+          success: true,
+          count: newRecords.length,
+          documents: newRecords,
+          message: `Successfully saved ${newRecords.length} records to the database.`
+        },
+        { status: 201, headers: { "Cache-Control": "no-store" } }
+      );
+    }
     const {
       title,
       fileName,

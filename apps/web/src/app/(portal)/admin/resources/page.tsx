@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { 
   FileUp, FileText, Trash2, Download, Search, 
   UploadCloud, FileCheck, Eye, X, Database, CheckCircle2,
-  BookOpen, Sparkles, Shield, Bookmark, Compass
+  BookOpen, Sparkles, Shield, Bookmark, Compass,
+  Wand2, Layers, Loader2, Edit3
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -84,6 +85,22 @@ const INITIAL_DOCUMENTS: UploadedDocument[] = [
   }
 ];
 
+export interface ParsedHadithPreview {
+  id: string;
+  hadithNumber: number;
+  title: string;
+  narrator?: string;
+  arabicText?: string;
+  englishText: string;
+  reference?: string;
+  sect: "universal" | "shia" | "sunni";
+  fileName: string;
+  fileSize: string;
+  category: string;
+  description: string;
+  fileDataUrl?: string;
+}
+
 export default function AdminResourcesPage() {
   const [documents, setDocuments] = useState<UploadedDocument[]>(INITIAL_DOCUMENTS);
   const [searchQuery, setSearchQuery] = useState("");
@@ -100,6 +117,22 @@ export default function AdminResourcesPage() {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [previewDoc, setPreviewDoc] = useState<UploadedDocument | null>(null);
+
+  // Hadith Multi-Record Splitter states
+  const [enableHadithSplitter, setEnableHadithSplitter] = useState(false);
+  const [hadithInstructions, setHadithInstructions] = useState("");
+  const [isSplitting, setIsSplitting] = useState(false);
+  const [previewHadiths, setPreviewHadiths] = useState<ParsedHadithPreview[] | null>(null);
+  const [isBatchSaving, setIsBatchSaving] = useState(false);
+
+  useEffect(() => {
+    if (category === "Hadith & Sunnah Compendiums") {
+      setEnableHadithSplitter(true);
+      if (!hadithInstructions) {
+        setHadithInstructions("This PDF has multiple hadiths, detect and create separate hadiths for each.");
+      }
+    }
+  }, [category, hadithInstructions]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -236,6 +269,97 @@ export default function AdminResourcesPage() {
     } catch (err) {
       setIsUploading(false);
       toast.error(err instanceof Error ? err.message : "Upload failed");
+    }
+  };
+
+  const handleSplitHadiths = async () => {
+    if (!selectedFile) {
+      toast.error("Please select a PDF document first.");
+      return;
+    }
+
+    setIsSplitting(true);
+    const toastId = toast.loading("Analyzing PDF & extracting Hadiths...");
+
+    try {
+      // Read file as base64 data URL
+      const fileDataUrl: string = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(selectedFile);
+      });
+
+      const res = await fetch("/api/admin/resources/split-hadith", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileDataUrl,
+          fileName: selectedFile.name,
+          instructions: hadithInstructions.trim(),
+          sect
+        })
+      });
+
+      const data = await res.json();
+      toast.dismiss(toastId);
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Failed to split Hadith PDF");
+      }
+
+      setPreviewHadiths(data.hadiths);
+      toast.success(`Success! Detected and segmented ${data.count} separate Hadiths.`, { icon: "✨" });
+    } catch (err) {
+      toast.dismiss(toastId);
+      toast.error(err instanceof Error ? err.message : "Failed to analyze PDF");
+    } finally {
+      setIsSplitting(false);
+    }
+  };
+
+  const handleBatchSaveHadiths = async () => {
+    if (!previewHadiths || previewHadiths.length === 0) return;
+    setIsBatchSaving(true);
+    const toastId = toast.loading(`Persisting ${previewHadiths.length} Hadiths to database...`);
+
+    try {
+      const res = await fetch("/api/admin/resources", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          batch: true,
+          documents: previewHadiths
+        })
+      });
+
+      const data = await res.json();
+      toast.dismiss(toastId);
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Failed to save Hadiths to database");
+      }
+
+      const savedDocs: UploadedDocument[] = data.documents;
+      const updatedDocs = [...savedDocs, ...documents];
+      setDocuments(updatedDocs);
+
+      try {
+        localStorage.setItem("academy_admin_uploaded_pdfs", JSON.stringify(updatedDocs));
+      } catch {}
+
+      toast.success(`Saved all ${savedDocs.length} Hadiths directly to the database!`, { icon: "💾" });
+      setPreviewHadiths(null);
+      setSelectedFile(null);
+      setTitle("");
+      setDescription("");
+      setHadithInstructions("");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    } catch (err) {
+      toast.dismiss(toastId);
+      toast.error(err instanceof Error ? err.message : "Batch save failed");
+    } finally {
+      setIsBatchSaving(false);
     }
   };
 
@@ -418,6 +542,103 @@ export default function AdminResourcesPage() {
             </div>
           </div>
 
+          {/* Smart Hadith Multi-Record Splitter Section */}
+          <div className="bg-emerald-950/40 border border-amber-400/30 rounded-2xl p-5 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-amber-400/20 text-amber-300 flex items-center justify-center border border-amber-400/40 shadow-xs">
+                  <Wand2 size={16} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    <span>Smart Hadith Multi-Record Splitter</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                      AI &amp; Pattern Extraction
+                    </span>
+                  </h3>
+                  <p className="text-xs text-emerald-100/70">
+                    If your PDF contains multiple Hadiths (e.g. 10 Hadiths in 1 file), this extracts and creates separate database records for each.
+                  </p>
+                </div>
+              </div>
+
+              <label className="flex items-center gap-2 cursor-pointer self-start sm:self-center">
+                <input
+                  type="checkbox"
+                  checked={enableHadithSplitter}
+                  onChange={(e) => setEnableHadithSplitter(e.target.checked)}
+                  className="rounded border-white/20 text-amber-400 focus:ring-amber-400 w-4 h-4 bg-black/40"
+                />
+                <span className="text-xs font-bold text-amber-300">Enable Splitter</span>
+              </label>
+            </div>
+
+            {enableHadithSplitter && (
+              <div className="space-y-3 pt-2 border-t border-white/10">
+                <div>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <label className="text-xs font-bold text-emerald-200 uppercase tracking-wider">
+                      Admin Instructions &amp; Desired Hadith Count
+                    </label>
+                    <span className="text-[11px] text-amber-300/80">Instruction Guided</span>
+                  </div>
+                  <textarea
+                    rows={2}
+                    value={hadithInstructions}
+                    onChange={(e) => setHadithInstructions(e.target.value)}
+                    placeholder='e.g., "This PDF has 10 hadiths, create 10 separate hadiths" or "Split into 5 hadiths by narrator"'
+                    className="w-full bg-black/50 border border-amber-400/40 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder:text-emerald-200/40 focus:outline-none focus:border-amber-400 resize-none"
+                  />
+                </div>
+
+                {/* Quick Instruction Presets */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[11px] text-emerald-200/60 font-semibold">Quick Prompts:</span>
+                  {[
+                    "This PDF has 10 hadiths, create 10 separate hadiths",
+                    "This PDF has 5 hadiths, create 5 separate hadiths",
+                    "Extract 40 Hadiths (Arba'een collection)",
+                    "Detect all hadiths automatically by narrator"
+                  ].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setHadithInstructions(preset)}
+                      className="text-[11px] px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/15 border border-white/10 text-emerald-100 transition cursor-pointer"
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="pt-2 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={handleSplitHadiths}
+                    disabled={isSplitting || !selectedFile}
+                    className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition shadow-md cursor-pointer ${
+                      isSplitting || !selectedFile
+                        ? "bg-white/10 text-white/40 cursor-not-allowed"
+                        : "bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-emerald-950 font-extrabold"
+                    }`}
+                  >
+                    {isSplitting ? (
+                      <>
+                        <Loader2 size={16} className="animate-spin" />
+                        <span>Analyzing &amp; Extracting Hadiths...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles size={16} />
+                        <span>Detect &amp; Create Separate Hadiths</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="flex justify-between items-center pt-2">
             <span className="text-xs text-emerald-200/70 flex items-center gap-1.5">
               <CheckCircle2 size={13} className="text-emerald-400" />
@@ -430,11 +651,11 @@ export default function AdminResourcesPage() {
               className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all shadow-md cursor-pointer ${
                 isUploading || !selectedFile
                   ? "bg-white/10 text-white/40 cursor-not-allowed"
-                  : "bg-amber-400 hover:bg-amber-300 text-emerald-950"
+                  : "bg-emerald-800 hover:bg-emerald-700 border border-emerald-500/30 text-white"
               }`}
             >
               <UploadCloud size={18} />
-              <span>{isUploading ? "Persisting to Database..." : "Save Directly to Database"}</span>
+              <span>{isUploading ? "Persisting to Database..." : "Save Single PDF to Database"}</span>
             </button>
           </div>
         </form>
@@ -574,6 +795,168 @@ export default function AdminResourcesPage() {
           </table>
         </div>
       </div>
+
+      {/* Extracted Hadiths Preview & Batch Save Modal */}
+      {previewHadiths && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-hidden">
+          <div className="bg-[#031d16] border border-amber-400/30 rounded-3xl w-full max-w-5xl h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-white/10 flex justify-between items-center bg-black/50 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-400/20 text-amber-300 border border-amber-400/40 flex items-center justify-center shadow-sm">
+                  <Sparkles size={20} />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-serif font-bold text-white flex items-center gap-2">
+                    <span>Detected {previewHadiths.length} Separate Hadiths</span>
+                    <span className="text-[11px] font-sans font-bold px-2.5 py-0.5 rounded-full bg-emerald-950 text-amber-300 border border-amber-400/30">
+                      Ready for Database
+                    </span>
+                  </h3>
+                  <p className="text-xs text-emerald-100/70">
+                    Review and fine-tune titles, narrators, or translations before publishing to the live academy database.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setPreviewHadiths(null)}
+                className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-emerald-100 hover:text-white cursor-pointer transition"
+                title="Close"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Hadiths Scrollable List */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+              {previewHadiths.map((h, idx) => (
+                <div
+                  key={h.id || idx}
+                  className="bg-black/40 border border-white/15 hover:border-amber-400/40 rounded-2xl p-4 sm:p-5 transition space-y-3"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
+                    <div className="flex items-center gap-2 flex-1">
+                      <span className="w-7 h-7 rounded-lg bg-amber-400/15 border border-amber-400/30 text-amber-300 font-bold text-xs flex items-center justify-center shrink-0">
+                        #{h.hadithNumber}
+                      </span>
+                      <input
+                        type="text"
+                        value={h.title}
+                        onChange={(e) => {
+                          const updated = [...previewHadiths];
+                          updated[idx]!.title = e.target.value;
+                          setPreviewHadiths(updated);
+                        }}
+                        className="bg-transparent border-b border-white/20 hover:border-amber-400 focus:border-amber-400 text-white font-serif font-bold text-sm sm:text-base px-1 py-0.5 w-full focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-900/60 text-emerald-200 border border-emerald-500/30">
+                        {h.sect.toUpperCase()}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = previewHadiths.filter((_, i) => i !== idx);
+                          setPreviewHadiths(updated);
+                        }}
+                        className="p-1.5 rounded-lg bg-red-950/40 border border-red-500/30 text-red-300 hover:text-red-100 hover:bg-red-900/60 transition cursor-pointer"
+                        title="Remove this Hadith from batch"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Narrator Input */}
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-emerald-200/60 font-semibold shrink-0">Narrator:</span>
+                    <input
+                      type="text"
+                      value={h.narrator || ""}
+                      placeholder="e.g. Umar ibn al-Khattab (RA) or Imam Ja'far al-Sadiq (AS)"
+                      onChange={(e) => {
+                        const updated = [...previewHadiths];
+                        updated[idx]!.narrator = e.target.value;
+                        setPreviewHadiths(updated);
+                      }}
+                      className="bg-white/5 border border-white/10 rounded-lg px-2.5 py-1 text-xs text-amber-200 placeholder:text-white/30 focus:outline-none focus:border-amber-400 flex-1"
+                    />
+                  </div>
+
+                  {/* Arabic Text if detected */}
+                  {h.arabicText && (
+                    <div className="bg-emerald-950/40 border border-emerald-500/20 rounded-xl p-3">
+                      <span className="text-[10px] text-amber-300 font-mono block mb-1">Arabic Matn:</span>
+                      <p className="font-arabic text-amber-200 text-base leading-relaxed text-right" dir="rtl">
+                        {h.arabicText}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* English Translation Text */}
+                  <div>
+                    <span className="text-[10px] text-emerald-200/60 font-mono block mb-1">English Translation &amp; Text:</span>
+                    <textarea
+                      rows={3}
+                      value={h.englishText}
+                      onChange={(e) => {
+                        const updated = [...previewHadiths];
+                        updated[idx]!.englishText = e.target.value;
+                        updated[idx]!.description = `${h.narrator ? `[Narrator: ${h.narrator}] ` : ""}${e.target.value.slice(0, 280)}${e.target.value.length > 280 ? "..." : ""}`;
+                        setPreviewHadiths(updated);
+                      }}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-xs text-emerald-100/90 leading-relaxed focus:outline-none focus:border-amber-400 resize-y"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Modal Actions Footer */}
+            <div className="p-4 sm:p-5 border-t border-white/10 bg-black/50 flex flex-col sm:flex-row justify-between items-center gap-3 shrink-0">
+              <span className="text-xs text-emerald-200/80 font-mono">
+                {previewHadiths.length} distinct records will be saved to Supabase PostgreSQL Database.
+              </span>
+
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => setPreviewHadiths(null)}
+                  className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 text-xs font-bold text-white transition cursor-pointer"
+                >
+                  Discard
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleBatchSaveHadiths}
+                  disabled={isBatchSaving || previewHadiths.length === 0}
+                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition shadow-lg cursor-pointer ${
+                    isBatchSaving || previewHadiths.length === 0
+                      ? "bg-white/10 text-white/40 cursor-not-allowed"
+                      : "bg-amber-400 hover:bg-amber-300 text-emerald-950 font-extrabold"
+                  }`}
+                >
+                  {isBatchSaving ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      <span>Saving to PostgreSQL Database...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Database size={16} />
+                      <span>Confirm &amp; Save All {previewHadiths.length} Hadiths to Database</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* PDF Document Preview Modal */}
       {previewDoc && (

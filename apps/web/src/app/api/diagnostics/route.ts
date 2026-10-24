@@ -45,16 +45,16 @@ export async function GET(request: Request) {
   try {
     const apiKey = process.env.LIVEKIT_API_KEY;
     const apiSecret = process.env.LIVEKIT_API_SECRET;
-    const livekitUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL;
+    const livekitUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL || process.env.LIVEKIT_URL;
 
     if (!apiKey || !apiSecret || !livekitUrl) {
       checks.livekit = {
         status: "warning",
-        details: "LiveKit credentials partially configured or missing",
+        details: `LiveKit credentials partially configured or missing. Missing: ${[!apiKey && "LIVEKIT_API_KEY", !apiSecret && "LIVEKIT_API_SECRET", !livekitUrl && "NEXT_PUBLIC_LIVEKIT_URL"].filter(Boolean).join(", ")}`,
       };
     } else {
       // Test generating a diagnostic token
-      const at = new AccessToken(apiKey, apiSecret, {
+      const at = new AccessToken(apiKey!, apiSecret!, {
         identity: "diagnostic_user",
         name: "Diagnostic Checker",
         ttl: "10m",

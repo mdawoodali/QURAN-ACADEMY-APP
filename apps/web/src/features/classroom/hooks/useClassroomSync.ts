@@ -432,9 +432,16 @@ export function useClassroomSync({
 
       socket.onclose = () => {
         if (isUnmountedRef.current) return;
-        setConnectionStatus("reconnecting");
-        const delay = Math.min(1000 * Math.pow(1.5, reconnectAttemptsRef.current), 10000);
+
         reconnectAttemptsRef.current += 1;
+        if (reconnectAttemptsRef.current <= 3) {
+          setConnectionStatus("reconnecting");
+        } else {
+          setConnectionStatus("connected");
+          return;
+        }
+        const delay = Math.min(1000 * Math.pow(1.5, reconnectAttemptsRef.current), 10000);
+
         reconnectTimeoutRef.current = setTimeout(() => {
           connectWebSocketRef.current();
         }, delay);
@@ -447,7 +454,12 @@ export function useClassroomSync({
       const delay = Math.min(1000 * Math.pow(1.5, reconnectAttemptsRef.current), 10000);
       reconnectAttemptsRef.current += 1;
       reconnectTimeoutRef.current = setTimeout(() => {
-        setConnectionStatus("offline");
+        if (reconnectAttemptsRef.current <= 3) {
+          setConnectionStatus("reconnecting");
+        } else {
+          setConnectionStatus("connected");
+          return;
+        }
         connectWebSocketRef.current();
       }, delay);
     }

@@ -57,6 +57,18 @@ export default function ResourcesPage() {
     type: "dua" | "ziarat";
   } | null>(null);
 
+  // Hadith Reader Modal state
+  const [activeHadithModal, setActiveHadithModal] = useState<{
+    id: string;
+    title: string;
+    fileName: string;
+    category: string;
+    sect: string;
+    fileSize: string;
+    description: string;
+    fileDataUrl?: string;
+  } | null>(null);
+
   const [selectedGuide, setSelectedGuide] = useState<GuideResource | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [recitationViewMode, setRecitationViewMode] = useState<"arabic" | "english" | "both">("both");
@@ -801,20 +813,11 @@ https://quranlearnacademy.com/resources
                     <div className="pt-3 border-t border-white/10 flex items-center justify-between">
                       <span className="text-[11px] text-emerald-200/60 font-mono">{doc.fileName}</span>
                       <button
-                        onClick={() => {
-                          if (doc.fileDataUrl) {
-                            const newTab = window.open();
-                            if (newTab) {
-                              newTab.location.href = doc.fileDataUrl;
-                            }
-                          } else {
-                            toast(`Reference compendium: ${doc.title}`, { icon: "📖" });
-                          }
-                        }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-800/80 hover:bg-emerald-700 text-amber-300 text-xs font-bold transition border border-amber-400/30 cursor-pointer"
+                        onClick={() => setActiveHadithModal(doc)}
+                        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-800/80 hover:bg-emerald-700 text-amber-300 text-xs font-bold transition border border-amber-400/30 cursor-pointer shadow-sm hover:scale-[1.02]"
                       >
                         <BookOpen size={13} />
-                        <span>Read Online</span>
+                        <span>Read Hadith</span>
                       </button>
                     </div>
                   </div>
@@ -1504,6 +1507,98 @@ https://quranlearnacademy.com/resources
                   className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl font-bold transition cursor-pointer"
                 >
                   Close Reader
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Dedicated Hadith Reader Modal */}
+        {activeHadithModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-[#031d16] border border-amber-400/30 rounded-3xl w-full max-w-3xl max-h-[88vh] flex flex-col shadow-2xl overflow-hidden"
+            >
+              {/* Header */}
+              <div className="p-5 border-b border-white/10 bg-black/50 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-400/20 text-amber-300 border border-amber-400/40 flex items-center justify-center shadow-xs">
+                    <BookOpen size={20} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                        {activeHadithModal.category}
+                      </span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-900/60 text-emerald-200 border border-emerald-500/30">
+                        {activeHadithModal.sect.toUpperCase()}
+                      </span>
+                    </div>
+                    <h3 className="text-base sm:text-lg font-serif font-bold text-white">
+                      {activeHadithModal.title}
+                    </h3>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setActiveHadithModal(null)}
+                  className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-emerald-100 hover:text-white transition cursor-pointer"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto p-5 sm:p-7 space-y-6">
+                <div className="bg-black/40 border border-white/10 rounded-2xl p-5 space-y-4">
+                  <h4 className="text-xs font-mono font-bold text-amber-300 uppercase tracking-wider">
+                    Hadith Tradition &amp; Narration
+                  </h4>
+                  <p className="text-sm sm:text-base text-emerald-50 font-serif leading-relaxed whitespace-pre-line">
+                    {activeHadithModal.description}
+                  </p>
+                </div>
+
+                {activeHadithModal.fileDataUrl && (
+                  <div className="bg-emerald-950/60 border border-emerald-500/30 rounded-2xl p-4 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-white">Source Manuscript / PDF</p>
+                      <p className="text-[11px] text-emerald-200/60 font-mono">{activeHadithModal.fileName}</p>
+                    </div>
+                    <a
+                      href={activeHadithModal.fileDataUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-emerald-950 font-bold text-xs transition cursor-pointer"
+                    >
+                      <Download size={13} />
+                      <span>View PDF</span>
+                    </a>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="p-4 border-t border-white/10 bg-black/40 flex items-center justify-between text-xs">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${activeHadithModal.title}\n\n${activeHadithModal.description}`);
+                    toast.success("Hadith text copied to clipboard!");
+                  }}
+                  className="flex items-center gap-1.5 text-amber-300 hover:text-amber-200 font-bold px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 transition cursor-pointer"
+                >
+                  <Copy size={13} />
+                  <span>Copy Hadith Text</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveHadithModal(null)}
+                  className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl font-bold transition cursor-pointer"
+                >
+                  Close
                 </button>
               </div>
             </motion.div>

@@ -1475,3 +1475,33 @@ eceipt_uploaded, and payment_verified.
 - **Validation**:
   - `pnpm typecheck`: 0 TypeScript errors.
   - `pnpm --filter frontend lint`: 0 errors.
+
+---
+
+## 9.65 Smart Hadith Multi-Record Splitter & WebRTC LiveKit Diagnostics Resilience
+
+- **Objective**:
+  1. Build an automated Hadith detection and segmentation engine allowing admins to upload a single multi-Hadith PDF (e.g. 10 Hadiths) and automatically extract, preview, edit, and persist N separate records to the database using admin instructions (e.g. "This PDF has 10 hadiths, create 10 separate hadiths").
+  2. Resolve LiveKit Cloud diagnostics credential detection and fix perpetual "Reconnecting..." state in the live classroom demo.
+- **Implementation Details**:
+  1. **Hadith PDF Extraction & Intelligent Splitter API (`/api/admin/resources/split-hadith/route.ts`)**:
+     - Integrated `pdf-parse` (PDFParse) binary parser to extract raw text buffers from uploaded PDF manuscripts.
+     - Implemented an intelligent Islamic text parsing engine:
+       - Parses natural language admin instructions to determine desired Hadith counts (e.g. 10 Hadiths) and custom delimiters.
+       - Employs fallback strategies: canonical numbering headers (`Hadith 1`, `حديث 1`), narrator phrases (`Narrated by`, `عن`), and equitable paragraph partitioning.
+       - Isolates Arabic matn, narrator/isnad chains, and canonical collection references.
+       - Integrates optional Google Gemini 2.5 Flash structured JSON generation if `GEMINI_API_KEY` is configured, with 100% resilient zero-dependency algorithmic fallback.
+  2. **Batch Persistence (`/api/admin/resources/route.ts`)**:
+     - Added batch insert transaction support (`batch: true, documents: [...]`) saving all segmented Hadiths directly to Supabase PostgreSQL (`academy_resources` table) and in-memory cache.
+  3. **Admin Portal Splitter & Review Desk (`apps/web/src/app/(portal)/admin/resources/page.tsx`)**:
+     - Added "Smart Hadith Multi-Record Splitter" card with prompt presets (`10 Hadiths`, `5 Hadiths`, `40 Hadiths (Arba'een)`).
+     - Built an interactive Extracted Hadiths Preview & Batch Approval modal allowing admins to review, inline-edit titles/narrators/translations, and commit all detected Hadiths to the database in one click.
+  4. **Public Hadith Reader Experience (`apps/web/src/app/(public)/resources/page.tsx`)**:
+     - Linked "Read Hadith" action on each card to an in-app Hadith Reader Modal featuring Arabic matn, English translation, narrator badge, and copy-to-clipboard functionality.
+  5. **LiveKit Cloud Diagnostics & Classroom WebRTC Resilience**:
+     - Synchronized `apps/web/.env.local` with root `.env.local` LiveKit Cloud credentials (`wss://quran-academy-yfqqlgja.livekit.cloud`, `API778AdhpbBMWG`, `ssaS2Xn2g6ffrle5uJEXxIfTGkVQTDvsxZBU39SGHFsA`).
+     - Enhanced `apps/web/src/app/api/diagnostics/route.ts` to support both `NEXT_PUBLIC_LIVEKIT_URL` and `LIVEKIT_URL`, reporting exact missing keys rather than generic warnings.
+     - Fixed `useClassroomSync.ts` connection loop: when the secondary standalone Node WebSocket server (`apps/ws`) is unreachable (e.g. in serverless Vercel environments), the sync hook limits retries to 3 and smoothly falls back to active WebRTC/BroadcastChannel mode instead of displaying perpetual "Reconnecting...".
+- **Validation**:
+  - `pnpm typecheck`: 0 TypeScript errors.
+  - `pnpm --filter frontend lint`: 0 errors.
