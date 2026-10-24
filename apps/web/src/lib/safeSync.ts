@@ -59,7 +59,7 @@ export async function safeSupabaseUpdate(
   payload: any
 ): Promise<{ data: any; error: any }> {
   const supabase = createClient();
-  let currentPayload = { ...payload };
+  const currentPayload = { ...payload };
   let attempts = 0;
 
   while (attempts < 5) {

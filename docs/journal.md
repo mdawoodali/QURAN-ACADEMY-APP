@@ -1726,3 +1726,16 @@ eceipt_uploaded, and payment_verified.
 - **Verification**:
   - Vitest test suite: 170/170 tests passing across 23 test files.
   - Production build: All 73 routes compiled cleanly.
+
+---
+
+## 9.76 Production Deployment Route Tracking & CI ESLint Hardening (2026-10-24)
+
+- **Production URL Confirmation**:
+  - Verified live production target domain is `https://quranacademyapp.vercel.app` (with preview domain `quran-academy-app-dawood15.vercel.app`).
+  - Audited Supabase OAuth authorization flow targeting `https://quranacademyapp.vercel.app/auth/callback` returning HTTP 302 to Google Accounts.
+- **Git Tracking Fix for Dashboard Route**:
+  - Staged `apps/web/src/app/(portal)/dashboard/page.tsx` into version control to ensure Vercel production builds compile the route cleanly.
+- **CI ESLint Hardening (`safeSync.ts`)**:
+  - Resolved `prefer-const` ESLint violation on `currentPayload` in `safeSupabaseUpdate`.
+  - Re-ran `eslint` across workspace: 0 errors confirmed, unblocking GitHub Actions CI pipeline.
