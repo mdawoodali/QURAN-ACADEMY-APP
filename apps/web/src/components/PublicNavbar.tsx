@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Menu, X, Mail } from "lucide-react";
@@ -12,6 +12,14 @@ export default function PublicNavbar() {
   const { language, setLanguage, t } = useLanguage();
   const { setSect, isSunni, isShia } = useSect();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      const hasCookie = document.cookie.includes("demo_role") || document.cookie.includes("sb-");
+      setIsLoggedIn(hasCookie);
+    }
+  }, []);
 
   const closeMenu = () => setMobileMenuOpen(false);
 

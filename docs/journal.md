@@ -1712,3 +1712,17 @@ eceipt_uploaded, and payment_verified.
 - **Verification**:
   - Full Next.js Turbopack build passed (0 errors across 72 routes).
   - 170/170 tests green.
+
+
+---
+
+## 9.75 Universal Dashboard Dispatcher & Public Navbar Authentication State (2026-10-24)
+
+- **Universal Dashboard Route (`/dashboard`)**:
+  - Implemented `/dashboard/page.tsx` server component acting as the universal post-login router.
+  - Automatically queries active Supabase user profile and dispatches to `/admin`, `/teacher`, `/parent`, or `/student`.
+- **Public Navbar Authenticated State (`PublicNavbar.tsx`)**:
+  - Dynamic login CTA: When authenticated session is detected, replaces `"Log in"` with `"Dashboard"` linking directly to `/dashboard`.
+- **Verification**:
+  - Vitest test suite: 170/170 tests passing across 23 test files.
+  - Production build: All 73 routes compiled cleanly.
