@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, connection } from "next/server";
+import { createAdminClient } from "@/utils/supabase/admin";
 import React from "react";
 import { renderToStream } from "@react-pdf/renderer";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
@@ -311,14 +312,47 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await connection();
+  } catch {}
+  try {
     const { id } = await params;
     const url = new URL(req.url);
-    const student = url.searchParams.get("student") || "Yusuf Khan";
-    const parent = url.searchParams.get("parent") || "Ahmed Khan";
-    const plan = url.searchParams.get("plan") || "Standard Plan (3 Days/Week)";
-    const amount = url.searchParams.get("amount") || "65.00";
-    const currency = url.searchParams.get("currency") || "GBP";
-    const ref = url.searchParams.get("ref") || `REF-${id.toUpperCase()}`;
+    let student = url.searchParams.get("student");
+    let parent = url.searchParams.get("parent");
+    let plan = url.searchParams.get("plan");
+    let amount = url.searchParams.get("amount");
+    let currency = url.searchParams.get("currency");
+    let ref = url.searchParams.get("ref");
+
+    // Fetch from database if parameters are missing
+    if (!student || !amount || !currency) {
+      try {
+        const supabase = createAdminClient();
+        const { data: dbInvoice } = await supabase
+          .from("invoices")
+          .select("*")
+          .eq("id", id)
+          .maybeSingle();
+
+        if (dbInvoice) {
+          student = student || dbInvoice.metadata?.studentName || "Enrolled Student";
+          parent = parent || dbInvoice.family_name || dbInvoice.metadata?.familyName || "Family Guardian";
+          plan = plan || dbInvoice.package_name || "Standard Curriculum Package";
+          amount = amount || String(dbInvoice.amount);
+          currency = currency || dbInvoice.currency;
+          ref = ref || dbInvoice.transaction_ref || `REF-${id.toUpperCase()}`;
+        }
+      } catch (dbErr) {
+        console.warn("[Invoice PDF] DB lookup warning:", dbErr);
+      }
+    }
+
+    const finalStudent = student || "Enrolled Student";
+    const finalParent = parent || "Family Guardian";
+    const finalPlan = plan || "Standard Quran & Tajweed Course";
+    const finalAmount = amount || "18000";
+    const finalCurrency = (currency || "PKR").toUpperCase();
+    const finalRef = ref || `REF-${id.toUpperCase()}`;
     const date = new Date().toLocaleDateString("en-GB", {
       day: "numeric",
       month: "short",
@@ -328,14 +362,14 @@ export async function GET(
     const doc = (
       <InvoiceDocument
         invoiceId={id}
-        studentName={student}
-        parentName={parent}
-        packageName={plan}
-        amount={amount}
-        currency={currency}
+        studentName={finalStudent}
+        parentName={finalParent}
+        packageName={finalPlan}
+        amount={finalAmount}
+        currency={finalCurrency}
         date={date}
         paymentMethod="Direct Wire / Raast Settlement"
-        transactionRef={ref}
+        transactionRef={finalRef}
       />
     );
 
@@ -347,7 +381,8 @@ export async function GET(
         "Content-Disposition": `attachment; filename="Invoice-${id}.pdf"`,
       },
     });
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.digest === "NEXT_PRERENDER_INTERRUPTED") throw error;
     console.error("[Invoice PDF Generation Error]", error);
     return NextResponse.json({ error: "Failed to generate invoice PDF" }, { status: 500 });
   }

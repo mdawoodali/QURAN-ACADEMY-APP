@@ -1597,3 +1597,35 @@ eceipt_uploaded, and payment_verified.
   - `vitest run`: 23/23 test files passed, 170/170 tests passing (100% green).
   - TypeScript: `tsc --noEmit` passed with 0 errors across all workspaces.
   - Next.js Turbopack build: All 72/72 static and dynamic routes compiled cleanly in production mode.
+
+
+---
+
+## 9.69 System Scalability, Modular Backend Architecture, Clean Repository Pattern & Single-Source Domain Harmonization
+
+- **Objective**: Overhaul system maintainability and scalability; establish a decoupled server-side repository architecture (`invoicesRepository`, `enrolmentsRepository`, `resourcesRepository`, `progressRepository`, `schedulingRepository`); consolidate Islamic astronomical domain logic into `@quran/domain` eliminating duplication; remove hardcoded sample fallbacks in PDF invoice/progress generation; clean React context organization; and optimize Next.js 16 dynamic prerender bailouts with Turbopack.
+- **Architectural Enhancements Implemented**:
+  1. **Decoupled Server Repository Layer (`apps/web/src/server/`)**:
+     - Created unified server repositories:
+       - `invoicesRepository.ts`: Typed fetch and creation logic for tuition billing records.
+       - `enrolmentsRepository.ts`: Decoupled student admission and enrolment pipeline retrieval.
+       - `resourcesRepository.ts`: Centralized curriculum document queries with sectarian filtering.
+       - `progressRepository.ts`: Clean student evaluation notes queries.
+       - `index.ts`: Barrel export enabling direct server component/action usage without redundant HTTP self-fetches.
+  2. **Single-Source Islamic Domain Engine (`packages/domain/src/quran/prayerMath.ts`)**:
+     - Consolidated complete astronomical solar calculation algorithms, spherical Qibla trigonometry, Ja'fari/Sunni prayer time matrices, and Shia cities database into `@quran/domain`.
+     - Refactored `apps/web/src/lib/prayerMath.ts` to re-export directly from `@quran/domain`, eliminating duplicated math and ensuring complete consistency across web, mobile, and test suites.
+  3. **Zero-Mock Dynamic PDF Generators (`/api/invoices/[id]/download` & `/api/reports/download`)**:
+     - *Invoice PDF*: Replaced static fallbacks with live Supabase database lookups on the `invoices` table. Dynamically renders real student names, family names, exact amounts, currency codes, and transaction hashes.
+     - *Progress Report PDF*: Replaced hardcoded "Yusuf Khan" fixture with real evaluation queries on `student_lesson_notes`. Generates authentic progress percentages, attendance statistics, Sabaq records, and teacher remarks.
+  4. **React Contexts Clean Architecture (`apps/web/src/contexts/`)**:
+     - Created `apps/web/src/contexts/` directory with clean barrel exports for `LanguageContext` and `SectContext`.
+     - Preserved backward-compatible re-exports in `components/` so existing component imports remain intact.
+  5. **Next.js 16 Turbopack Prerender Bailout Optimization**:
+     - Integrated `connection()` from `next/server` with proper `NEXT_PRERENDER_INTERRUPTED` bailout re-throwing, eliminating build-time warnings and ensuring instant dynamic rendering.
+  6. **Workspace Housekeeping**:
+     - Removed empty `shared/` directory, keeping root structure clean and strictly maintainable.
+- **Verification & Build Gate**:
+  - `vitest run`: 23/23 test files passed, 170/170 tests passing (100% green).
+  - TypeScript: `pnpm typecheck` passed with 0 errors across all monorepo packages.
+  - Next.js Turbopack build: All 72/72 routes compiled cleanly in 4.7s with 0 errors and zero prerender warnings.
