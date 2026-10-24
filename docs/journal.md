@@ -1681,3 +1681,17 @@ eceipt_uploaded, and payment_verified.
 - **Verification**:
   - Validated live WebSocket connection to Deepgram Nova-3 streaming gateway with Arabic keyterms (HTTP 101 Switching Protocols / WS OPEN).
   - Vitest test suite: 170/170 tests passing (23 test files green).
+
+
+---
+
+## 9.73 Dynamic OAuth Origin Detection & Vercel Redirect Routing (2026-10-24)
+
+- **Issue Diagnosis**:
+  - `loginWithGoogle` had a hardcoded fallback origin (`https://quranacademyapp.vercel.app`) when `NEXT_PUBLIC_APP_URL` was unset.
+  - When users signed in from localhost or custom Vercel deployments (`quran-academy-app-dawood15.vercel.app`), Google OAuth redirected to the hardcoded domain, triggering Vercel Deployment Protection auth gates.
+- **Resolution**:
+  - Dynamically resolved request headers (`host`, `x-forwarded-host`, `x-forwarded-proto`) via Next.js `headers()`.
+  - Automatically matches origin to `http://localhost:3000` during local dev, and exact production/preview Vercel domains when deployed.
+- **Verification**:
+  - 170/170 tests passing.
