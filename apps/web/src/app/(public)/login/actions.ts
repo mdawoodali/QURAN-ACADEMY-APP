@@ -146,7 +146,10 @@ export async function loginWithGoogle() {
   const headerList = await headers()
   const host = headerList.get('x-forwarded-host') || headerList.get('host') || 'localhost:3000'
   const proto = headerList.get('x-forwarded-proto') || (host.includes('localhost') ? 'http' : 'https')
-  const origin = process.env.NEXT_PUBLIC_APP_URL || `${proto}://${host}`
+  const rawOrigin = host.includes('localhost')
+    ? `${proto}://${host}`
+    : (process.env.NEXT_PUBLIC_APP_URL || `${proto}://${host}`)
+  const origin = rawOrigin.replace(/\/+$/, '')
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',

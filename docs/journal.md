@@ -1743,3 +1743,16 @@ eceipt_uploaded, and payment_verified.
   - Replaced legacy localhost 127.0.0.1:54321 fallback URLs in `utils/supabase/server.ts` and `client.ts` with production defaults, ensuring reliable server rendering and test execution in isolated CI environments.
   - Fixed YAML environment string literal syntax in GitHub Actions CI workflow to ensure environment variables are evaluated properly without boolean expression coercion.
   - Upgraded GitHub Actions Node.js runtime from 20 to 22, unlocking native global WebSocket support required by modern `@supabase/supabase-js` and unblocking automated CI test executions.
+
+---
+
+## 9.77 Environment Variable Synchronization & Trailing Slash Sanitization (2026-10-25)
+
+- **Sanitization of `NEXT_PUBLIC_APP_URL` (`login/actions.ts`)**:
+  - Added strict trailing slash stripping (`.replace(/\/+$/, '')`) to prevent double-slash redirect paths (`//auth/callback`) when environment variables contain trailing slashes.
+  - Implemented local development preservation: When running on localhost, prioritized request origin over production `NEXT_PUBLIC_APP_URL` so developer testing is not redirected to production.
+- **Environment Parity**:
+  - Verified and synchronized all team credentials (Supabase, LiveKit, Deepgram, Resend, and production App URL) in local environment files.
+- **Verification**:
+  - Vitest suite: 170/170 tests passing.
+  - ESLint: 0 errors.
