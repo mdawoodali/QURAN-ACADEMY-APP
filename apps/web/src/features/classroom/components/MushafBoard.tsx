@@ -59,13 +59,13 @@ export default function MushafBoard({
       ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className={`relative w-full max-w-2xl mx-auto p-6 sm:p-10 rounded-3xl bg-[#FCFAF5] border-2 border-amber-300/40 shadow-xl select-none min-h-[160px] flex items-center justify-center transition-all ${
+      className={`relative w-full max-w-2xl mx-auto pt-8 sm:pt-9 pb-6 px-4 sm:px-6 md:px-8 rounded-2xl sm:rounded-3xl bg-[#FCFAF5] border-2 border-amber-300/40 shadow-xl select-none min-h-[140px] flex items-center justify-center transition-all ${
         isLaserModeActive ? "cursor-crosshair" : ""
       }`}
     >
       {/* Quranic Words Flow */}
       <div
-        className={`leading-[2.6] text-center w-full flex items-center justify-center gap-3 sm:gap-5 flex-wrap ${
+        className={`leading-[2.2] text-center w-full flex items-center justify-center gap-2.5 sm:gap-4 flex-wrap ${
           script === "indopak" ? "font-urdu" : "font-quran"
         }`}
         style={{ fontSize: `${fontSize}px`, color: fontColor }}

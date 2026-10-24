@@ -1768,3 +1768,31 @@ eceipt_uploaded, and payment_verified.
   - Bound `demo_role` and `demo_user` session cookies directly to the outgoing `NextResponse.redirect` object, ensuring browser persistence across all preview and production environments.
 - **Verification**:
   - 170/170 tests passing across 23 test suites.
+
+
+---
+
+## 9.79 Live Quran Classroom UI Layout & Student Viewport Refactoring (2026-10-25)
+
+- **Classroom Flexbox Scrolling & Anti-Clipping Resolution (`LiveClassroom.tsx`)**:
+  - **Root Cause**: The central Mushaf board container used `flex-1 flex flex-col items-center justify-center min-h-0 overflow-y-auto`. When multi-ayah or larger-font text exceeded available height, CSS flexbox `justify-center` centered the overflowing content across the boundary, causing the top lines to be clipped offscreen and the bottom verses to collide with and scroll underneath controls.
+  - **Fix**: Replaced with `justify-start` and child `my-auto` (`<div className="my-auto w-full flex flex-col items-center">`). When text fits, it centers vertically; when text exceeds height, `my-auto` collapses gracefully to zero at the top, enabling seamless top-to-bottom scroll access without clipping.
+- **Docked AI Voice Follow Telemetry Bar (`LiveClassroom.tsx`)**:
+  - **Root Cause**: The Real-Time AI Recitation & Voice Follow Telemetry panel was located inside the scrollable board container, causing the verses to scroll under and collide with the waveform box.
+  - **Fix**: Extracted the telemetry bar out of the scrollable viewport and docked it as a fixed, slim single-row bar (`w-full shrink-0 my-1.5 hidden md:block z-10`) between the Mushaf board and the bottom toolbar. The bar features a 12-bar pulse waveform, listening status, spoken text pill, and word navigation shortcuts without taking up whiteboard reading space.
+- **Mushaf Board Padding & Tajweed Micro-Badge Containment (`MushafBoard.tsx`)**:
+  - **Root Cause**: In Surah Al-Ikhlas, the Tajweed rule micro-badge (`Qalqalah Kubra on Dal (د)`) used `-top-7` (-28px) on first-row words, poking outside the white board onto the dark green background.
+  - **Fix**: Adjusted container padding to `pt-8 sm:pt-9 pb-6 px-4 sm:px-6 md:px-8` and line-height to `leading-[2.2]`, ensuring all Tajweed badges on the first row remain completely within the white card canvas.
+- **Interactive, Non-Obtrusive Video Tile (`ClassroomVideoBubble.tsx`)**:
+  - **Root Cause**: The video bubble was statically positioned at `top-20 right-4 md:right-8`, directly covering the top-right corner of the Student Synced Viewport and obscuring the Surah title and first verse words.
+  - **Fix**:
+    - Defaulted position to `bottom-right` (`bottom-20 right-3 sm:right-6`).
+    - Added one-click **Minimize / Maximize** toggle collapsing the video into an ultra-compact status pill (`[● Live] Teacher ▾`) with avatar and mic status.
+    - Added a **Corner Switch** button cycling between `bottom-right`, `top-right`, and `bottom-left`, allowing students and teachers to move the video tile away from whatever text they are currently reciting.
+    - Optimized default footprint to `w-32 h-24 sm:w-40 sm:h-28`.
+- **Default Font Scaling (`useClassroomSync.ts`)**:
+  - Reduced default baseline font size from `48` to `34`, ensuring multi-ayah surahs fit comfortably within the viewport while maintaining high legibility.
+- **Verification**:
+  - Vitest test suite: 170/170 tests passing across all 23 suites.
+  - ESLint: 0 errors across workspace.
+  - Next.js Turbopack production build: 73/73 routes compiled cleanly (`Exit code 0`).

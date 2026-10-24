@@ -267,6 +267,7 @@ export default function LiveClassroom() {
         isMuted={!isEffectiveMicOn}
         isAudioOnly={bandwidthMode === "audio_only"}
         role={roleParam}
+        position="bottom-right"
       />
 
       {/* 3. Classroom Header */}
@@ -363,83 +364,84 @@ export default function LiveClassroom() {
             </div>
 
             {/* Central Mushaf Board */}
-            <div className="flex-1 flex flex-col items-center justify-center min-h-0 overflow-y-auto w-full py-2">
-              <MushafBoard
-                script={script}
-                tajweedMode={tajweedMode}
-                fontSize={fontSize}
-                fontColor={fontColor}
-                highlightedIndex={highlightedIndex}
-                underlines={underlines}
-                circles={circles}
-                colorHighlights={colorHighlights}
-                wordsList={currentWordsList}
-                laserPointer={laserPointer}
-                isLaserModeActive={isLaserModeActive}
-                interactive={true}
-                onWordClick={handleWordClick}
-                onLaserMove={sendLaserPointer}
-              />
+            <div className="flex-1 min-h-0 w-full overflow-y-auto flex flex-col items-center justify-start py-2">
+              <div className="my-auto w-full flex flex-col items-center">
+                <MushafBoard
+                  script={script}
+                  tajweedMode={tajweedMode}
+                  fontSize={fontSize}
+                  fontColor={fontColor}
+                  highlightedIndex={highlightedIndex}
+                  underlines={underlines}
+                  circles={circles}
+                  colorHighlights={colorHighlights}
+                  wordsList={currentWordsList}
+                  laserPointer={laserPointer}
+                  isLaserModeActive={isLaserModeActive}
+                  interactive={true}
+                  onWordClick={handleWordClick}
+                  onLaserMove={sendLaserPointer}
+                />
 
-              {/* Letter Splitting Tray */}
-              <LetterPracticeTray wordIndex={splitIndex} words={currentWordStrings} />
+                {/* Letter Splitting Tray */}
+                <LetterPracticeTray wordIndex={splitIndex} words={currentWordStrings} />
+              </div>
+            </div>
 
-              {/* Real-Time AI Recitation & Voice Follow Telemetry */}
-              <div className="w-full mt-4 max-w-lg mx-auto shrink-0 hidden md:block">
-                <div className="flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl bg-black/40 border border-white/10">
-                  <div className="flex items-center gap-3">
-                    <div className={`flex items-end h-4 gap-1 ${isVoiceFollowOn ? "opacity-100" : "opacity-30"}`}>
-                      {[3, 6, 4, 8, 12, 16, 12, 7, 4, 8, 14, 10, 5, 3, 6, 10, 16, 20, 14, 8, 4, 2].map((h, i) => (
-                        <div
-                          key={i}
-                          className={`w-1 rounded-full ${
-                            isVoiceFollowOn ? "bg-amber-400 animate-pulse" : "bg-white/30"
-                          }`}
-                          style={{ height: `${h * 0.9}px`, animationDelay: `${i * 0.07}s` }}
-                        />
-                      ))}
-                    </div>
-                    <div className="text-amber-300 font-bold text-xs tracking-wide">
-                      {isVoiceFollowOn ? "AI Listening to Arabic Recitation (Arabic Only)" : "AI Voice Follow Paused"}
-                    </div>
+            {/* Real-Time AI Recitation & Voice Follow Telemetry (Docked Above Toolbar) */}
+            <div className="w-full shrink-0 my-1.5 hidden md:block z-10">
+              <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl bg-black/60 border border-white/10 backdrop-blur-md">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className={`flex items-end h-3.5 gap-0.5 ${isVoiceFollowOn ? "opacity-100" : "opacity-30"}`}>
+                    {[3, 6, 4, 8, 12, 10, 7, 4, 8, 12, 6, 3].map((h, i) => (
+                      <div
+                        key={i}
+                        className={`w-1 rounded-full ${
+                          isVoiceFollowOn ? "bg-amber-400 animate-pulse" : "bg-white/30"
+                        }`}
+                        style={{ height: `${h * 0.8}px`, animationDelay: `${i * 0.07}s` }}
+                      />
+                    ))}
                   </div>
+                  <span className="text-amber-300 font-bold text-xs truncate">
+                    {isVoiceFollowOn ? "AI Listening (Arabic Only)" : "AI Voice Follow Paused"}
+                  </span>
+                </div>
 
-                  {voiceError && (
-                    <div className="text-[11px] text-red-300 font-medium bg-red-950/80 border border-red-500/40 px-3 py-1 rounded-xl max-w-md text-center">
-                      ⚠️ {voiceError}
-                    </div>
-                  )}
-
-                  {lastSpokenText && (
-                    <div
-                      className="text-xs text-white font-medium bg-emerald-950/80 border border-emerald-500/30 px-3 py-1 rounded-full max-w-md truncate"
-                      dir="rtl"
-                    >
-                      <span className="text-amber-300 mr-2 font-sans text-[10px]">Arabic Recited:</span>
-                      &quot;{lastSpokenText}&quot;
-                    </div>
-                  )}
-
-                  {/* Manual Prev / Next Word Shortcuts */}
-                  <div className="flex items-center gap-2 mt-1">
-                    <button
-                      onClick={handlePrevWord}
-                      className="text-[10px] font-bold bg-white/10 hover:bg-white/20 text-emerald-100 px-3 py-1 rounded-lg transition cursor-pointer"
-                    >
-                      ← Prev Word
-                    </button>
-                    <span className="text-[10px] text-amber-300 font-mono">
-                      Word {(highlightedIndex ?? 0) + 1} / {currentWordStrings.length}
-                    </span>
-                    <button
-                      onClick={handleNextWord}
-                      className="text-[10px] font-bold bg-amber-400 hover:bg-amber-300 text-emerald-950 px-3 py-1 rounded-lg transition cursor-pointer font-bold"
-                    >
-                      Next Word →
-                    </button>
+                {lastSpokenText && (
+                  <div
+                    className="text-xs text-white font-medium bg-emerald-950/90 border border-emerald-500/30 px-2.5 py-0.5 rounded-full truncate max-w-[160px]"
+                    dir="rtl"
+                  >
+                    &quot;{lastSpokenText}&quot;
                   </div>
+                )}
+
+                {/* Manual Prev / Next Word Shortcuts */}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    onClick={handlePrevWord}
+                    className="text-[10px] font-bold bg-white/10 hover:bg-white/20 text-emerald-100 px-2 py-0.5 rounded-md transition cursor-pointer"
+                  >
+                    ← Prev
+                  </button>
+                  <span className="text-[10px] text-amber-300 font-mono">
+                    {(highlightedIndex ?? 0) + 1}/{currentWordStrings.length}
+                  </span>
+                  <button
+                    onClick={handleNextWord}
+                    className="text-[10px] font-bold bg-amber-400 hover:bg-amber-300 text-emerald-950 px-2 py-0.5 rounded-md transition cursor-pointer font-bold"
+                  >
+                    Next →
+                  </button>
                 </div>
               </div>
+
+              {voiceError && (
+                <div className="mt-1 text-[10px] text-red-300 font-medium bg-red-950/80 border border-red-500/40 px-2 py-0.5 rounded-lg text-center">
+                  ⚠️ {voiceError}
+                </div>
+              )}
             </div>
 
             {/* Comprehensive Toolbar */}
@@ -506,26 +508,28 @@ export default function LiveClassroom() {
 
             {/* Student Mushaf Board */}
             <div
-              className={`flex-1 flex flex-col items-center justify-center min-h-0 overflow-y-auto w-full py-2 ${
+              className={`flex-1 min-h-0 w-full overflow-y-auto flex flex-col items-center justify-start py-2 ${
                 !isStudentUnlocked ? "pointer-events-none" : ""
               }`}
             >
-              <MushafBoard
-                script={script}
-                tajweedMode={tajweedMode}
-                fontSize={fontSize}
-                fontColor={fontColor}
-                highlightedIndex={highlightedIndex}
-                underlines={underlines}
-                circles={circles}
-                colorHighlights={colorHighlights}
-                wordsList={currentWordsList}
-                laserPointer={laserPointer}
-                interactive={isStudentUnlocked}
-                onWordClick={sendHighlight}
-              />
+              <div className="my-auto w-full flex flex-col items-center">
+                <MushafBoard
+                  script={script}
+                  tajweedMode={tajweedMode}
+                  fontSize={fontSize}
+                  fontColor={fontColor}
+                  highlightedIndex={highlightedIndex}
+                  underlines={underlines}
+                  circles={circles}
+                  colorHighlights={colorHighlights}
+                  wordsList={currentWordsList}
+                  laserPointer={laserPointer}
+                  interactive={isStudentUnlocked}
+                  onWordClick={sendHighlight}
+                />
 
-              <LetterPracticeTray wordIndex={splitIndex} words={currentWordStrings} />
+                <LetterPracticeTray wordIndex={splitIndex} words={currentWordStrings} />
+              </div>
             </div>
 
             {/* Student Bottom Navigation Controls */}

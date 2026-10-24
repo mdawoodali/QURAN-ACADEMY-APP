@@ -63,7 +63,7 @@ export function useClassroomSync({
   const [splitIndex, setSplitIndex] = useState<number | null>(null);
   const [activeLessonId, setActiveLessonId] = useState<string>(initialLessonId);
 
-  const [fontSize, setFontSize] = useState<number>(48);
+  const [fontSize, setFontSize] = useState<number>(34);
   const [fontColor, setFontColor] = useState<string>("#111827");
   const [underlines, setUnderlines] = useState<Record<number, boolean>>({});
   const [circles, setCircles] = useState<Record<number, boolean>>({});
