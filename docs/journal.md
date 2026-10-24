@@ -1664,3 +1664,20 @@ eceipt_uploaded, and payment_verified.
   - Executed automated PostgREST audit script verifying HTTP 200 responses on all 22 core tables.
   - Seeded initial courses, settings, enrolments, invoices, payouts, student lesson notes, and academy resources.
   - Tested anonymous RLS submission on `contact_inquiries` (201 Created) and verified strict access boundaries.
+
+
+---
+
+## 9.72 Deepgram Nova-3 Query Protocol & Cross-Platform MediaRecorder Fix (2026-10-24)
+
+- **Issue Diagnosis**:
+  - Live API testing against Deepgram's streaming gateway revealed HTTP 400 rejection: `Keywords are not supported for Nova-3. Please use keyterm instead.`
+  - The client in `useVoiceFollow.ts` was passing `keywords=...:3`, causing immediate WebSocket handshake failure (`WS CLOSE 1006`) and silent fallback to browser Web Speech API.
+- **Resolution**:
+  - Migrated vocabulary boosting parameters to `keyterm=` conforming to Deepgram Nova-3 API specifications.
+  - Enabled real-time `interim_results=true` for ultra-low latency word-by-word streaming recitation tracking.
+  - Replaced hardcoded `mimeType: "audio/webm"` with dynamic browser MIME-type detection (`audio/webm;codecs=opus`, `audio/webm`, `audio/mp4`) for Safari/iOS WebRTC support.
+  - Added abnormal WebSocket `onclose` detection and automatic graceful failover.
+- **Verification**:
+  - Validated live WebSocket connection to Deepgram Nova-3 streaming gateway with Arabic keyterms (HTTP 101 Switching Protocols / WS OPEN).
+  - Vitest test suite: 170/170 tests passing (23 test files green).

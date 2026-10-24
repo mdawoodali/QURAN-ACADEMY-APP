@@ -108,11 +108,12 @@ describe("Shaheen-Level Backend Database & Syncing API Suite", () => {
 
   describe("6. Real-Time Classroom State Endpoint (/api/classroom/state)", () => {
     it("provides clean room initial state when room is new", async () => {
-      const req = new NextRequest("http://localhost:3000/api/classroom/state?roomId=room_tajweed_99");
+      const uniqueNewRoom = `room_tajweed_new_${Date.now()}`;
+      const req = new NextRequest(`http://localhost:3000/api/classroom/state?roomId=${uniqueNewRoom}`);
       const res = await getClassroomState(req);
       expect(res.status).toBe(200);
       const data = await res.json();
-      expect(data.state.roomId).toBe("room_tajweed_99");
+      expect(data.state.roomId).toBe(uniqueNewRoom);
       expect(data.state.currentPage).toBe(1);
     });
 

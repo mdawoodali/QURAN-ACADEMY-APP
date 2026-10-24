@@ -150,17 +150,40 @@ export function useVoiceFollow({ currentWords, onMatchWord }: UseVoiceFollowOpti
       const tokenRes = await fetch("/api/speech/deepgram-token");
       const tokenData = await tokenRes.json();
       if (tokenData.configured && tokenData.apiKey) {
-        const keywordsParam = currentWords.map((w) => `keywords=${encodeURIComponent(w)}:3`).join("&");
-        const socket = new WebSocket(
-          `wss://api.deepgram.com/v1/listen?model=nova-3&language=ar&smart_format=true&${keywordsParam}`,
-          ["token", tokenData.apiKey]
-        );
+        // Deepgram Nova-3 uses `keyterm` for vocabulary boosting (keywords is unsupported in Nova-3)
+        const keyterms = currentWords
+          .map((w) => normalizeArabic(w))
+          .filter((w) => w.length > 1)
+          .slice(0, 25);
+        const keytermParams = keyterms.length > 0
+          ? "&" + keyterms.map((w) => `keyterm=${encodeURIComponent(w)}`).join("&")
+          : "";
+
+        const wsUrl = `wss://api.deepgram.com/v1/listen?model=nova-3&language=ar&smart_format=true&interim_results=true${keytermParams}`;
+        const socket = new WebSocket(wsUrl, ["token", tokenData.apiKey]);
 
         socket.onopen = async () => {
           try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const stream = await navigator.mediaDevices.getUserMedia({
+              audio: {
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true,
+              },
+            });
             deepgramStreamRef.current = stream;
-            const recorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+
+            // Cross-browser MediaRecorder MIME type detection (supports Chrome, Safari, Firefox, iOS)
+            const mimeType =
+              typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+                ? "audio/webm;codecs=opus"
+                : typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported("audio/webm")
+                ? "audio/webm"
+                : typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported("audio/mp4")
+                ? "audio/mp4"
+                : "";
+
+            const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
             recorder.ondataavailable = (event) => {
               if (event.data.size > 0 && socket.readyState === WebSocket.OPEN) {
                 socket.send(event.data);
@@ -186,14 +209,25 @@ export function useVoiceFollow({ currentWords, onMatchWord }: UseVoiceFollowOpti
           } catch {}
         };
 
-        socket.onerror = () => {
+        socket.onerror = (err) => {
+          console.warn("[Deepgram] WebSocket error, switching to Web Speech fallback:", err);
           startWebSpeechFallback();
+        };
+
+        socket.onclose = (event) => {
+          // If disconnected unexpectedly, fall back to Web Speech
+          if (isVoiceFollowOnRef.current && event.code !== 1000 && event.code !== 1005) {
+            console.warn(`[Deepgram] Connection closed (${event.code}), falling back to Web Speech.`);
+            startWebSpeechFallback();
+          }
         };
 
         deepgramSocketRef.current = socket;
         return;
       }
-    } catch {}
+    } catch (err) {
+      console.warn("[Deepgram] Token fetch or initialization failed:", err);
+    }
 
     // 2. Fallback to Web Speech API
     startWebSpeechFallback();
