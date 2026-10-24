@@ -49,9 +49,9 @@ ON CONFLICT (id) DO NOTHING;
 -- 6. Teacher Monthly Payouts
 INSERT INTO teacher_payouts (id, teacher_name, period, completed_classes, hours, rate_per_class, adjustments, payable, currency, status, payout_date, reference)
 VALUES
-  ('p0000000-0000-0000-0000-000000000001', 'Ustadha Maryam Ahmed', 'September 2026', 64, '32.0 hrs', 500.00, 0.00, 32000.00, 'PKR', 'Processing', '2026-11-01', 'PAY-2026-09-T1'),
-  ('p0000000-0000-0000-0000-000000000002', 'Ustadha Maryam Ahmed', 'August 2026', 60, '30.0 hrs', 500.00, -500.00, 29500.00, 'PKR', 'Paid', '2026-09-01', 'PAY-2026-08-T1'),
-  ('p0000000-0000-0000-0000-000000000003', 'Ustadha Maryam Ahmed', 'July 2026', 58, '29.0 hrs', 500.00, 0.00, 29000.00, 'PKR', 'Paid', '2026-08-01', 'PAY-2026-07-T1')
+  ('b0000000-0000-0000-0000-000000000001', 'Ustadha Maryam Ahmed', 'September 2026', 64, '32.0 hrs', 500.00, 0.00, 32000.00, 'PKR', 'Processing', '2026-11-01', 'PAY-2026-09-T1'),
+  ('b0000000-0000-0000-0000-000000000002', 'Ustadha Maryam Ahmed', 'August 2026', 60, '30.0 hrs', 500.00, -500.00, 29500.00, 'PKR', 'Paid', '2026-09-01', 'PAY-2026-08-T1'),
+  ('b0000000-0000-0000-0000-000000000003', 'Ustadha Maryam Ahmed', 'July 2026', 58, '29.0 hrs', 500.00, 0.00, 29000.00, 'PKR', 'Paid', '2026-08-01', 'PAY-2026-07-T1')
 ON CONFLICT (reference) DO NOTHING;
 
 -- 7. Student Lesson Progress Notes

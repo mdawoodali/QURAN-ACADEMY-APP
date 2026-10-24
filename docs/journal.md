@@ -1636,11 +1636,11 @@ eceipt_uploaded, and payment_verified.
 ## 9.70 Production Readiness Audit, Test Suite Synchronization & Full Turbopack Build Verification
 
 - **Objective**:
-  1. Synchronize automated resiliency test suite (`api-resiliency.test.ts`) with standardized `"Demo Teacher"` profile credentials.
+  1. Synchronize automated resiliency test suite (`api-resiliency.test.ts`) with standardized "Demo Teacher" profile credentials.
   2. Perform exhaustive end-to-end production readiness audit (unit/integration test coverage, Turbopack production compilation, and runtime dependencies).
 - **Implementation Details**:
   1. **Resiliency Test Sync (`apps/web/src/__tests__/api-resiliency.test.ts`)**:
-     - Updated parameterized role redirection expectations for teacher demo authentication to expect `"Demo Teacher"`.
+     - Updated parameterized role redirection expectations for teacher demo authentication to expect "Demo Teacher".
   2. **Production Validation**:
      - Ran full Vitest integration suite: all test suites passing cleanly (100% pass rate).
      - Executed full Next.js 16.4.2 Turbopack production build: all static and dynamic routes compiled and generated with 0 errors.
@@ -1649,3 +1649,18 @@ eceipt_uploaded, and payment_verified.
   - `pnpm test`: 100% green.
   - `pnpm build`: 0 errors.
   - `pnpm typecheck`: 0 errors.
+
+---
+
+## 9.71 Production Database Deployment & Seed Data Hex UUID Correction (2026-10-24)
+
+- **Consolidated Master Schema Deployment**:
+  - Successfully verified live deployment of `CONSOLIDATED_MASTER_SCHEMA.sql` onto remote Supabase instance (`https://yqtkgobvfpphwrfwarls.supabase.co`).
+  - Confirmed 22 tables active with Row-Level Security (RLS), custom enums, compound performance indexes, and real-time publication hooks.
+- **PostgreSQL 22P02 UUID Syntax Error Fix**:
+  - Corrected hardcoded teacher payout UUID prefixes in `supabase/seed.sql` from non-hex character `p` (`p0000000-...`) to standard RFC 4122 hex character `b` (`b0000000-...`).
+  - Verified valid hexadecimal integrity across all 15 predefined master UUIDs.
+- **End-to-End Database Audit**:
+  - Executed automated PostgREST audit script verifying HTTP 200 responses on all 22 core tables.
+  - Seeded initial courses, settings, enrolments, invoices, payouts, student lesson notes, and academy resources.
+  - Tested anonymous RLS submission on `contact_inquiries` (201 Created) and verified strict access boundaries.
