@@ -2467,3 +2467,31 @@ Investigation identified the architectural mechanism and root cause:
 4. **Automated Verification**:
    - TypeScript compilation verified with 0 errors (`tsc --noEmit`).
    - Vitest test suite verified: **514 / 514 tests passing** across 30 suites.
+
+
+---
+
+## 9.102 Public Demo Route Access Disentanglement in Middleware
+
+### Context & Root Cause Analysis
+During empirical browser validation using headless Chrome, we uncovered why prospective visitors testing the live classroom encountered auth bounces, role misattributions, and unexpected portal dashboard exits:
+1. **Flawed Protected Route Boundary**:
+   In `middleware.ts`, `isProtectedRoute` was defined with `normalizedPath.startsWith("/classroom")`. This inadvertently classified `/classroom/demo` (the public marketing showcase) as a protected private session requiring active authentication.
+2. **Cascade of Flawed Inferences**:
+   When an unauthenticated user on the homepage clicked *"Explore Interactive Classroom Demo"*, `middleware.ts` intercepted them and issued a 307 redirect to `/login?redirect=%2Fclassroom%2Fdemo`.
+   Visitors logging in or clicking role demo cards received session cookies (`demo_role=parent`), entered the demo classroom trapped in `observer` mode, and upon exiting, were dumped into `/parent`.
+3. **User Experience Impact**:
+   The entire demo experience was blocked behind auth prompts and role locks rather than functioning as an instant, interactive browser preview.
+
+### Key Changes Implemented
+1. **Explicit Public Access for `/classroom/demo`**:
+   Updated `middleware.ts` protected route matching:
+   ```typescript
+   (normalizedPath.startsWith("/classroom") && !normalizedPath.startsWith("/classroom/demo"))
+   ```
+   Now, any visitor can immediately enter `/classroom/demo` directly without authentication, redirects, or role pollution.
+2. **Empirical Verification with Real Headless Chrome**:
+   Spawned Google Chrome (`Chrome/156.0.8078.48`) via Chrome DevTools Protocol (CDP) to navigate to `http://localhost:3000/classroom/demo`. Confirmed direct 200 OK navigation with zero redirect to `/login`.
+3. **Automated Verification**:
+   - TypeScript compilation clean (`tsc --noEmit`).
+   - Vitest test suite verified: **514 / 514 tests passing** across 30 suites.

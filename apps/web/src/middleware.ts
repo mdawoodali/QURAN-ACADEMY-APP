@@ -86,7 +86,7 @@ export async function middleware(request: NextRequest) {
     normalizedPath.startsWith("/admin") ||
     normalizedPath.startsWith("/parent") ||
     normalizedPath.startsWith("/companion") ||
-    normalizedPath.startsWith("/classroom");
+    (normalizedPath.startsWith("/classroom") && !normalizedPath.startsWith("/classroom/demo"));
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
