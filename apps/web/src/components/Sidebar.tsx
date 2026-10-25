@@ -101,7 +101,7 @@ export default function Sidebar({ onClose, role, userName, initials }: { onClose
 
   return (
     <div className="w-64 h-full bg-black/45 backdrop-blur-xl border-r border-white/10 text-white flex flex-col shadow-2xl">
-      <div className="p-6 flex items-start justify-between">
+      <div className="p-5 sm:p-6 flex items-start justify-between shrink-0">
         <Link 
           href="/" 
           onClick={() => {
@@ -127,11 +127,11 @@ export default function Sidebar({ onClose, role, userName, initials }: { onClose
         )}
       </div>
 
-      <div className="px-6 py-4 flex-1 overflow-y-auto">
-        <div className="text-[10px] font-bold text-amber-300 tracking-widest uppercase mb-4">
+      <div className="px-4 sm:px-6 py-2 sm:py-3 flex-1 overflow-y-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <div className="text-[10px] font-bold text-amber-300 tracking-widest uppercase mb-3 px-1">
           {portalName}
         </div>
-        <nav className="space-y-1.5">
+        <nav className="space-y-1">
           {links.map((link) => {
             const Icon = link.icon;
             const isActive = pathname === link.href;
@@ -140,7 +140,7 @@ export default function Sidebar({ onClose, role, userName, initials }: { onClose
                 key={link.href}
                 href={link.href}
                 onClick={onClose}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition ${
+                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition text-sm ${
                   isActive
                     ? "bg-white/15 text-amber-300 font-bold border border-white/10 shadow-xs"
                     : "text-emerald-100/80 hover:bg-white/10 hover:text-white font-medium"
@@ -154,7 +154,7 @@ export default function Sidebar({ onClose, role, userName, initials }: { onClose
         </nav>
       </div>
 
-      <div className="mt-auto p-6 flex flex-col gap-3 border-t border-white/10">
+      <div className="mt-auto p-4 sm:p-5 flex flex-col gap-2.5 border-t border-white/10 shrink-0">
         <div className="flex items-center gap-4">
           <div className="w-8 h-8 rounded-full bg-emerald-800/80 border border-amber-400/30 text-amber-300 flex items-center justify-center font-bold text-xs shadow-xs">
             {effectiveInitials}

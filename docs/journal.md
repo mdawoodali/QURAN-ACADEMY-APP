@@ -2050,3 +2050,22 @@ eceipt_uploaded, and payment_verified.
   - `pnpm typecheck`: 0 errors.
   - `pnpm lint`: 0 errors.
   - `next build`: 80/80 routes compiled, optimized, and generated successfully in 16.1s.
+
+
+---
+
+## 9.89 Elimination of Visible Scrollbars Across Portal Sidebars & Responsive Spacing Optimization (2026-10-25)
+
+- **Portal Sidebar Scrollbar Elimination (`apps/web/src/components/Sidebar.tsx`)**:
+  - **Issue**: On desktop and laptop viewports (especially Windows browsers such as Chrome, Edge, and Firefox), the portal navigation sidebar rendered an obtrusive 17px default white scrollbar track directly beside the dark emerald navigation menu items.
+  - **Fix**: Implemented complete visual scrollbar suppression via `no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden` on the navigation container. Scrollbars are completely hidden across all modern rendering engines (Blink, WebKit, Gecko, Trident) while preserving smooth mouse wheel, touch, and trackpad scrolling.
+- **Sidebar Vertical Footprint Optimization (`apps/web/src/components/Sidebar.tsx`)**:
+  - **Optimization**: Refined vertical padding and item margins (`py-2.5 px-3.5` on nav links, `space-y-1`, `mb-3` section titles, `p-5 sm:p-6` header, and `p-4 sm:p-5` footer). This allows all navigation links, user profile details, language switcher, and live version badges to fit comfortably without overflowing on standard laptop displays (>= 650px).
+- **Global Modern Scrollbar Utilities & Sleek Fallback (`apps/web/src/app/globals.css`)**:
+  - **Enhancement**: Defined universal `.no-scrollbar` classes and replaced default browser scrollbar styling with a sleek 6px transparent-track emerald/gold thumb across the web application, preventing raw browser scrollbars from breaking the UI aesthetic.
+- **Quran Library Surah Selector Scrollbar Suppression (`apps/web/src/app/(portal)/student/quran/page.tsx`)**:
+  - Applied `.no-scrollbar` utilities to the Surah selection sidebar on `/student/quran` to keep the list clean and fluid.
+- **Verification & Quality Gate**:
+  - `pnpm test`: 23/23 test suites passed, 172/172 tests passed (100% green).
+  - `pnpm typecheck`: 0 errors across all monorepo packages.
+

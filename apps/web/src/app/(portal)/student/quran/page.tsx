@@ -21,7 +21,7 @@ export default function StudentQuranLibrary() {
               className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-2 text-sm text-white placeholder:text-emerald-200/40 focus:outline-none focus:border-amber-400"
             />
           </div>
-          <div className="flex-1 overflow-y-auto p-2">
+          <div className="flex-1 overflow-y-auto p-2 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             <div className="bg-emerald-800/70 border border-amber-400/40 text-amber-300 font-bold p-3 rounded-xl mb-1 cursor-pointer flex items-center justify-between shadow-xs">
               <span>01 Al-Fatihah</span>
               <span className="text-[10px] bg-amber-400 text-emerald-950 px-2 py-0.5 rounded-full uppercase font-bold">Practice</span>

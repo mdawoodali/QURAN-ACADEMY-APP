@@ -67,6 +67,37 @@ button, a, nav, header, [role="button"] {
   -webkit-overflow-scrolling: touch;
 }
 
+/* Scrollbar Utilities & Global Modern Scrollbars */
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none !important; /* IE and Edge */
+  scrollbar-width: none !important; /* Firefox */
+}
+
+/* Custom sleek dark scrollbar across the app so even default scrollbars don't show the white browser track */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(251, 191, 36, 0.4);
+}
+
 /* Glassmorphism Design: backdrop-filter: blur() combined with semi-transparent backgrounds */
 .glass-container {
   background: rgba(3, 29, 22, 0.65);
