@@ -1,29 +1,203 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, X, Mail } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Menu, X, Mail, LogOut, LayoutDashboard, ChevronDown } from "lucide-react";
 import { useLanguage, TranslationKey } from "./LanguageContext";
 import { useSect } from "./SectContext";
 import { APP_VERSION } from "@quran/contracts";
 import { motion, AnimatePresence } from "framer-motion";
+import { createClient } from "@/utils/supabase/client";
+
+interface UserProfile {
+  name: string;
+  email?: string;
+  role: string;
+  avatarUrl?: string;
+  initials: string;
+}
 
 export default function PublicNavbar() {
+  const router = useRouter();
   const { language, setLanguage, t } = useLanguage();
-  const { setSect, isSunni, isShia } = useSect();
+  const { isShia } = useSect();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   const homeHref = isShia ? "/shia/home" : "/sunni/home";
   const resourcesHref = isShia ? "/shia/resources" : "/sunni/resources";
   const welcomeHref = isShia ? "/shia" : "/sunni";
+  const dashboardHref = userProfile?.role ? `/${userProfile.role}` : "/dashboard";
 
+  // Dropdown outside click & Escape key listener
   useEffect(() => {
-    if (typeof document !== "undefined") {
-      const hasCookie = document.cookie.includes("demo_role") || document.cookie.includes("sb-");
-      setIsLoggedIn(hasCookie);
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleKeyDown);
     }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isDropdownOpen]);
+
+  // Auth & Database profile synchronization
+  useEffect(() => {
+    let isMounted = true;
+    const supabase = createClient();
+
+    const syncAuthAndProfile = async () => {
+      try {
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+        if (user && !authError && isMounted) {
+          let profileName = "";
+          let profileRole = (user.user_metadata?.role as string) || "student";
+          let avatarUrl = (user.user_metadata?.avatar_url as string) || (user.user_metadata?.picture as string) || undefined;
+
+          try {
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("first_name, last_name, role, email, avatar_url")
+              .eq("id", user.id)
+              .maybeSingle();
+
+            if (profile) {
+              if (profile.role) profileRole = profile.role;
+              const nameFromProfile = `${profile.first_name || ""} ${profile.last_name || ""}`.trim();
+              if (nameFromProfile) profileName = nameFromProfile;
+              if (profile.avatar_url) avatarUrl = profile.avatar_url;
+            }
+          } catch (profileErr) {
+            console.warn("[PublicNavbar] Error reading profiles table:", profileErr);
+          }
+
+          const effectiveName = profileName || user.user_metadata?.full_name || user.email?.split("@")[0] || "User";
+          const initials = effectiveName
+            .split(" ")
+            .map((n: string) => n[0])
+            .filter(Boolean)
+            .join("")
+            .substring(0, 2)
+            .toUpperCase() || "U";
+
+          if (isMounted) {
+            setIsLoggedIn(true);
+            setUserProfile({
+              name: effectiveName,
+              email: user.email || undefined,
+              role: profileRole,
+              avatarUrl,
+              initials,
+            });
+          }
+          return;
+        }
+      } catch (err) {
+        console.warn("[PublicNavbar] Supabase auth check error:", err);
+      }
+
+      // Demo/preview fallback via cookies
+      if (typeof document !== "undefined" && isMounted) {
+        const demoRoleMatch = document.cookie.match(/(?:^|;\s*)demo_role=([^;]+)/);
+        const demoUserMatch = document.cookie.match(/(?:^|;\s*)demo_user=([^;]+)/);
+        const demoRole = demoRoleMatch ? decodeURIComponent(demoRoleMatch[1]) : null;
+        const demoUser = demoUserMatch ? decodeURIComponent(demoUserMatch[1]) : null;
+
+        if (demoRole || demoUser) {
+          setIsLoggedIn(true);
+          let name = demoUser || "Demo Student";
+          let role = demoRole || "student";
+          if (role === "admin" && (!demoUser || demoUser === "Demo Student")) name = "Super Admin";
+          if (role === "teacher" && (!demoUser || demoUser === "Demo Student")) name = "Demo Teacher";
+          if (role === "parent" && (!demoUser || demoUser === "Demo Student")) name = "Family Guardian";
+
+          const initials =
+            role === "teacher"
+              ? "DT"
+              : role === "admin"
+              ? "SA"
+              : role === "parent"
+              ? "FG"
+              : name === "Demo Student"
+              ? "DS"
+              : name
+                  .split(" ")
+                  .map((n: string) => n[0])
+                  .filter(Boolean)
+                  .join("")
+                  .substring(0, 2)
+                  .toUpperCase() || "U";
+
+          setUserProfile({
+            name,
+            role,
+            initials,
+          });
+          return;
+        }
+
+        setIsLoggedIn(false);
+        setUserProfile(null);
+      }
+    };
+
+    syncAuthAndProfile();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        syncAuthAndProfile();
+      } else {
+        const hasDemo = typeof document !== "undefined" && document.cookie.includes("demo_role");
+        if (!hasDemo && isMounted) {
+          setIsLoggedIn(false);
+          setUserProfile(null);
+          setIsDropdownOpen(false);
+        }
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
+
+  const handleSignOut = async () => {
+    try {
+      if (typeof document !== "undefined") {
+        document.cookie = "demo_role=; path=/; max-age=0";
+        document.cookie = "demo_user=; path=/; max-age=0";
+      }
+      const supabase = createClient();
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.warn("[PublicNavbar] Sign out error:", err);
+    } finally {
+      setIsDropdownOpen(false);
+      setIsLoggedIn(false);
+      setUserProfile(null);
+      closeMenu();
+      router.push("/login");
+      router.refresh();
+    }
+  };
 
   const closeMenu = () => setMobileMenuOpen(false);
 
@@ -42,7 +216,6 @@ export default function PublicNavbar() {
       <div className="w-full bg-[#021811]/95 border-b border-white/10 text-xs text-emerald-100/90 py-3.5 px-4 sm:px-6 backdrop-blur-md">
         <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-4">
           
-
           {/* Center: Contact & WhatsApp Badges & Email */}
           <div className="flex-1 flex flex-wrap items-center justify-start lg:justify-center gap-3 sm:gap-5 text-[11px] sm:text-xs">
             <a
@@ -135,7 +308,6 @@ export default function PublicNavbar() {
             </div>
           </div>
 
-
         </div>
       </div>
 
@@ -143,7 +315,7 @@ export default function PublicNavbar() {
       <div className="w-full bg-[#052b20]/95 backdrop-blur-md border-b border-white/10 relative">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 h-20 sm:h-22 flex items-center justify-between gap-4">
           
-          {/* Brand Official Logo: Elegantly proportioned and aligned within navbar */}
+          {/* Brand Official Logo */}
           <Link href={welcomeHref} onClick={handleGoHome} 
             className="flex items-center shrink-0 group py-1"
             title="Quran Learn Academy"
@@ -160,8 +332,7 @@ export default function PublicNavbar() {
             </div>
           </Link>
 
-          
-          {/* Desktop Navigation Links (Centered horizontally in the main bar, font size 16px with ornamental expanding line hover effect) */}
+          {/* Desktop Navigation Links */}
           <nav className="hidden lg:flex items-center justify-center gap-3.5 xl:gap-5 2xl:gap-6 text-emerald-100/90 font-medium text-base whitespace-nowrap flex-1 px-2">
             {[
               { href: homeHref, key: "home" },
@@ -180,47 +351,139 @@ export default function PublicNavbar() {
               >
                 <span>{t(key as TranslationKey)}</span>
 
-                {/* Ornamental expanding line: originates from center and extends left and right with amber bead accent */}
+                {/* Ornamental expanding line */}
                 <span className="absolute bottom-0 left-0 right-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  {/* Left extending wing */}
                   <span className="h-[2px] bg-gradient-to-l from-amber-400 to-amber-300/40 w-0 group-hover:w-1/2 transition-all duration-300 ease-out origin-right rounded-full" />
-                  
-                  {/* Center ornamental golden bead trio matching the reference */}
                   <span className="flex items-center gap-[2px] px-1 scale-0 group-hover:scale-100 transition-transform duration-300 ease-out">
                     <span className="w-1 h-1 rounded-full bg-amber-400/70 shrink-0" />
                     <span className="w-2 h-2 rounded-full bg-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.9)] shrink-0" />
                     <span className="w-1 h-1 rounded-full bg-amber-400/70 shrink-0" />
                   </span>
-
-                  {/* Right extending wing */}
                   <span className="h-[2px] bg-gradient-to-r from-amber-400 to-amber-300/40 w-0 group-hover:w-1/2 transition-all duration-300 ease-out origin-left rounded-full" />
                 </span>
               </Link>
             ))}
           </nav>
 
+          {/* Action CTAs: Profile Avatar Dropdown (when logged in) OR Log In button & Book a free trial */}
+          <div className="hidden lg:flex items-center gap-4 xl:gap-5 shrink-0">
+            {isLoggedIn && userProfile ? (
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setIsDropdownOpen((prev) => !prev)}
+                  className="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-emerald-950/70 hover:bg-emerald-900/80 border border-amber-400/30 hover:border-amber-400/60 transition shadow-md cursor-pointer group focus:outline-hidden"
+                  aria-expanded={isDropdownOpen}
+                  aria-haspopup="true"
+                  aria-label="User account menu"
+                >
+                  {/* Avatar Image or Initials */}
+                  {userProfile.avatarUrl ? (
+                    <img
+                      src={userProfile.avatarUrl}
+                      alt={userProfile.name}
+                      className="w-8 h-8 rounded-full object-cover border border-amber-300/60 shadow-xs shrink-0"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-700 to-emerald-900 border border-amber-400/50 text-amber-300 flex items-center justify-center font-bold text-xs shadow-xs tracking-tight shrink-0">
+                      {userProfile.initials}
+                    </div>
+                  )}
 
-          {/* Action CTAs: Log in & Book a free trial (Right edge aligned) */}
-          <div className="hidden lg:flex items-center gap-5 shrink-0">
-            {/* Log in / My Portal Switcher */}
-            {isLoggedIn ? (
-              <Link
-                href="/dashboard"
-                className="group relative py-2 text-sm font-bold text-amber-300 hover:text-amber-200 transition-colors flex items-center gap-2"
-                title={language === "ur" ? "ڈیش بورڈ کھولیں" : "Open Dashboard"}
-              >
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>{language === "ur" ? "میرا پورٹل" : "My Portal"}</span>
-                <span className="absolute bottom-0 left-0 right-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  <span className="h-[2px] bg-gradient-to-l from-amber-400 to-amber-300/40 w-0 group-hover:w-1/2 transition-all duration-300 ease-out origin-right rounded-full" />
-                  <span className="flex items-center gap-[2px] px-1 scale-0 group-hover:scale-100 transition-transform duration-300 ease-out">
-                    <span className="w-1 h-1 rounded-full bg-amber-400/70 shrink-0" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.9)] shrink-0" />
-                    <span className="w-1 h-1 rounded-full bg-amber-400/70 shrink-0" />
-                  </span>
-                  <span className="h-[2px] bg-gradient-to-r from-amber-400 to-amber-300/40 w-0 group-hover:w-1/2 transition-all duration-300 ease-out origin-left rounded-full" />
-                </span>
-              </Link>
+                  <div className="flex flex-col text-left leading-tight">
+                    <span className="text-xs font-bold text-emerald-100 max-w-[120px] truncate group-hover:text-white transition">
+                      {userProfile.name}
+                    </span>
+                    <span className="text-[10px] text-amber-300/80 font-medium capitalize">
+                      {userProfile.role}
+                    </span>
+                  </div>
+
+                  <ChevronDown
+                    size={14}
+                    className={`text-amber-300/80 transition-transform duration-200 shrink-0 ${
+                      isDropdownOpen ? "rotate-180 text-amber-300" : ""
+                    }`}
+                  />
+                </button>
+
+                {/* Floating Profile Dropdown Menu */}
+                <AnimatePresence>
+                  {isDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 6, scale: 0.95 }}
+                      transition={{ duration: 0.15, ease: "easeOut" }}
+                      className="absolute right-0 mt-2 w-64 rounded-2xl bg-[#031d14]/95 backdrop-blur-2xl border border-emerald-500/25 shadow-2xl p-2 z-50 overflow-hidden text-left"
+                    >
+                      {/* Header: User Overview */}
+                      <div className="p-3 rounded-xl bg-white/5 border border-white/5 mb-1 flex items-center gap-3">
+                        {userProfile.avatarUrl ? (
+                          <img
+                            src={userProfile.avatarUrl}
+                            alt={userProfile.name}
+                            className="w-10 h-10 rounded-full object-cover border border-amber-300/60 shrink-0"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-700 to-emerald-900 border border-amber-400/50 text-amber-300 flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
+                            {userProfile.initials}
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-bold text-white truncate">
+                            {userProfile.name}
+                          </div>
+                          {userProfile.email && (
+                            <div className="text-[11px] text-emerald-200/60 truncate">
+                              {userProfile.email}
+                            </div>
+                          )}
+                          <div className="inline-block mt-1">
+                            <span className="text-[9.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-400/15 text-amber-300 border border-amber-400/30">
+                              {userProfile.role}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Profile / Dashboard link */}
+                      <Link
+                        href={dashboardHref}
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-emerald-100 hover:text-white hover:bg-white/10 transition group"
+                      >
+                        <div className="p-1.5 rounded-lg bg-emerald-900/60 border border-emerald-700/50 text-amber-300 group-hover:scale-105 transition-transform">
+                          <LayoutDashboard size={15} />
+                        </div>
+                        <div className="flex flex-col">
+                          <span>{t("myDashboard")}</span>
+                          <span className="text-[10px] text-emerald-300/60 font-normal">
+                            {language === "ur" ? "پورٹل اور پروفائل کھولیں" : "Open portal & dashboard"}
+                          </span>
+                        </div>
+                      </Link>
+
+                      <div className="my-1 border-t border-white/10" />
+
+                      {/* Red Sign Out Action */}
+                      <button
+                        onClick={handleSignOut}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-red-300 hover:text-red-100 hover:bg-red-950/60 border border-transparent hover:border-red-500/30 transition text-left cursor-pointer group"
+                      >
+                        <div className="p-1.5 rounded-lg bg-red-950/80 border border-red-800/50 text-red-400 group-hover:text-red-300 group-hover:scale-105 transition-transform">
+                          <LogOut size={15} />
+                        </div>
+                        <div className="flex flex-col">
+                          <span>{t("signOutLabel")}</span>
+                          <span className="text-[10px] text-red-300/60 font-normal">
+                            {language === "ur" ? "سیشن ختم کریں" : "End active session"}
+                          </span>
+                        </div>
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             ) : (
               <Link
                 href="/login"
@@ -239,7 +502,7 @@ export default function PublicNavbar() {
               </Link>
             )}
 
-            {/* Book a free trial: Yellow box turns green on hover and text turns white */}
+            {/* Book a free trial: Yellow button */}
             <Link 
               href="/trial" 
               className="bg-amber-400 hover:bg-emerald-700 text-emerald-950 hover:text-white border border-transparent hover:border-emerald-500/50 text-sm font-bold px-5 py-2.5 rounded-full transition-all duration-300 shadow-md whitespace-nowrap pop-hover"
@@ -248,11 +511,22 @@ export default function PublicNavbar() {
             </Link>
           </div>
 
+          {/* Mobile Actions: Mini Avatar (when logged in) + Trial + Hamburger Menu Toggle */}
+          <div className="flex lg:hidden items-center gap-2 sm:gap-3">
+            {isLoggedIn && userProfile && (
+              <Link
+                href={dashboardHref}
+                title={userProfile.name}
+                className="w-8 h-8 rounded-full overflow-hidden border border-amber-400/50 bg-emerald-800 text-amber-300 flex items-center justify-center font-bold text-xs shrink-0 shadow-xs"
+              >
+                {userProfile.avatarUrl ? (
+                  <img src={userProfile.avatarUrl} alt={userProfile.name} className="w-full h-full object-cover" />
+                ) : (
+                  <span>{userProfile.initials}</span>
+                )}
+              </Link>
+            )}
 
-
-
-          {/* Mobile Actions: Hamburger Menu Toggle Button */}
-          <div className="flex lg:hidden items-center gap-3">
             <Link 
               href="/trial" 
               className="bg-amber-400 hover:bg-amber-300 text-emerald-950 text-xs font-bold px-3 py-1.5 rounded-full transition shadow-sm"
@@ -262,7 +536,7 @@ export default function PublicNavbar() {
 
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-white hover:text-amber-300 focus:outline-none transition rounded-xl bg-white/10 border border-white/15"
+              className="p-2 text-white hover:text-amber-300 focus:outline-hidden transition rounded-xl bg-white/10 border border-white/15"
               aria-label="Toggle navigation menu"
             >
               {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
@@ -338,18 +612,51 @@ export default function PublicNavbar() {
                 </Link>
               </nav>
 
-              
-
               <div className="pt-4 border-t border-white/10 flex flex-col gap-3">
-                {isLoggedIn ? (
-                  <Link 
-                    href="/dashboard" 
-                    onClick={closeMenu}
-                    className="w-full text-center py-3 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 font-bold text-sm border border-amber-400/40 transition flex items-center justify-center gap-2"
-                  >
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span>{language === "ur" ? "میرا پورٹل کھولیں" : "Open My Portal"}</span>
-                  </Link>
+                {isLoggedIn && userProfile ? (
+                  <div className="space-y-3">
+                    {/* User profile card */}
+                    <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-3">
+                      {userProfile.avatarUrl ? (
+                        <img
+                          src={userProfile.avatarUrl}
+                          alt={userProfile.name}
+                          className="w-10 h-10 rounded-full object-cover border border-amber-300/60 shrink-0"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-700 to-emerald-900 border border-amber-400/50 text-amber-300 flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
+                          {userProfile.initials}
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-bold text-white truncate">
+                          {userProfile.name}
+                        </div>
+                        <div className="text-xs text-amber-300 capitalize font-medium">
+                          {userProfile.role}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Dashboard button */}
+                    <Link 
+                      href={dashboardHref} 
+                      onClick={closeMenu}
+                      className="w-full text-center py-3 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 font-bold text-sm border border-amber-400/40 transition flex items-center justify-center gap-2"
+                    >
+                      <LayoutDashboard size={16} />
+                      <span>{t("myDashboard")}</span>
+                    </Link>
+
+                    {/* Red Sign Out button */}
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full text-center py-2.5 rounded-xl bg-red-950/60 hover:bg-red-900/60 text-red-300 hover:text-red-200 font-bold text-sm border border-red-500/30 transition flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <LogOut size={16} />
+                      <span>{t("signOutLabel")}</span>
+                    </button>
+                  </div>
                 ) : (
                   <Link 
                     href="/login" 

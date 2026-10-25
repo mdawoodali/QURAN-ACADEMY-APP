@@ -2117,3 +2117,33 @@ eceipt_uploaded, and payment_verified.
   - `next build`: 80/80 routes compiled, generated, and optimized with 0 errors.
 
 
+
+
+## 9.91 Public Navigation Bar Authenticated Profile Avatar & Sign Out Flow Integration (2026-10-25)
+
+- **User Profile Avatar Replacement in Public Navbar (`apps/web/src/components/PublicNavbar.tsx`)**:
+  - **Requirement**: Once logged in, the static/text "Log in" link must be replaced by the authenticated user's circular profile picture/avatar pill.
+  - **Implementation**:
+    - Integrated live Supabase client (`createClient()`) to actively query the current user session (`supabase.auth.getUser()`) and database records from the `profiles` table (`first_name`, `last_name`, `role`, `email`, `avatar_url`).
+    - Added fallback support for demo sessions (`demo_role`, `demo_user` cookies) ensuring seamless experience during local development and offline mock modes.
+    - If an avatar image is uploaded or provided in user metadata, renders the circular avatar; otherwise, computes and displays stylized uppercase initials inside an emerald-and-gold gradient badge with role and full name indicators.
+    - Subscribed to Supabase `onAuthStateChange` to dynamically synchronize the navbar in real time when logging in, updating profile details, or signing out.
+- **Interactive Floating Account Dropdown Menu**:
+  - Clicking the profile avatar opens a floating glassmorphic dropdown with smooth Framer Motion animations.
+  - **Menu Contents**:
+    - User identity card: User avatar, full name, email (if available), and role badge (`student`, `teacher`, `admin`, `parent`).
+    - **My Dashboard & Profile option**: Includes `LayoutDashboard` icon, title, and descriptive subtitle linking directly to the user's role-based dashboard (`/dashboard` or `/${role}`).
+    - Subtle divider.
+    - **Sign Out option**: Prominently styled in red (`text-red-300 hover:text-red-100 hover:bg-red-950/60 border border-transparent hover:border-red-500/30`), featuring a red `LogOut` icon.
+    - Clicking Sign Out clears all session cookies (`demo_role`, `demo_user`), executes `supabase.auth.signOut()`, resets client state, closes menus, and redirects to `/login` with full router refresh.
+  - Added click-outside and `Escape` key listeners to seamlessly dismiss the dropdown.
+- **Mobile Navigation Drawer Synchronization**:
+  - In mobile viewport, replaced the static login button with the user's profile card, a direct button to their dashboard, and a red Sign Out button.
+  - Added mini profile avatar pill next to the trial button and hamburger toggle for instant status feedback on mobile screens.
+- **Localization & Unit Testing**:
+  - Added `myDashboard` translation keys ("My Dashboard" / "میرا ڈیش بورڈ") in `apps/web/src/components/LanguageContext.tsx`.
+  - Added comprehensive test suite `apps/web/src/__tests__/navbar-auth.test.ts` covering initials generation, role-to-dashboard resolution, and session parsing.
+- **Verification & Quality Gate**:
+  - `pnpm test`: 24/24 test suites passed, 176/176 tests passed (100% green).
+  - `pnpm typecheck`: 0 errors.
+  - `next build`: 80/80 routes compiled, generated, and optimized with 0 errors.
