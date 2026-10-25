@@ -2426,3 +2426,44 @@ Investigation revealed why the user could not locate or see the Ayah selector:
 3. **Automated Verification**:
    - All 514 vitest tests passing across 30 test files (100% green).
    - TypeScript compilation verified with 0 errors (`tsc --noEmit`).
+
+
+---
+
+## 9.101 Demo Classroom Exit Routing & Context-Aware Navigation
+
+### Context & Root Cause Analysis
+The user reported an unexpected redirection after clicking the exit/leave button inside the live interactive demo classroom (`/classroom/demo`):
+> *"why is exiting the demo class taking me here"* (attaching a screenshot of `https://quranacademyapp.vercel.app/parent` showing the Family Learning Hub / Parent Portal Dashboard).
+
+Investigation identified the architectural mechanism and root cause:
+1. **Blind Role-Based Redirection Without Room Context**:
+   In `LiveClassroom.tsx`, the `Confirm Exit` click handler inside `showEndModal` was hardcoded to route users strictly based on their parsed role:
+   ```typescript
+   if (roleParam === "teacher") {
+     router.push("/teacher");
+   } else if (roleParam === "observer") {
+     router.push("/parent");
+   } else {
+     router.push("/student");
+   }
+   ```
+   It did not check `classId === "demo"` or whether the user entered from the public marketing pages.
+2. **Observer Role Inferred from Cookies or Query Params**:
+   When exploring the app, visiting the parent demo flow, or clicking observer links, the cookie `demo_role=parent` (or `?role=observer`) was set. Consequently, `roleParam` was resolved as `"observer"`. When the user concluded exploring the demo classroom and clicked "Leave Class", the application executed `router.push("/parent")`.
+3. **User Experience Impact**:
+   A prospective user exploring the public demo expected to return to the academy home page (`/`). Instead, they were unexpectedly dropped into an internal parent dashboard featuring mock student profiles (`Yusuf Khan`, `Amina Khan`, `Omar Ali`), creating confusion.
+
+### Key Changes Implemented
+1. **Context-Aware Demo Exit Routing**:
+   - In `LiveClassroom.tsx`, updated the exit confirmation modal logic to check `classId === "demo"`.
+   - When exiting the demo classroom, `Confirm Exit` now safely and predictably navigates to the Academy Home Page (`router.push("/")`).
+   - For authenticated users or demo visitors who specifically entered with a role, added an optional secondary link in the modal: *"Or return to Parent/Teacher/Student Dashboard →"* so they retain full control over where to go.
+2. **Clear Modal Copywriting**:
+   - For demo sessions, the modal header now reads *"Exit Demo Classroom?"* with the clear explanatory text: *"Are you sure you want to exit the interactive demo? You will be returned to the academy home page."*
+   - The primary exit button is labeled *"Exit to Home"*.
+3. **Preserved Real Classroom Routing**:
+   - For real scheduled sessions (`classId !== "demo"`), existing routing to `/teacher`, `/parent`, or `/student` remains intact.
+4. **Automated Verification**:
+   - TypeScript compilation verified with 0 errors (`tsc --noEmit`).
+   - Vitest test suite verified: **514 / 514 tests passing** across 30 suites.

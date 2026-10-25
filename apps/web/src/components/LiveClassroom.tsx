@@ -335,37 +335,65 @@ export default function LiveClassroom() {
         {showEndModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4 animate-in zoom-in-95">
             <div className="bg-[#052b20] border border-white/20 rounded-3xl w-full max-w-sm p-6 shadow-2xl text-white">
-              <h2 className="text-xl font-bold font-serif text-white mb-2">Leave Classroom?</h2>
+              <h2 className="text-xl font-bold font-serif text-white mb-2">
+                {classId === "demo" ? "Exit Demo Classroom?" : "Leave Classroom?"}
+              </h2>
               <p className="text-emerald-100/75 mb-6 text-xs leading-relaxed">
-                {roleParam === "teacher"
+                {classId === "demo"
+                  ? "Are you sure you want to exit the interactive demo? You will be returned to the academy home page."
+                  : roleParam === "teacher"
                   ? "Ending this session will conclude live video for all participants and log lesson records in the academy ledger."
                   : "Are you sure you want to exit the classroom? You can re-join anytime while the lesson is active."}
               </p>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setShowEndModal(false)}
-                  className="flex-1 bg-white/10 hover:bg-white/20 text-white py-2.5 rounded-xl font-bold text-xs transition"
-                >
-                  Stay in Class
-                </button>
-                <button
-                  onClick={() => {
-                    if (streamRef.current) {
-                      streamRef.current.getTracks().forEach((t) => t.stop());
-                    }
-                    if (roleParam === "teacher") {
-                      sendModeration("end_class_all");
-                      router.push("/teacher");
-                    } else if (roleParam === "observer") {
-                      router.push("/parent");
-                    } else {
-                      router.push("/student");
-                    }
-                  }}
-                  className="flex-1 bg-red-600 hover:bg-red-500 text-white py-2.5 rounded-xl font-bold text-xs transition shadow-md"
-                >
-                  Confirm Exit
-                </button>
+              <div className="flex flex-col gap-2.5">
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowEndModal(false)}
+                    className="flex-1 bg-white/10 hover:bg-white/20 text-white py-2.5 rounded-xl font-bold text-xs transition cursor-pointer"
+                  >
+                    Stay in Class
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (streamRef.current) {
+                        streamRef.current.getTracks().forEach((t) => t.stop());
+                      }
+                      if (classId === "demo") {
+                        router.push("/");
+                      } else if (roleParam === "teacher") {
+                        sendModeration("end_class_all");
+                        router.push("/teacher");
+                      } else if (roleParam === "observer") {
+                        router.push("/parent");
+                      } else {
+                        router.push("/student");
+                      }
+                    }}
+                    className="flex-1 bg-red-600 hover:bg-red-500 text-white py-2.5 rounded-xl font-bold text-xs transition shadow-md cursor-pointer"
+                  >
+                    {classId === "demo" ? "Exit to Home" : "Confirm Exit"}
+                  </button>
+                </div>
+
+                {classId === "demo" && (queryRole || sessionRole) && (
+                  <button
+                    onClick={() => {
+                      if (streamRef.current) {
+                        streamRef.current.getTracks().forEach((t) => t.stop());
+                      }
+                      const portalTarget =
+                        roleParam === "teacher"
+                          ? "/teacher"
+                          : roleParam === "observer"
+                          ? "/parent"
+                          : "/student";
+                      router.push(portalTarget);
+                    }}
+                    className="w-full text-center text-[11px] text-amber-300 hover:text-amber-200 underline pt-1 cursor-pointer"
+                  >
+                    Or return to {roleParam === "observer" ? "Parent" : roleParam === "teacher" ? "Teacher" : "Student"} Dashboard →
+                  </button>
+                )}
               </div>
             </div>
           </div>
