@@ -70,7 +70,7 @@ export default function DiagnosticsPage() {
     localStorage.removeItem("dev_simulated_version");
     setSimulatedVersion(null);
     window.dispatchEvent(new Event("dev_version_changed"));
-    toast.success("Restored authentic version (1.1.0)");
+    toast.success(`Restored authentic version (${APP_VERSION})`);
   };
 
   // 2. Hard Purge All Caches & Service Worker
@@ -243,7 +243,7 @@ export default function DiagnosticsPage() {
             <span className="text-xs text-stone-400 block mb-1">Client Active State</span>
             <span className="text-sm font-bold text-white flex items-center gap-1.5 mt-1">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span>{simulatedVersion ? `Simulating v${simulatedVersion}` : "Up to Date (v1.1.0)"}</span>
+              <span>{simulatedVersion ? `Simulating v${simulatedVersion}` : `Up to Date (v${APP_VERSION})`}</span>
             </span>
           </div>
         </div>

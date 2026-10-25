@@ -3,7 +3,7 @@
  * Enforces unified semantic versioning across Web, PWA, Android, and iOS.
  */
 
-export const APP_VERSION = "1.1.0";
+export const APP_VERSION = "1.1.1";
 export const MIN_SUPPORTED_VERSION = "1.1.0";
 export const BUILD_CHANNEL = "production";
 

@@ -4,7 +4,7 @@
  * for live 1-on-1 classroom alerts.
  */
 
-const CACHE_NAME = "quran-academy-v1.1.0";
+const CACHE_NAME = "quran-academy-v1.1.1";
 const STATIC_ASSETS = [
   "/",
   "/manifest.json",

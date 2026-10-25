@@ -78,7 +78,7 @@ export const translations = {
     termsConditions: "Terms and Conditions",
     privacyPolicy: "Privacy Policy",
     refundPolicy: "Delivery & Refund Policy",
-    copyright: "Copyright © 2026 Quran Learn Academy. All Rights Reserved | A Project by Teletek Solutions",
+    copyright: "Copyright © 2026 Quran Learn Academy. All Rights Reserved | A Project by Areeb Iqbal and Isbah Arfin",
 
     // Home Hero
     heroSubtitle: "Personal guidance. Every lesson.",
@@ -261,7 +261,7 @@ export const translations = {
     termsConditions: "شرائط و ضوابط",
     privacyPolicy: "پرائیویسی پالیسی",
     refundPolicy: "ڈلیوری و ریفنڈ پالیسی",
-    copyright: "جملہ حقوق بحق قرآن لرن اکیڈمی ۲۰۲۶ محفوظ ہیں | پراجیکٹ برائے ٹیلی ٹیک سلوشنز",
+    copyright: "جملہ حقوق بحق قرآن لرن اکیڈمی ۲۰۲۶ محفوظ ہیں | پراجیکٹ برائے اریب اقبال اور عصبہ عرفین",
 
     // Home Hero
     heroSubtitle: "انفرادی رہنمائی۔ ہر سبق۔",

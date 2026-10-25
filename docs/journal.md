@@ -1979,3 +1979,22 @@ eceipt_uploaded, and payment_verified.
   - `pnpm typecheck`: 0 errors.
   - `pnpm test`: 23/23 test suites passed, 172/172 tests passed (100% green).
   - Next.js Turbopack Production Build (`next build`): 80/80 routes compiled cleanly in 4.3s with 0 errors.
+
+---
+
+---
+
+## 9.86 Project Attribution Update & Dynamic Version Synchronization (2026-10-25)
+
+- **Project Authorship & Attribution Update (`LanguageContext.tsx`)**:
+  - Updated footer copyright string from legacy "A Project by Teletek Solutions" to **"A Project by Areeb Iqbal and Isbah Arfin"** in English.
+  - Updated localized Urdu translation to **"جملہ حقوق بحق قرآن لرن اکیڈمی ۲۰۲۶ محفوظ ہیں | پراجیکٹ برائے اریب اقبال اور عصبہ عرفین"**.
+- **Authoritative Version Bump to `v1.1.1`**:
+  - Bumped application semantic version to `1.1.1` in `@quran/contracts` (`packages/contracts/src/version.ts`), `version.json`, `sw.js`, and monorepo `package.json` manifests.
+- **Dynamic Version Binding in Presentation Layer (`Footer.tsx`, `PublicNavbar.tsx`)**:
+  - Replaced hardcoded static string `"v1.1.0"` in `Footer.tsx` and `PublicNavbar.tsx` with dynamic `v{APP_VERSION}` imported directly from `@quran/contracts`.
+  - Replaced static strings in `admin/diagnostics/page.tsx` with dynamic `v{APP_VERSION}` binding.
+  - Guarantees the deployed application footer and navigation bars always render the exact, latest semantic version number automatically.
+- **Verification**:
+  - Vitest test suite: 170/170 tests passing across all 23 suites.
+  - Zero linting errors.
