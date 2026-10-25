@@ -109,7 +109,7 @@ export async function middleware(request: NextRequest) {
       url.pathname = demoRole === "superadmin" ? "/admin" : `/${demoRole}`;
       return NextResponse.redirect(url);
     }
-    if (isAuthRoute && !url.searchParams.has("error")) {
+    if (isAuthRoute && !url.searchParams.has("error") && !normalizedPath.startsWith("/register/select-role")) {
       const redirectParam = url.searchParams.get("redirect");
       const safeRedirect = sanitizeRedirectPath(redirectParam);
       if (safeRedirect) {
@@ -208,8 +208,8 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  if (user && isAuthRoute) {
-    let profileRole = "student";
+  if (user && isAuthRoute && !normalizedPath.startsWith("/register/select-role")) {
+    let profileRole: string | null = null;
     try {
       const profilePromise = supabase
         .from("profiles")
@@ -222,7 +222,13 @@ export async function middleware(request: NextRequest) {
       const res = await Promise.race([profilePromise, profileTimeout]) as { data: { role?: string } | null };
       if (res?.data?.role) profileRole = res.data.role;
     } catch {
-      profileRole = "student";
+      profileRole = null;
+    }
+
+    if (!profileRole) {
+      url.pathname = "/register/select-role";
+      url.search = "";
+      return NextResponse.redirect(url);
     }
 
     const redirectParam = url.searchParams.get("redirect");

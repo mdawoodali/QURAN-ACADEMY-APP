@@ -2306,3 +2306,29 @@ eceipt_uploaded, and payment_verified.
   - pnpm lint: 0 errors.
   - 
 ext build: 80/80 routes compiled cleanly with Turbopack.
+
+## 9.97 Explicit Account Type Selection Hub, Dedicated Parent Registration & OAuth Role Onboarding (2026-10-25)
+
+- **Context & User Requirement**:
+  - Addressed the user feedback: *"i wasnt asked anywhere what i was signing up as"*. Previously, the platform lacked an account registration hub, had no parent registration route, and automatically defaulted OAuth sign-ups without explicitly asking the user their role (Student, Parent, or Teacher).
+- **Central Account Registration Hub (/register)**:
+  - Created [pps/web/src/app/(public)/register/page.tsx](file:///C:/Users/ESHOP/.gemini/antigravity/scratch/QuranAcademy/apps/web/src/app/(public)/register/page.tsx) presenting three interactive account type cards:
+    1. **Student / Learner**: Individual Quran recitation, Tajweed, and homework tracking (/register/student).
+    2. **Parent / Family Guardian**: Multi-child family management, attendance tracking, and unified tuition billing (/register/parent).
+    3. **Quran Teacher / Tutor**: Certified tutor application for 1-on-1 teaching (/register/teacher).
+  - Added 1-tap role-specific Google OAuth triggers directly on the registration hub (Google as Student, Google as Parent, Google as Teacher).
+- **Dedicated Parent Registration Flow (/register/parent)**:
+  - Implemented [pps/web/src/app/(public)/register/parent/page.tsx](file:///C:/Users/ESHOP/.gemini/antigravity/scratch/QuranAcademy/apps/web/src/app/(public)/register/parent/page.tsx) and server action [ctions.ts](file:///C:/Users/ESHOP/.gemini/antigravity/scratch/QuranAcademy/apps/web/src/app/(public)/register/parent/actions.ts).
+  - Captures parent guardian details, WhatsApp contact, initial child details (name, age), and preferred Quran track.
+  - Automatically provisions profiles record with ole: 'parent', binds session cookies (demo_role: 'parent'), and navigates to the Parent Portal (/parent).
+- **Onboarding Role Selection for Google OAuth (/register/select-role)**:
+  - Implemented [pps/web/src/app/(public)/register/select-role/page.tsx](file:///C:/Users/ESHOP/.gemini/antigravity/scratch/QuranAcademy/apps/web/src/app/(public)/register/select-role/page.tsx) and confirmRole action.
+  - In [pps/web/src/app/auth/callback/route.ts](file:///C:/Users/ESHOP/.gemini/antigravity/scratch/QuranAcademy/apps/web/src/app/auth/callback/route.ts), when a brand-new user signs in with Google without an established role, they are redirected to /register/select-role to explicitly select their role before accessing the platform.
+- **Navigation & Login Integration**:
+  - Added "Sign Up" button next to "Log In" in [PublicNavbar.tsx](file:///C:/Users/ESHOP/.gemini/antigravity/scratch/QuranAcademy/apps/web/src/components/PublicNavbar.tsx) across desktop and mobile menus.
+  - Upgraded [login/page.tsx](file:///C:/Users/ESHOP/.gemini/antigravity/scratch/QuranAcademy/apps/web/src/app/(public)/login/page.tsx) with a prominent "Create Account — Choose Your Role" CTA and direct links to Student, Parent, and Teacher registration.
+- **Verification**:
+  - pnpm test: 29/29 suites passed, **509/509 tests passed**.
+  - pnpm typecheck: 0 errors.
+  - 
+ext build: **83/83 static & dynamic routes compiled** with Turbopack.

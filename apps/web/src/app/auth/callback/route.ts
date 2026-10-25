@@ -31,14 +31,50 @@ export async function GET(request: Request) {
           .from("profiles")
           .select("role, first_name, last_name")
           .eq("id", data.user.id)
-          .single();
+          .maybeSingle();
 
-        const role = profile?.role || data.user.user_metadata?.role || "student";
+        const pendingRole = cookieStore.get("pending_oauth_role")?.value;
+        if (cookieStore.has("pending_oauth_role")) {
+          cookieStore.delete("pending_oauth_role");
+        }
+
+        const role = profile?.role || pendingRole || (data.user.user_metadata?.role as string | undefined);
         const name =
           `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() ||
           data.user.user_metadata?.full_name ||
-          data.user.email ||
+          data.user.email?.split("@")[0] ||
           "Student";
+
+        // If the user has NO assigned role (e.g. brand new user who signed in without choosing a role),
+        // redirect them to the role selection page so they are explicitly asked what they are signing up as!
+        if (!role) {
+          cookieStore.set("demo_user", name, { path: "/", maxAge: 60 * 60 * 24 * 7 });
+          const roleSelectResponse = NextResponse.redirect(new URL("/register/select-role", origin));
+          roleSelectResponse.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+          cookieStore.getAll().forEach((cookie) => {
+            roleSelectResponse.cookies.set(cookie.name, cookie.value, {
+              path: "/",
+              sameSite: "lax",
+              secure: process.env.NODE_ENV === "production",
+            });
+          });
+          return roleSelectResponse;
+        }
+
+        // Upsert role into profiles table if not present
+        if (!profile?.role && role) {
+          try {
+            await supabase.from("profiles").upsert({
+              id: data.user.id,
+              role,
+              email: data.user.email,
+              first_name: name.split(" ")[0] || "User",
+              last_name: name.split(" ").slice(1).join(" ") || "",
+            });
+          } catch (upsertErr) {
+            console.warn("[AuthCallback] Profiles upsert error:", upsertErr);
+          }
+        }
 
         const targetPath =
           safeRedirect ||

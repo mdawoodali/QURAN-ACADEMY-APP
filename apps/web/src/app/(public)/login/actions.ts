@@ -191,6 +191,16 @@ export async function loginWithGoogle(formData?: FormData) {
   const redirectParam = (formData?.get('redirect') as string || '').trim()
   const safeRedirect = await getSafeRedirectPath(redirectParam)
 
+  const requestedRole = (formData?.get('role') as string || '').trim().toLowerCase()
+  if (['student', 'parent', 'teacher'].includes(requestedRole)) {
+    cookieStore.set('pending_oauth_role', requestedRole, {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'lax',
+      maxAge: 600,
+    })
+  }
+
   const headerList = await headers()
   const host = headerList.get('x-forwarded-host') || headerList.get('host')
   const proto = headerList.get('x-forwarded-proto') || (host && host.includes('localhost') ? 'http' : 'https')

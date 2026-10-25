@@ -113,12 +113,40 @@ export default function LoginPage(props: { searchParams: Promise<{ error?: strin
             <button formAction={login} className="w-full bg-amber-400 hover:bg-amber-300 text-emerald-950 py-3.5 rounded-xl font-bold transition shadow-md cursor-pointer">
               Sign In
             </button>
-            <div className="flex gap-2">
-              <Link href="/register/student" className="w-1/2 text-center bg-white/10 hover:bg-white/20 text-white border border-white/20 py-3 rounded-xl font-bold transition text-sm">
-                Register Student
+
+            <div className="relative flex py-2 items-center">
+              <div className="flex-grow border-t border-white/10"></div>
+              <span className="flex-shrink mx-3 text-[11px] font-semibold text-emerald-100/60 uppercase tracking-wider">
+                New to Quran Learn Academy?
+              </span>
+              <div className="flex-grow border-t border-white/10"></div>
+            </div>
+
+            <Link
+              href="/register"
+              className="w-full text-center bg-white/15 hover:bg-white/25 text-white border border-white/20 py-3 rounded-xl font-bold transition text-sm flex items-center justify-center gap-2"
+            >
+              <span>Create Account — Choose Your Role</span>
+            </Link>
+
+            <div className="grid grid-cols-3 gap-2 text-center text-xs">
+              <Link
+                href="/register/student"
+                className="py-2 px-1 bg-white/10 hover:bg-white/20 text-emerald-100 border border-white/15 rounded-lg transition"
+              >
+                🎓 Student
               </Link>
-              <Link href="/register/teacher" className="w-1/2 text-center bg-white/10 hover:bg-white/20 text-white border border-white/20 py-3 rounded-xl font-bold transition text-sm">
-                Apply to Teach
+              <Link
+                href="/register/parent"
+                className="py-2 px-1 bg-amber-400/20 hover:bg-amber-400 text-amber-300 hover:text-emerald-950 border border-amber-400/30 rounded-lg font-bold transition"
+              >
+                👨‍👩‍👧 Parent
+              </Link>
+              <Link
+                href="/register/teacher"
+                className="py-2 px-1 bg-white/10 hover:bg-white/20 text-emerald-100 border border-white/15 rounded-lg transition"
+              >
+                📖 Teacher
               </Link>
             </div>
           </div>
