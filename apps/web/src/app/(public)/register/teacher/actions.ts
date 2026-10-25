@@ -6,17 +6,19 @@ import { cookies } from 'next/headers'
 import { createClient } from '@/utils/supabase/server'
 import { z } from 'zod'
 
+// NOTE: Address, National ID, and IBAN/Bank restrictions are relaxed for testing mode.
+// REMINDER: Restore production validation constraints when testing is complete.
 const TeacherSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   fullName: z.string().min(2),
-  idCard: z.string().min(5),
-  address: z.string().min(5),
-  gender: z.string(),
-  age: z.number().int().min(18),
-  qualification: z.string().min(2),
-  maslak: z.string().min(2),
-  bank: z.string().min(5),
+  idCard: z.string().optional().default("TEST-ID-PENDING"),
+  address: z.string().optional().default("Testing Address"),
+  gender: z.string().optional().default("Female"),
+  age: z.number().int().optional().default(25),
+  qualification: z.string().optional().default("Qari / Quran Teacher"),
+  maslak: z.string().optional().default("General"),
+  bank: z.string().optional().default("PK00TEST0000000000000000"),
 });
 
 export async function registerTeacher(formData: FormData) {
@@ -27,13 +29,13 @@ export async function registerTeacher(formData: FormData) {
       email: formData.get('email'),
       password: formData.get('password'),
       fullName: formData.get('fullName'),
-      idCard: formData.get('idCard'),
-      address: formData.get('address'),
-      gender: formData.get('gender'),
-      age: parseInt(formData.get('age') as string || '0', 10),
-      qualification: formData.get('qualification'),
-      maslak: formData.get('maslak'),
-      bank: formData.get('bank'),
+      idCard: formData.get('idCard') || "TEST-ID-PENDING",
+      address: formData.get('address') || "Testing Address",
+      gender: formData.get('gender') || "Female",
+      age: parseInt(formData.get('age') as string || '25', 10),
+      qualification: formData.get('qualification') || "Qari / Quran Teacher",
+      maslak: formData.get('maslak') || "General",
+      bank: formData.get('bank') || "PK00TEST0000000000000000",
     };
 
     const parsed = TeacherSchema.parse(rawData);

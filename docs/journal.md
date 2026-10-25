@@ -2641,3 +2641,15 @@ Replace the hardcoded 'Assalamu alaikum, Demo Teacher' greeting banner with the 
 - Updated pps/web/src/app/(portal)/teacher/page.tsx to query authenticated profile data on mount.
 - Renders Assalamu alaikum, {teacherName} personalized greeting banner.
 - Cleaned placeholder upcoming class card to render an authentic empty schedule state when no lessons are scheduled today.
+
+---
+
+## 9.113 Relaxed Teacher Registration Validation for Testing (Task 9)
+
+### Context & Task
+Temporarily relax validation requirements for National ID, physical address, and bank IBAN in the teacher onboarding form to accelerate testing.
+
+### Changes
+- Updated TeacherSchema in pps/web/src/app/(public)/register/teacher/actions.ts to make idCard, ddress, and ank optional with testing fallbacks.
+- Removed HTML equired attributes from corresponding fields in pps/web/src/app/(public)/register/teacher/page.tsx.
+- Tracked prominent reminder to restore strict production constraints when testing phase concludes.

@@ -36,12 +36,11 @@ export default async function TeacherRegistrationPage(props: { searchParams: Pro
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-emerald-100 mb-2">National ID / Passport</label>
+              <label className="block text-sm font-semibold text-emerald-100 mb-2">National ID / Passport (Optional during testing)</label>
               <input 
                 name="idCard" 
-                required 
                 className="w-full px-4 py-3 bg-black/40 border border-white/20 rounded-xl text-white placeholder:text-emerald-200/40 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all text-sm" 
-                placeholder="••••••••••••••" 
+                placeholder="Testing ID (optional)" 
               />
             </div>
             <div>
@@ -65,12 +64,11 @@ export default async function TeacherRegistrationPage(props: { searchParams: Pro
               />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-semibold text-emerald-100 mb-2">Complete address</label>
+              <label className="block text-sm font-semibold text-emerald-100 mb-2">Complete address (Optional during testing)</label>
               <input 
                 name="address" 
-                required 
                 className="w-full px-4 py-3 bg-black/40 border border-white/20 rounded-xl text-white placeholder:text-emerald-200/40 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all text-sm" 
-                placeholder="OTP verified • address entered" 
+                placeholder="Testing address (optional)" 
               />
             </div>
             <div>
@@ -111,12 +109,11 @@ export default async function TeacherRegistrationPage(props: { searchParams: Pro
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-emerald-100 mb-2">Bank / account title / IBAN</label>
+              <label className="block text-sm font-semibold text-emerald-100 mb-2">Bank / account title / IBAN (Optional during testing)</label>
               <input 
                 name="bank" 
-                required 
                 className="w-full px-4 py-3 bg-black/40 border border-white/20 rounded-xl text-white placeholder:text-emerald-200/40 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all text-sm" 
-                placeholder="Bank selected • •••• 4821" 
+                placeholder="Testing IBAN (optional)" 
               />
             </div>
           </div>
