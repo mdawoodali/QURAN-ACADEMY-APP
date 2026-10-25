@@ -2147,3 +2147,4 @@ eceipt_uploaded, and payment_verified.
   - `pnpm test`: 24/24 test suites passed, 176/176 tests passed (100% green).
   - `pnpm typecheck`: 0 errors.
   - `next build`: 80/80 routes compiled, generated, and optimized with 0 errors.
+  - `eslint`: 0 errors (strict prefer-const compliance verified).

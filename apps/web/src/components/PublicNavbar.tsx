@@ -123,7 +123,7 @@ export default function PublicNavbar() {
         if (demoRole || demoUser) {
           setIsLoggedIn(true);
           let name = demoUser || "Demo Student";
-          let role = demoRole || "student";
+          const role = demoRole || "student";
           if (role === "admin" && (!demoUser || demoUser === "Demo Student")) name = "Super Admin";
           if (role === "teacher" && (!demoUser || demoUser === "Demo Student")) name = "Demo Teacher";
           if (role === "parent" && (!demoUser || demoUser === "Demo Student")) name = "Family Guardian";
