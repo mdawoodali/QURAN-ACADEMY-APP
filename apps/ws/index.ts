@@ -125,6 +125,11 @@ export const wss = new WebSocketServer({ server });
 export const broker: RoomMessageBroker = getBroker();
 export const clientRooms = new Map<string, Set<AuthenticatedClient>>();
 
+// Concurrency & Backpressure Guardrails for 10,000+ Concurrent Sessions
+export const MAX_TOTAL_CONNECTIONS = 15000;
+export const MAX_BUFFERED_AMOUNT = 512 * 1024; // 512 KB threshold
+export const SEVERE_BUFFERED_AMOUNT = 1024 * 1024; // 1 MB forced disconnect threshold
+
 // Heartbeat ping interval: 30 seconds
 export const heartbeatInterval = setInterval(() => {
   wss.clients.forEach((ws) => {
@@ -145,6 +150,13 @@ wss.on('close', () => {
 wss.on('connection', (socket: WebSocket, req: http.IncomingMessage) => {
   const client = socket as AuthenticatedClient;
   client.isAlive = true;
+
+  // 1. Connection Capacity Guardrail for high concurrency bursts
+  if (wss.clients.size > MAX_TOTAL_CONNECTIONS) {
+    console.warn('[WS] Server connection capacity limit exceeded. Rejecting connection.');
+    client.close(4003, 'Server connection capacity reached');
+    return;
+  }
 
   client.on('pong', () => {
     client.isAlive = true;
@@ -170,9 +182,19 @@ wss.on('connection', (socket: WebSocket, req: http.IncomingMessage) => {
 
   console.log(`[WS] Client ${client.clientId} joined class ${classId}. Room size: ${clientRooms.get(classId)!.size}`);
 
-  // Subscribe client to room broker messages
+  // Subscribe client to room broker messages with backpressure monitoring
   const unsubscribe = broker.subscribe(classId, (senderId, rawMessage) => {
     if (client.clientId !== senderId && client.readyState === WebSocket.OPEN) {
+      // 2. Slow-consumer memory leak protection & backpressure control
+      if (client.bufferedAmount > SEVERE_BUFFERED_AMOUNT) {
+        console.warn(`[WS] Severe backpressure on client ${client.clientId} (${client.bufferedAmount} bytes). Terminating to protect server heap.`);
+        client.terminate();
+        return;
+      }
+      if (client.bufferedAmount > MAX_BUFFERED_AMOUNT) {
+        // Drop high-frequency transient synchronization frame under buffer congestion
+        return;
+      }
       client.send(rawMessage);
     }
   });
