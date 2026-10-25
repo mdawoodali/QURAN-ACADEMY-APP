@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Calendar, Clock, Video, Database } from "lucide-react";
+import { Calendar, Clock, Video } from "lucide-react";
 import { getAcademySchedules, RecurringScheduleRecord } from "@/server/schedulingRepository";
 
 export default function StudentClasses() {
@@ -22,12 +22,9 @@ export default function StudentClasses() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <h1 className="text-3xl md:text-4xl font-serif text-white">My Classes</h1>
-            <span className="flex items-center gap-1 text-[11px] font-bold bg-emerald-950/80 text-amber-300 border border-amber-400/30 px-2.5 py-0.5 rounded-full">
-              <Database size={12} />
-              <span>Database Backed</span>
-            </span>
+            
           </div>
-          <p className="text-emerald-100/80 text-sm">View upcoming 1-on-1 sessions and schedule changes stored in PostgreSQL.</p>
+          <p className="text-emerald-100/80 text-sm">View upcoming 1-on-1 sessions and schedule changes.</p>
         </div>
         <Link 
           href="/classroom/demo?role=student" 

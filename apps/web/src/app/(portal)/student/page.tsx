@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Database, Clock, BookOpen, Star, Video } from "lucide-react";
+import { Clock, BookOpen, Star, Video } from "lucide-react";
 
 interface StudentSchedule {
   course: string;
@@ -54,10 +54,7 @@ export default function StudentDashboard() {
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-1">
           <h1 className="text-3xl md:text-4xl font-serif text-white">Assalamu alaikum, Yusuf</h1>
-          <span className="flex items-center gap-1 text-[11px] font-bold bg-emerald-950/80 text-amber-300 border border-amber-400/30 px-2.5 py-0.5 rounded-full">
-            <Database size={12} />
-            <span>Database Sync</span>
-          </span>
+          
         </div>
         <p className="text-emerald-100/85 text-sm">Your learning day, clearly organised.</p>
       </div>

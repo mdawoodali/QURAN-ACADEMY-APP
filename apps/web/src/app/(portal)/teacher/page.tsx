@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Video, Clock, BookOpen, User, Database } from "lucide-react";
+import { Video, Clock, BookOpen, User } from "lucide-react";
 
 interface UpcomingClass {
   studentName: string;
@@ -79,10 +79,7 @@ export default function TeacherDashboard() {
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-1">
           <h1 className="text-3xl md:text-4xl font-serif text-white">Assalamu alaikum, Demo Teacher</h1>
-          <span className="flex items-center gap-1 text-[11px] font-bold bg-emerald-950/80 text-amber-300 border border-amber-400/30 px-2.5 py-0.5 rounded-full">
-            <Database size={12} />
-            <span>Live Session Link</span>
-          </span>
+          
         </div>
         <p className="text-emerald-100/80 text-sm">Your teaching agenda, lesson notes, and student progress in one unified cockpit.</p>
       </div>
@@ -139,7 +136,7 @@ export default function TeacherDashboard() {
               {loading ? "..." : `${scheduledCount} Classes`}
             </div>
             <p className="text-xs text-emerald-100/80 mb-6">
-              {(scheduledCount * 0.5).toFixed(1)} teaching hours scheduled in database
+              {(scheduledCount * 0.5).toFixed(1)} teaching hours scheduled this week
             </p>
 
             <div className="space-y-3 border-t border-white/10 pt-4 text-xs">
@@ -148,8 +145,8 @@ export default function TeacherDashboard() {
                 <span className="font-bold text-white">{scheduledCount} registered</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-emerald-100/75">Curriculum Sync:</span>
-                <span className="font-bold text-amber-300">LiveKit / Supabase</span>
+                <span className="text-emerald-100/75">Curriculum:</span>
+                <span className="font-bold text-emerald-300">Up to Date</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-emerald-100/75">Notes awaiting:</span>
@@ -182,8 +179,8 @@ export default function TeacherDashboard() {
 
         <div className="glass-container rounded-3xl p-6 border border-white/15 shadow-xl text-white">
           <h3 className="text-xs font-bold text-amber-300 uppercase tracking-widest mb-2">Classroom Status</h3>
-          <div className="text-xl font-bold text-white mb-1">Sub-100ms Low-Latency</div>
-          <p className="text-xs text-emerald-100/80">Vector Mushaf &amp; Tajweed highlighters ready</p>
+          <div className="text-xl font-bold text-white mb-1">Interactive Classroom</div>
+          <p className="text-xs text-emerald-100/80">Digital Mushaf &amp; Tajweed tools ready</p>
         </div>
 
         <Link

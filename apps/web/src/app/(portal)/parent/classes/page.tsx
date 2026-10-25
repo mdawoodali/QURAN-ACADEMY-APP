@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Calendar, Clock, Video, Eye, ShieldCheck, User, Database } from "lucide-react";
+import { Calendar, Clock, Video, Eye, ShieldCheck, User } from "lucide-react";
 
 interface ChildClass {
   id: string;
@@ -102,10 +102,7 @@ export default function ParentClasses() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <h1 className="text-3xl md:text-4xl font-serif text-white">Family Class Schedule</h1>
-            <span className="flex items-center gap-1 text-[11px] font-bold bg-emerald-950/80 text-amber-300 border border-amber-400/30 px-2.5 py-0.5 rounded-full">
-              <Database size={12} />
-              <span>Database Backed</span>
-            </span>
+            
           </div>
           <p className="text-emerald-100/80 text-sm">
             Monitor your children's live lessons, join unannounced as a silent observer, and review weekly timetables.

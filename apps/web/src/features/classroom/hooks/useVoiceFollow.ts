@@ -193,9 +193,9 @@ export function useVoiceFollow({ currentWords, onMatchWord }: UseVoiceFollowOpti
             deepgramRecorderRef.current = recorder;
             setActiveSpeechEngine("Deepgram AI");
             setVoiceError(null);
-            toast.success("AI Arabic Voice Follow active (Deepgram Nova-3)");
+            toast.success("AI Voice Follow active");
           } catch {
-            setVoiceError("Microphone access denied for Deepgram streaming.");
+            setVoiceError("Microphone access denied for voice following.");
           }
         };
 

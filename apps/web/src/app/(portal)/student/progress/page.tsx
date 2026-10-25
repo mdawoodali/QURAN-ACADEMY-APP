@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { FadeIn, StaggerContainer, StaggerItem, ScaleIn } from "@/components/Animations";
 import { motion } from "framer-motion";
-import { Database } from "lucide-react";
+
 
 interface Note {
   date: string;
@@ -79,10 +79,7 @@ export default function StudentProgress() {
         <StaggerItem className="glass-container rounded-3xl p-8 border border-white/15 shadow-xl">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold font-serif text-white">Recent Teacher Notes</h2>
-            <span className="flex items-center gap-1 text-[10px] font-bold bg-emerald-950/80 text-amber-300 border border-amber-400/30 px-2 py-0.5 rounded-full">
-              <Database size={10} />
-              <span>Live Database</span>
-            </span>
+            
           </div>
           <StaggerContainer className="space-y-4 max-h-[300px] overflow-y-auto pr-1">
             {loading ? (

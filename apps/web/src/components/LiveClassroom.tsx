@@ -258,7 +258,7 @@ export default function LiveClassroom() {
     setBandwidthMode(nextMode);
     sendToolSync({ bandwidthMode: nextMode });
     if (nextMode === "audio_only") {
-      toast("Audio-Only Low Bandwidth Mode Active (Saving Data)", { icon: "⚡" });
+      toast("Audio-Only Mode Active (Saving Data)", { icon: "⚡" });
     } else {
       toast.success("Adaptive HD Video Mode Restored");
     }
@@ -270,7 +270,7 @@ export default function LiveClassroom() {
       {connectionStatus === "reconnecting" && (
         <div className="absolute top-16 left-1/2 -translate-x-1/2 z-50 bg-amber-500 text-emerald-950 px-4 py-1.5 rounded-full font-bold text-xs sm:text-sm flex items-center gap-2 shadow-2xl border border-amber-300 animate-pulse">
           <span className="w-2 h-2 rounded-full bg-emerald-950 animate-ping" />
-          <span>Connection fluctuating — Re-establishing classroom sync...</span>
+          <span>Connection fluctuating — Reconnecting...</span>
         </div>
       )}
 
@@ -522,10 +522,10 @@ export default function LiveClassroom() {
           <div className="flex-1 glass-container rounded-3xl border border-white/15 shadow-2xl flex flex-col p-4 md:p-6 overflow-hidden relative">
             <div className="text-xs text-emerald-100/80 mb-3 shrink-0 flex justify-between items-center border-b border-white/10 pb-2">
               <span className="text-xs font-semibold text-emerald-300">
-                {isStudentUnlocked ? "Student Mode: Autonomous" : "Following Teacher Live (<50ms Sync)"}
+                {isStudentUnlocked ? "Student Mode: Autonomous" : "Following Teacher Live"}
               </span>
               <span className="text-[10px] font-mono text-amber-300 bg-black/40 px-2 py-0.5 rounded-full border border-white/10">
-                {livekitStatus?.mode === "live" ? "LiveKit WebRTC" : "WebRTC Direct"}
+                Live Class
               </span>
             </div>
 

@@ -140,7 +140,7 @@ export default function ClassroomHeader({
         >
           <Mic size={14} className={isVoiceFollowOn ? "animate-pulse text-amber-300" : ""} />
           <span className="hidden sm:inline">
-            {isVoiceFollowOn ? `AI Following (${activeSpeechEngine || "Active"})` : "AI Voice Follow"}
+            {isVoiceFollowOn ? "AI Voice Following" : "AI Voice Follow"}
           </span>
         </button>
 
@@ -154,7 +154,7 @@ export default function ClassroomHeader({
           <div className="flex items-center gap-1.5 bg-emerald-950/80 text-emerald-300 border border-emerald-500/30 px-2.5 py-1 rounded-xl text-[10px] font-bold">
             <Wifi size={12} className="text-emerald-400" />
             <span className="hidden md:inline">
-              {livekitStatus?.mode === "live" ? "LiveKit 48kHz HD" : "P2P WebRTC"}
+              Connected
             </span>
           </div>
         )}

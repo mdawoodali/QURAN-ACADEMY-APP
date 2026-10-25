@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Database, CheckCircle2, X, User } from "lucide-react";
+import { Plus, CheckCircle2, X, User } from "lucide-react";
 import { getAcademySchedules, addRecurringSchedule, RecurringScheduleRecord, TeacherAssignmentRecord } from "@/server/schedulingRepository";
 import toast from "react-hot-toast";
 
@@ -62,13 +62,10 @@ export default function AdminScheduling() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <h1 className="text-3xl md:text-4xl font-serif text-white">Master Academy Calendar</h1>
-            <span className="flex items-center gap-1 text-[11px] font-bold bg-emerald-950/80 text-amber-300 border border-amber-400/30 px-2.5 py-0.5 rounded-full">
-              <Database size={12} />
-              <span>{dataSource}</span>
-            </span>
+            
           </div>
           <p className="text-emerald-100/80 text-sm">
-            Database-persisted recurring weekly slots and teacher-student assignments.
+            Recurring weekly slots and teacher-student assignments.
           </p>
         </div>
 
@@ -273,7 +270,7 @@ export default function AdminScheduling() {
       )}
 
       <p className="text-xs text-emerald-100/60 mt-6 text-center">
-        Recurring weekly slots • PostgreSQL/Supabase backing • Timezone anchor display • Automatic attendance materialisation
+        Recurring weekly timetable • Live timezone synchronization • Automatic attendance records
       </p>
     </div>
   );

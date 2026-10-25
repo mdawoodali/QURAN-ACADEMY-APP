@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { CheckCircle2, Clock, Building2, Download, ShieldCheck, ArrowDownToLine, Database } from "lucide-react";
+import { CheckCircle2, Clock, Building2, Download, ShieldCheck, ArrowDownToLine } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface PayoutRecord {
@@ -84,10 +84,7 @@ export default function TeacherEarnings() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <h1 className="text-3xl md:text-4xl font-serif text-white">Teacher Compensation &amp; Records</h1>
-            <span className="flex items-center gap-1 text-[11px] font-bold bg-emerald-950/80 text-amber-300 border border-amber-400/30 px-2.5 py-0.5 rounded-full">
-              <Database size={12} />
-              <span>Database Persisted</span>
-            </span>
+            
           </div>
           <p className="text-emerald-100/80 text-sm">
             Transparent pay records calculated per completed lesson, disbursed monthly directly into your registered bank account.

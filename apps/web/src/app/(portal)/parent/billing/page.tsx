@@ -12,7 +12,6 @@ import {
   FileText, 
   ShieldCheck, 
   ArrowDownToLine,
-  Database
 } from "lucide-react";
 
 interface BankDetails {
@@ -156,10 +155,7 @@ export default function ParentBilling() {
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-1">
           <h1 className="text-3xl md:text-4xl font-serif text-white">Family Tuition &amp; Billing</h1>
-          <span className="flex items-center gap-1 text-[11px] font-bold bg-emerald-950/80 text-amber-300 border border-amber-400/30 px-2.5 py-0.5 rounded-full">
-            <Database size={12} />
-            <span>Direct Multi-Currency Rail</span>
-          </span>
+          
         </div>
         <p className="text-emerald-100/80 text-sm">
           Pay tuition directly via official academy bank wires or Raast with zero intermediary card processing surcharges.

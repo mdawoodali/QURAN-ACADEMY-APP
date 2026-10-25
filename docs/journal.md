@@ -2148,3 +2148,42 @@ eceipt_uploaded, and payment_verified.
   - `pnpm typecheck`: 0 errors.
   - `next build`: 80/80 routes compiled, generated, and optimized with 0 errors.
   - `eslint`: 0 errors (strict prefer-const compliance verified).
+
+
+## 9.92 Comprehensive Elimination of Technical Developer Jargon Across Frontend (2026-10-25)
+
+- **User Requirement**:
+  - The frontend is designed for the common person (students, parents, teachers, and public learners). All technical developer jargon, ping latencies, database synchronization pills, and infrastructure telemetry must be completely removed from the user interface.
+- **Audited and Removed Developer Elements**:
+  - **Latency / Ping / WebRTC Telemetry**:
+    - `DeviceCheckModal.tsx`: Replaced `{pingLatency} ms (Optimal)` with a friendly connection status `Online & Ready`. Replaced `Hardware calibrated • LiveKit 48kHz HD Audio Ready` with `Camera & audio connected`.
+    - `ClassroomHeader.tsx`: Replaced `{livekitStatus?.mode === "live" ? "LiveKit 48kHz HD" : "P2P WebRTC"}` with `Connected`. Replaced `AI Following (activeSpeechEngine)` with `AI Voice Following`.
+    - `ClassroomToolbar.tsx`: Replaced `Laser Pointer Cursor (Synchronized to Student in <30ms)` with clean `Laser Pointer Cursor`.
+    - `LiveClassroom.tsx`: Replaced `Following Teacher Live (<50ms Sync)` with `Following Teacher Live`. Replaced `LiveKit WebRTC` / `WebRTC Direct` with `Live Class`. Replaced `Connection fluctuating — Re-establishing classroom sync...` with `Connection fluctuating — Reconnecting...`.
+    - `useClassroomSync.ts`: Removed intrusive toast notification `LiveKit Cloud WebRTC connected: Room ${data.room}` on room entry.
+    - `useVoiceFollow.ts`: Removed `(Deepgram Nova-3)` from toast and microphone error messages; replaced with clean `AI Voice Follow active`.
+  - **Database & Sync Status Badges**:
+    - Removed `Database Sync` badge from Student Portal home (`student/page.tsx`).
+    - Removed `Database Backed` badge and "stored in PostgreSQL" wording from Student Classes (`student/classes/page.tsx`).
+    - Removed `Database Persisted` badge from Student Billing (`student/billing/page.tsx`).
+    - Removed `Live Database` badge from Student Progress (`student/progress/page.tsx`).
+    - Removed `Audio Sync: Millisecond Precise` from Student Quran practice (`student/quran/page.tsx`).
+    - Removed `Approach 3: Audio-Timestamp Sync` engineering label from Quran practice player (`QuranPracticePlayer.tsx`), replacing with `Word-by-Word Practice`.
+    - Removed `Realtime Database` badge from Parent Portal home (`parent/page.tsx`).
+    - Removed `Database Backed` badge from Parent Classes (`parent/classes/page.tsx`).
+    - Removed `Live Database Notes` badge from Parent Progress (`parent/progress/page.tsx`).
+    - Removed `Direct Multi-Currency Rail` database badge from Parent Billing (`parent/billing/page.tsx`).
+    - Removed `Live Session Link` badge, "in database" phrasing, `LiveKit / Supabase` sync indicator, and `Sub-100ms Low-Latency` classroom status card from Teacher Dashboard (`teacher/page.tsx`).
+    - Removed `Database Backed` badge and technical toast strings from Teacher Students roster (`teacher/students/page.tsx`).
+    - Removed `Database Persisted` badge from Teacher Earnings (`teacher/earnings/page.tsx`).
+    - Removed `Database Sync Active • Admin Upload Ready` monospace badge from Public Resources Hadith empty state (`resources/page.tsx`).
+    - Removed `PostgreSQL Database Active` / `Local In-Memory Cache` badge from Admin Inquiries (`admin/inquiries/page.tsx`).
+    - Removed `PostgreSQL / Supabase Schema (Live)` badge and technical footer text from Admin Scheduling (`admin/scheduling/page.tsx`).
+    - Sanitized `Academy Database & Content Desk` to `Academy Resources & Curriculum Desk` and removed `PostgreSQL Database Active` from Admin Resources (`admin/resources/page.tsx`).
+    - Sanitized `v{APP_VERSION} • Production Portal` to `v{APP_VERSION}` on Sign-In screen (`login/page.tsx`).
+    - Sanitized `Updating & Purging Cache...` to `Updating Application...` in Version Guard (`VersionGuard.tsx`).
+- **Verification & Quality Gate**:
+  - `pnpm test`: 24/24 test suites passed, 176/176 tests passed.
+  - `pnpm typecheck`: 0 errors.
+  - `pnpm lint`: 0 errors.
+  - `next build`: 80/80 routes compiled and generated with 0 errors.

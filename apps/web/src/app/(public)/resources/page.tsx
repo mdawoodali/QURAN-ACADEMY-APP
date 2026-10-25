@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Download, BookOpen, FileText, Search, Sparkles, X, Library, Compass, CircleDot, BookMarked, Copy, Check, Shield, Calendar, Bookmark, ArrowRight, Database } from "lucide-react";
+import { Download, BookOpen, FileText, Search, Sparkles, X, Library, Compass, CircleDot, BookMarked, Copy, Check, Shield, Calendar, Bookmark, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { QURAN_PARAS } from "@/data/quranParas";
 import { DAILY_GUIDES_DATA, GuideResource } from "@/data/guidesData";
@@ -848,10 +848,7 @@ https://quranlearnacademy.com/resources
                 </p>
               </div>
 
-              <div className="pt-2 flex items-center justify-center gap-2 text-xs text-emerald-200/60 font-mono">
-                <Database size={13} className="text-emerald-400" />
-                <span>Database Sync Active • Admin Upload Ready</span>
-              </div>
+              
             </div>
           )}
         </section>

@@ -30,7 +30,7 @@ export default function LoginPage(props: { searchParams: Promise<{ error?: strin
             </div>
           </Link>
           <span className="text-[11px] font-mono text-emerald-300/80 bg-emerald-950/80 border border-emerald-700/40 px-2.5 py-0.5 rounded-full mb-1">
-            v{APP_VERSION} • Production Portal
+            v{APP_VERSION}
           </span>
         </div>
         <h2 className="text-2xl sm:text-3xl font-serif text-white text-center mb-1">Welcome Back</h2>

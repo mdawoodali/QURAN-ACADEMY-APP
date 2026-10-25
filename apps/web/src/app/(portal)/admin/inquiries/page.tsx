@@ -14,8 +14,8 @@ import {
   Trash2,
   Check,
   Send,
-  User,
-  Database
+  User
+
 } from "lucide-react";
 import { ContactInquiryRecord } from "@/app/api/inquiries/route";
 
@@ -136,20 +136,6 @@ export default function AdminInquiriesPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Database indicator */}
-          <div
-            className={`text-xs font-bold px-3 py-1.5 rounded-full border flex items-center gap-1.5 shadow-sm ${
-              dataSource === "database"
-                ? "bg-emerald-950/80 border-emerald-400/40 text-emerald-300"
-                : "bg-amber-950/80 border-amber-400/40 text-amber-300"
-            }`}
-          >
-            <Database size={13} />
-            <span>
-              {dataSource === "database" ? "PostgreSQL Database Active" : "Local In-Memory Cache"}
-            </span>
-          </div>
-
           <button
             onClick={fetchInquiries}
             disabled={isRefreshing}

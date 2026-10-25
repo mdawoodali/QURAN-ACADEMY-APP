@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Download, Award, CheckCircle, BookOpen, Star, FileText, Database } from "lucide-react";
+import { Download, Award, CheckCircle, BookOpen, Star, FileText } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface ChildProgressData {
@@ -148,10 +148,7 @@ export default function ParentProgress() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <h1 className="text-3xl md:text-4xl font-serif text-white">Academic Progress &amp; Hifz Tracking</h1>
-            <span className="flex items-center gap-1 text-[11px] font-bold bg-emerald-950/80 text-amber-300 border border-amber-400/30 px-2.5 py-0.5 rounded-full">
-              <Database size={12} />
-              <span>Live Database Notes</span>
-            </span>
+            
           </div>
           <p className="text-emerald-100/80 text-sm">
             Detailed learning logs, Tajweed mastery ratings, and monthly progress evaluations.

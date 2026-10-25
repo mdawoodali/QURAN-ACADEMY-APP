@@ -518,9 +518,7 @@ export function useClassroomSync({
           username: data.username,
           role: data.role,
         });
-        if (data.mode === "live") {
-          toast.success(`LiveKit Cloud WebRTC connected: Room ${data.room}`);
-        }
+        // LiveKit connected silently without technical toast
       })
       .catch((err) => console.warn("LiveKit token initialization fallback:", err));
 

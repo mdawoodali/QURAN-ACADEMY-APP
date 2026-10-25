@@ -361,11 +361,8 @@ export default function AdminResourcesPage() {
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
           <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <h1 className="text-3xl md:text-4xl font-serif text-white">Academy Database &amp; Content Desk</h1>
-            <span className="flex items-center gap-1 text-[11px] font-bold bg-emerald-950/80 text-amber-300 border border-amber-400/30 px-2.5 py-0.5 rounded-full">
-              <Database size={12} className="text-emerald-400" />
-              <span>{dbStatus === "connected" ? "PostgreSQL Database Active" : "Database Synced"}</span>
-            </span>
+            <h1 className="text-3xl md:text-4xl font-serif text-white">Academy Resources &amp; Curriculum Desk</h1>
+            
           </div>
           <p className="text-emerald-100/80 text-sm max-w-2xl">
             Upload and manage official academy PDF materials across all categories for both Shia and Sunni curricula. All submissions are saved directly to the database.
@@ -373,7 +370,7 @@ export default function AdminResourcesPage() {
         </div>
 
         <div className="text-xs font-bold text-amber-300 bg-black/40 border border-white/10 px-3.5 py-1.5 rounded-full shadow-sm">
-          {documents.length} Resources Persisted in Database
+          {documents.length} Resources Published
         </div>
       </header>
 
@@ -381,7 +378,7 @@ export default function AdminResourcesPage() {
       <div className="glass-container rounded-3xl p-6 md:p-8 border border-white/15 shadow-2xl mb-10">
         <h2 className="text-xl font-bold font-serif text-white mb-4 flex items-center gap-2">
           <UploadCloud className="w-5 h-5 text-amber-300" />
-          <span>Upload New Resource to Database (PDF)</span>
+          <span>Upload New Resource (PDF)</span>
         </h2>
 
         <form onSubmit={handleUploadSubmit} className="space-y-6">
@@ -610,7 +607,7 @@ export default function AdminResourcesPage() {
               }`}
             >
               <UploadCloud size={18} />
-              <span>{isUploading ? "Persisting to Database..." : "Save Single PDF to Database"}</span>
+              <span>{isUploading ? "Uploading Resource..." : "Publish PDF Resource"}</span>
             </button>
           </div>
         </form>
@@ -898,12 +895,12 @@ export default function AdminResourcesPage() {
                   {isBatchSaving ? (
                     <>
                       <Loader2 size={16} className="animate-spin" />
-                      <span>Saving to PostgreSQL Database...</span>
+                      <span>Saving Collections...</span>
                     </>
                   ) : (
                     <>
                       <Database size={16} />
-                      <span>Confirm &amp; Save All {previewHadiths.length} Hadiths to Database</span>
+                      <span>Confirm &amp; Publish All {previewHadiths.length} Hadiths</span>
                     </>
                   )}
                 </button>

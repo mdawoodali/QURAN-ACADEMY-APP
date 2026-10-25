@@ -183,7 +183,7 @@ export default function QuranPracticePlayer() {
         <div>
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold uppercase tracking-wider bg-emerald-950/80 text-amber-300 border border-amber-400/30 px-3 py-1 rounded-full">
-              Approach 3: Audio-Timestamp Sync
+              Word-by-Word Practice
             </span>
             <span className="text-xs text-emerald-100/80 font-medium">
               Surah {verse.surahNumber}:{verse.ayahNumber} ({verse.surahName})

@@ -154,7 +154,7 @@ export default function VersionGuard() {
               className="w-full py-3 rounded-2xl font-bold text-sm bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               <RefreshCw size={16} className={isUpdating ? "animate-spin" : ""} />
-              <span>{isUpdating ? "Updating & Purging Cache..." : `Update to v${serverVersion} Now`}</span>
+              <span>{isUpdating ? "Updating Application..." : `Update to v${serverVersion} Now`}</span>
             </button>
 
             <span className="text-[11px] text-stone-400">

@@ -8,7 +8,7 @@ export default function StudentQuranLibrary() {
     <div className="p-4 md:p-8 max-w-6xl mx-auto h-full flex flex-col text-white">
       <div className="mb-6 shrink-0">
         <h1 className="text-2xl md:text-3xl font-serif text-white mb-1">Quran Library & Sabaq Practice</h1>
-        <p className="text-emerald-100/80 text-sm">Interactive word-by-word practice with Uthmani & IndoPak scripts, Tajweed coloring, and audio sync</p>
+        <p className="text-emerald-100/80 text-sm">Interactive word-by-word practice with Uthmani & IndoPak scripts, Tajweed coloring, and clear recitation audio</p>
       </div>
       
       <div className="flex-1 flex flex-col lg:flex-row gap-6 min-h-0">
@@ -47,7 +47,7 @@ export default function StudentQuranLibrary() {
         <span>•</span>
         <span>Tajweed: Color-Coded Makharij & Rules</span>
         <span>•</span>
-        <span>Audio Sync: Millisecond Precise</span>
+        <span>Recitation: Word-by-Word Audio</span>
         <span>•</span>
         <span>Reciters: Alafasy & Al-Husary</span>
         <span>•</span>

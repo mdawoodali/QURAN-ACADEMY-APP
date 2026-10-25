@@ -98,7 +98,7 @@ export default function ClassroomToolbar({
             ? "bg-red-600 text-white shadow-[0_0_12px_#ff0000] ring-2 ring-amber-300"
             : "bg-white/10 hover:bg-white/20 text-emerald-100"
         }`}
-        title="Laser Pointer Cursor (Synchronized to Student in <30ms)"
+        title="Laser Pointer Cursor"
       >
         <Crosshair size={14} className={isLaserModeActive ? "animate-spin" : ""} />
         <span>Laser</span>

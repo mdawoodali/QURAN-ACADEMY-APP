@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, CreditCard, PlaySquare, TrendingUp, HelpCircle, Eye, Database } from "lucide-react";
+import { Plus, CreditCard, PlaySquare, TrendingUp, HelpCircle, Eye } from "lucide-react";
 import Link from "next/link";
 
 interface ChildSummary {
@@ -88,10 +88,7 @@ export default function ParentPortal() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <h1 className="text-3xl md:text-4xl font-serif text-white">Family Learning Hub</h1>
-            <span className="flex items-center gap-1 text-[11px] font-bold bg-emerald-950/80 text-amber-300 border border-amber-400/30 px-2.5 py-0.5 rounded-full">
-              <Database size={12} />
-              <span>Realtime Database</span>
-            </span>
+            
           </div>
           <p className="text-emerald-100/80 text-sm">
             Manage your family's lessons, track child recitation milestones, and handle tuition securely.

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, Video, Plus, Clock, X, Database } from "lucide-react";
+import { Search, Video, Plus, Clock, X } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface LessonNote {
@@ -167,12 +167,12 @@ export default function TeacherStudents() {
         throw new Error("Failed to persist note");
       }
 
-      toast.success(`Lesson note saved and synced to database!`, { id: "save-note" });
+      toast.success(`Lesson note saved successfully!`, { id: "save-note" });
       setNewLessonTitle("");
       setNewFeedback("");
       setNewHomework("");
     } catch {
-      toast.success(`Saved locally. Offline queue will sync on reconnect.`, { id: "save-note" });
+      toast.success(`Saved offline. Will sync when reconnected.`, { id: "save-note" });
     }
   };
 
@@ -202,10 +202,7 @@ export default function TeacherStudents() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <h1 className="text-3xl md:text-4xl font-serif text-white">Student Roster &amp; Lesson Notes</h1>
-            <span className="flex items-center gap-1 text-[11px] font-bold bg-emerald-950/80 text-amber-300 border border-amber-400/30 px-2.5 py-0.5 rounded-full">
-              <Database size={12} />
-              <span>Database Backed</span>
-            </span>
+            
           </div>
           <p className="text-emerald-100/80 text-sm">
             Maintain daily Sabaq/Sabqi progress records and provide feedback for parents.

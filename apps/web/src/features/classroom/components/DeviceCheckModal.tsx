@@ -262,7 +262,7 @@ export default function DeviceCheckModal({
             {/* Latency Pill */}
             <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md text-[10px] font-bold text-amber-300 px-2.5 py-1 rounded-full border border-white/10 flex items-center gap-1.5">
               <Wifi size={12} className="text-emerald-400" />
-              <span>{pingLatency ? `${pingLatency} ms (Optimal)` : "Connecting..."}</span>
+              <span>{pingLatency ? "Online & Ready" : "Connecting..."}</span>
             </div>
           </div>
 
@@ -358,7 +358,7 @@ export default function DeviceCheckModal({
         {/* Modal Footer CTA */}
         <div className="p-5 border-t border-white/10 bg-black/40 flex items-center justify-between gap-4">
           <div className="text-xs text-emerald-100/70 hidden sm:block">
-            Hardware calibrated • LiveKit 48kHz HD Audio Ready
+            Camera & audio connected
           </div>
 
           <button
