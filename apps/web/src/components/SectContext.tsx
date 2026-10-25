@@ -1,7 +1,6 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
 
 export type Sect = "sunni" | "shia";
 
@@ -15,19 +14,19 @@ interface SectContextType {
 const SectContext = createContext<SectContextType | undefined>(undefined);
 
 export function SectProvider({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
   const [sect, setSectState] = useState<Sect | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      if (pathname?.startsWith("/shia")) {
+      const pathname = window.location.pathname;
+      if (pathname.startsWith("/shia")) {
         setSectState("shia");
         localStorage.setItem("user_sect", "shia");
         document.cookie = `user_sect=shia; path=/; max-age=31536000; SameSite=Lax`;
         return;
       }
-      if (pathname?.startsWith("/sunni")) {
+      if (pathname.startsWith("/sunni")) {
         setSectState("sunni");
         localStorage.setItem("user_sect", "sunni");
         document.cookie = `user_sect=sunni; path=/; max-age=31536000; SameSite=Lax`;
@@ -39,7 +38,7 @@ export function SectProvider({ children }: { children: React.ReactNode }) {
     } catch {
       queueMicrotask(() => setSectState("sunni"));
     }
-  }, [pathname]);
+  }, []);
 
   const setSect = (newSect: Sect) => {
     setSectState(newSect);
@@ -53,16 +52,13 @@ export function SectProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const isExplicitShia = pathname?.startsWith("/shia") || sect === "shia";
-  const isExplicitSunni = pathname?.startsWith("/sunni") || (!isExplicitShia);
-
   return (
     <SectContext.Provider
       value={{
-        sect: isExplicitShia ? "shia" : "sunni",
+        sect: sect || "sunni",
         setSect,
-        isSunni: isExplicitSunni,
-        isShia: isExplicitShia,
+        isSunni: sect === "sunni" || sect === null,
+        isShia: sect === "shia",
       }}
     >
       {children}

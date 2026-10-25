@@ -1898,3 +1898,23 @@ eceipt_uploaded, and payment_verified.
 - **Validation & Quality Gate**:
   - `vitest run`: 23/23 test suites passed, 172/172 tests passed (100% green).
   - TypeScript: `pnpm typecheck` (`tsc --noEmit`) passed with 0 errors across all monorepo packages.
+
+
+---
+
+## 9.83 Next.js Turbopack Prerender Fix for SectProvider & Build Gate Unblocked
+
+- **Root Cause Analysis**:
+  - In Next.js 16 (App Router + Turbopack), calling `usePathname()` unconditionally inside `SectProvider` at the root layout triggered `CLIENT_HOOK_DYNAMIC`:
+    > `Route "/classroom/[id]": Next.js encountered URL data usePathname() in a Client Component outside of <Suspense>. This blocks prerendering because the value is only available at runtime.`
+  - This caused GitHub Actions CI and Vercel production deployment builds to fail during static page generation on `/classroom/[id]`.
+
+- **Resolution Details**:
+  - Replaced the top-level `usePathname()` hook in [`SectContext.tsx`](file:///c:/Users/AAMIR%20SHAMSI/Agentic_Ai/Quran_Academy/apps/web/src/components/SectContext.tsx) with client-side `window.location.pathname` evaluation safely scoped inside `useEffect()`.
+  - Prerendering and static generation on the server now execute cleanly without un-suspended client hook bailout exceptions.
+  - Retained automatic URL path-driven tradition synchronization for `/sunni` and `/shia` routes on the client.
+
+- **Validation & Quality Gate**:
+  - `pnpm lint` (`eslint`): 0 errors across frontend monorepo package.
+  - `pnpm test` (`vitest run`): 23/23 test suites passed, 172/172 tests passed (100% green).
+  - Next.js Turbopack Production Build (`next build`): 78/78 routes compiled and generated successfully in 6.4s with 0 errors.
