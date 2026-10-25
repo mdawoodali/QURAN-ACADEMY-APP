@@ -22,8 +22,31 @@ export default function LiveClassroom() {
   const router = useRouter();
 
   const classId = (params?.id as string) || "demo";
-  const roleParam = (searchParams?.get("role") as "teacher" | "student" | "observer") || "teacher";
-  const childParam = searchParams?.get("child") || (roleParam === "student" ? "Yusuf Khan" : "Ustadha Maryam");
+  const queryRole = searchParams?.get("role") as "teacher" | "student" | "observer" | null;
+  const [sessionRole, setSessionRole] = useState<"teacher" | "student" | "observer">("teacher");
+  const [sessionUser, setSessionUser] = useState<string>("");
+
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      const matchRole = document.cookie.match(/demo_role=([^;]+)/);
+      if (matchRole?.[1]) {
+        const r = matchRole[1];
+        if (r === "student") setSessionRole("student");
+        else if (r === "parent") setSessionRole("observer");
+        else setSessionRole("teacher");
+      }
+      const matchUser = document.cookie.match(/demo_user=([^;]+)/);
+      if (matchUser?.[1]) {
+        setSessionUser(decodeURIComponent(matchUser[1]));
+      }
+    }
+  }, []);
+
+  const roleParam: "teacher" | "student" | "observer" = queryRole || sessionRole;
+  const childParam =
+    searchParams?.get("child") ||
+    sessionUser ||
+    (roleParam === "student" ? "Yusuf Khan" : "Ustadha Maryam");
 
   // Pre-call Hardware Diagnostic Modal State
   const [showDeviceCheck, setShowDeviceCheck] = useState<boolean>(true);

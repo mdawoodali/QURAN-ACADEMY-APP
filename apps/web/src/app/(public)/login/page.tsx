@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { login, loginWithGoogle } from './actions'
 import { BookOpen } from 'lucide-react'
 import Link from 'next/link'
+import { APP_VERSION } from '@quran/contracts'
 
 async function ErrorBanner({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const params = await searchParams;
@@ -17,12 +18,22 @@ export default function LoginPage(props: { searchParams: Promise<{ error?: strin
   return (
     <div className="min-h-screen flex items-center justify-center bg-transparent px-4 py-12">
       <div className="max-w-md w-full glass-container rounded-3xl p-8 border border-white/15 shadow-2xl">
-        <div className="flex justify-center mb-6">
-          <div className="bg-emerald-800 p-3 rounded-2xl text-amber-300 shadow-md">
-            <BookOpen size={32} />
-          </div>
+        <div className="flex flex-col items-center justify-center mb-6 text-center">
+          <Link href="/" className="inline-flex items-center gap-3 group mb-3" title="Back to Quran Learn Academy">
+            <div className="bg-emerald-800/90 border border-amber-400/40 p-3 rounded-2xl text-amber-300 shadow-md group-hover:scale-105 transition-transform">
+              <BookOpen size={30} />
+            </div>
+            <div className="text-left">
+              <span className="font-serif font-bold text-xl tracking-tight leading-tight text-white block">
+                Quran Learn<br />Academy
+              </span>
+            </div>
+          </Link>
+          <span className="text-[11px] font-mono text-emerald-300/80 bg-emerald-950/80 border border-emerald-700/40 px-2.5 py-0.5 rounded-full mb-1">
+            v{APP_VERSION} • Production Portal
+          </span>
         </div>
-        <h2 className="text-3xl font-serif text-white text-center mb-2">Welcome Back</h2>
+        <h2 className="text-2xl sm:text-3xl font-serif text-white text-center mb-1">Welcome Back</h2>
         <p className="text-emerald-100/80 text-center text-sm mb-6">Sign in to access your classroom and portal.</p>
 
         <Suspense fallback={null}>

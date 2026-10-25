@@ -48,21 +48,22 @@ export default function TeacherStudents() {
 
         // Build student list
         const list: StudentRecord[] = enrolments.map((en: any) => {
+          const sName = en.student_name || en.learner || en.studentName || "Learner";
           const studentNotes = rawNotes
-            .filter((n: any) => n.student_name === en.student_name || n.studentName === en.student_name)
+            .filter((n: any) => (n.student_name || n.studentName) === sName)
             .map((n: any) => ({
-              date: n.lesson_date || n.lessonDate || new Date(n.created_at || Date.now()).toLocaleDateString(),
-              lesson: n.lesson_title || n.lessonTitle || "Quran Recitation Session",
+              date: n.lesson_date || n.date || n.lessonDate || new Date(n.created_at || Date.now()).toLocaleDateString(),
+              lesson: n.lesson_title || n.lesson || n.lessonTitle || "Quran Recitation Session",
               grade: n.rating || n.grade || "Mastered",
               feedback: n.feedback || "Good recitation progress.",
               homework: n.homework || "Daily practice required."
             }));
 
           return {
-            id: en.id || `st_${en.student_name}`,
-            name: en.student_name,
+            id: en.id || `st_${sName}`,
+            name: sName,
             age: en.student_age || 10,
-            course: en.course_title || "Quran & Tajweed Studies",
+            course: en.course_title || en.programme || "Quran & Tajweed Studies",
             levelBadge: en.status === "active" ? "Active Enrolment" : "Trial Learner",
             scheduleSummary: `${en.preferred_time || "17:00"} (${en.timezone || "Asia/Karachi"})`,
             history: studentNotes

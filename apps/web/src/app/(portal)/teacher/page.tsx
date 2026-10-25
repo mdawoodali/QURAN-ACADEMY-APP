@@ -47,7 +47,8 @@ export default function TeacherDashboard() {
         const payouts = payoutData.payouts || [];
         if (payouts.length > 0) {
           const latest = payouts[0];
-          setMonthlyEarnings(`PKR ${(latest.payable_amount || latest.payableAmount || 0).toLocaleString()}`);
+          const rawPayable = latest.payable_amount ?? latest.payableAmount ?? (typeof latest.payable === "string" ? parseFloat(latest.payable.replace(/[^0-9.]/g, "")) : latest.payable) ?? 0;
+          setMonthlyEarnings(`PKR ${Number(rawPayable).toLocaleString()}`);
         }
       })
       .finally(() => setLoading(false));
@@ -121,7 +122,7 @@ export default function TeacherDashboard() {
 
           <div className="flex justify-end pt-4 border-t border-white/10">
             <Link
-              href={`/classroom/${upcoming.classroomSlug}`}
+              href={`/classroom/${upcoming.classroomSlug}?role=teacher`}
               className="bg-amber-400 hover:bg-amber-300 text-emerald-950 px-8 py-3.5 rounded-xl font-bold transition shadow-lg flex items-center gap-2 cursor-pointer text-sm"
             >
               <Video className="w-4 h-4" />

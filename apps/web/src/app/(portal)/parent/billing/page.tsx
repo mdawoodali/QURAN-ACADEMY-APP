@@ -400,11 +400,11 @@ export default function ParentBilling() {
               ) : (
                 invoices.map((inv: any) => {
                   const invId = inv.invoice_number || inv.id || "QA-2026";
-                  const dateStr = inv.created_at
+                  const dateStr = (inv.submittedAt || inv.created_at)
                     ? new Date(inv.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
-                    : "October 2026";
-                  const isPaid = inv.status === "paid";
-                  const isPending = inv.status === "pending_verification";
+                    : "Recent";
+                  const isPaid = inv.status === "paid" || inv.status === "verified";
+                  const isPending = inv.status === "pending_verification" || inv.status === "pending";
 
                   return (
                     <tr key={invId} className="hover:bg-white/5 transition">

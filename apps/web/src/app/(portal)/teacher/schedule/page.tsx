@@ -140,7 +140,7 @@ export default function TeacherSchedule() {
         </div>
 
         <Link
-          href="/classroom/demo"
+          href="/classroom/demo?role=teacher"
           className="bg-amber-400 hover:bg-amber-300 text-emerald-950 px-5 py-2.5 rounded-xl font-bold text-xs transition shadow-md flex items-center gap-2 cursor-pointer"
         >
           <Video className="w-4 h-4" />
@@ -237,7 +237,7 @@ export default function TeacherSchedule() {
                             >
                               <MessageSquare size={11} />
                             </a>
-                            <Link href={`/classroom/${slot.classroomSlug}`} title="Enter Live Classroom" className="bg-emerald-950 text-amber-300 p-1 rounded-md hover:bg-emerald-900 transition">
+                            <Link href={`/classroom/${slot.classroomSlug}?role=teacher`} title="Enter Live Classroom" className="bg-emerald-950 text-amber-300 p-1 rounded-md hover:bg-emerald-900 transition">
                               <Video size={11} />
                             </Link>
                           </div>

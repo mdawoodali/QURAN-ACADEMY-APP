@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import { Menu } from "lucide-react";
@@ -14,6 +14,14 @@ export default function PortalLayoutClient({
   userName: string;
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [detectedTimezone, setDetectedTimezone] = useState("Asia/Karachi");
+
+  useEffect(() => {
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (tz) setDetectedTimezone(tz);
+    } catch {}
+  }, []);
   const pathname = usePathname();
   const { t } = useLanguage();
 
@@ -76,7 +84,7 @@ export default function PortalLayoutClient({
           </div>
           <div className="flex items-center gap-4">
             <div className="text-xs font-bold text-amber-300 bg-emerald-950/70 border border-amber-400/30 px-3.5 py-1.5 rounded-full hidden sm:block shadow-xs">
-              Asia/Karachi
+              {detectedTimezone}
             </div>
             <div className="w-9 h-9 rounded-full bg-emerald-800/80 border border-amber-400/40 text-amber-300 flex items-center justify-center font-bold text-sm shadow-md">
               {initials}

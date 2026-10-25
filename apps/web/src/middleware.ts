@@ -102,7 +102,7 @@ export async function middleware(request: NextRequest) {
   if (demoRole && validRoles.includes(demoRole)) {
     // Enforce role boundary even for demo roles to prevent cross-portal access
     if (isProtectedRoute && !isRoleAuthorizedForPath(demoRole, url.pathname)) {
-      url.pathname = `/${demoRole}`;
+      url.pathname = demoRole === "superadmin" ? "/admin" : `/${demoRole}`;
       return NextResponse.redirect(url);
     }
     return response;
@@ -175,7 +175,7 @@ export async function middleware(request: NextRequest) {
     }
 
     if (!isRoleAuthorizedForPath(userRole, url.pathname)) {
-      url.pathname = `/${userRole}`;
+      url.pathname = userRole === "superadmin" ? "/admin" : `/${userRole}`;
       return NextResponse.redirect(url);
     }
   }
@@ -197,7 +197,7 @@ export async function middleware(request: NextRequest) {
       profileRole = "student";
     }
 
-    url.pathname = `/${profileRole}`;
+    url.pathname = profileRole === "superadmin" ? "/admin" : `/${profileRole}`;
     return NextResponse.redirect(url);
   }
 

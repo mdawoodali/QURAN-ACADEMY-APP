@@ -92,7 +92,7 @@ export default function StudentDashboard() {
           
           <div className="flex justify-end">
             <Link
-              href={`/classroom/${schedule.classroomSlug}`}
+              href={`/classroom/${schedule.classroomSlug}?role=student`}
               className="bg-amber-400 text-emerald-950 px-8 py-3.5 rounded-xl font-bold hover:bg-amber-300 transition shadow-lg flex items-center gap-2 cursor-pointer"
             >
               <Video size={16} />
@@ -118,7 +118,7 @@ export default function StudentDashboard() {
       {/* Lesson Details Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Link
-          href={`/classroom/${schedule.classroomSlug}`}
+          href={`/classroom/${schedule.classroomSlug}?role=student`}
           className="glass-container rounded-3xl p-6 border border-white/15 shadow-xl block text-white group pop-hover"
         >
           <h3 className="text-xs font-bold text-amber-300 uppercase tracking-widest mb-2">Current Lesson</h3>

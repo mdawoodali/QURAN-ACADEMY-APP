@@ -38,10 +38,10 @@ export default function StudentBilling() {
         const raw = data.invoices || [];
         const formatted: StudentInvoice[] = raw.map((inv: any) => ({
           id: inv.invoice_number || inv.id || "INV-2026",
-          date: inv.created_at ? new Date(inv.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "October 2026",
+          date: (inv.submittedAt || inv.created_at) ? new Date(inv.submittedAt || inv.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "Recent",
           amount: String(inv.amount || "65.00"),
           currency: inv.currency || "GBP",
-          status: inv.status === "paid" ? "Paid" : "Pending",
+          status: (inv.status === "paid" || inv.status === "verified") ? "Paid" : "Pending",
           ref: inv.transaction_ref || inv.transactionRef || "DIRECT-RAIL",
           plan: inv.package_tier || inv.packageTier || "Standard Plan (3 Days/Week)"
         }));

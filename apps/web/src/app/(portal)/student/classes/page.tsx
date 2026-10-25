@@ -30,7 +30,7 @@ export default function StudentClasses() {
           <p className="text-emerald-100/80 text-sm">View upcoming 1-on-1 sessions and schedule changes stored in PostgreSQL.</p>
         </div>
         <Link 
-          href="/classroom/demo" 
+          href="/classroom/demo?role=student" 
           className="bg-amber-400 text-emerald-950 px-6 py-3 rounded-full font-bold text-sm hover:bg-amber-300 transition shadow-lg flex items-center gap-2"
         >
           <Video className="w-4 h-4" />
@@ -66,7 +66,7 @@ export default function StudentClasses() {
               </div>
               <div>
                 <Link 
-                  href="/classroom/demo" 
+                  href="/classroom/demo?role=student" 
                   className="text-xs font-bold bg-amber-400 text-emerald-950 px-5 py-2.5 rounded-xl hover:bg-amber-300 transition shadow-md inline-flex items-center gap-1.5"
                 >
                   <Video className="w-3.5 h-3.5" />

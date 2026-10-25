@@ -63,7 +63,8 @@ export default function Sidebar({ onClose, role, userName, initials }: { onClose
 
   if (isTeacher) {
     links = [
-      { href: "/teacher", label: t("navSchedule"), icon: Home },
+      { href: "/teacher", label: t("navHome"), icon: Home },
+      { href: "/teacher/schedule", label: t("navSchedule"), icon: PlaySquare },
       { href: "/teacher/students", label: t("navMyStudents"), icon: User },
       { href: "/teacher/earnings", label: t("navEarnings"), icon: CreditCard },
     ];
@@ -190,6 +191,10 @@ export default function Sidebar({ onClose, role, userName, initials }: { onClose
           <span className="text-[10px] bg-emerald-950/80 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-700/40">
             {t("liveStatusBadge")}
           </span>
+        </div>
+        {/* Project Attribution */}
+        <div className="text-[9.5px] text-emerald-200/50 text-center font-sans tracking-wide pt-1">
+          A Project by Areeb Iqbal &amp; Isbah Arfin
         </div>
       </div>
     </div>

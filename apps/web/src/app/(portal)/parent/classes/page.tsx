@@ -231,7 +231,7 @@ export default function ParentClasses() {
                 </Link>
 
                 <Link
-                  href={`/classroom/${cls.classroomSlug}`}
+                  href={`/classroom/${cls.classroomSlug}?role=observer&child=${encodeURIComponent(cls.childName)}`}
                   className="bg-amber-400 hover:bg-amber-300 text-emerald-950 px-5 py-2.5 rounded-xl font-bold text-xs transition shadow-md flex items-center gap-1.5 cursor-pointer"
                 >
                   <Video size={14} />

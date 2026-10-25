@@ -136,6 +136,8 @@ export async function signup(formData: FormData) {
     redirect('/admin')
   } else if (role === 'teacher') {
     redirect('/teacher')
+  } else if (role === 'parent') {
+    redirect('/parent')
   } else {
     redirect('/student')
   }

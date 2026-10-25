@@ -93,7 +93,9 @@ export async function registerTeacher(formData: FormData) {
   } catch (err) {
     if (err instanceof z.ZodError) {
       console.error("Validation Error:", err.message);
-      redirect('/register/teacher?error=Invalid+form+data');
+      const issue = err.issues[0];
+      const field = issue?.path?.join('.') || 'input';
+      redirect('/register/teacher?error=' + encodeURIComponent(`Invalid ${field}: ${issue?.message || 'Please check your input'}`));
     }
     throw err;
   }

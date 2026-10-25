@@ -23,10 +23,10 @@ export default function StudentProgress() {
       .then((data) => {
         const raw = data.notes || [];
         const formatted = raw.map((n: any) => ({
-          date: n.lesson_date || "Recent Lesson",
-          teacher: n.teacher_name || "Ustadha Maryam",
-          lesson: n.lesson_title || "Quran Recitation & Makhaarij",
-          rating: n.rating || "Mastered",
+          date: n.lesson_date || n.date || "Recent Lesson",
+          teacher: n.teacher_name || n.teacherName || "Ustadha Maryam",
+          lesson: n.lesson_title || n.lesson || "Quran Recitation & Makhaarij",
+          rating: n.rating || n.grade || "Mastered",
           feedback: n.feedback || "Good recitation accuracy and steady rhythm.",
           homework: n.homework || "Continue daily revision."
         }));

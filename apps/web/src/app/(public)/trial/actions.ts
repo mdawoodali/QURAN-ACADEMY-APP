@@ -77,7 +77,9 @@ export async function submitTrialRegistration(rawData: Record<string, unknown>) 
     return { success: true }
   } catch (err) {
     if (err instanceof z.ZodError) {
-      return { error: 'Invalid form data' }
+      const issue = err.issues[0];
+      const field = issue?.path?.join('.') || 'input';
+      return { error: `Invalid ${field}: ${issue?.message || 'Please check your input'}` }
     }
     return { error: 'An unexpected error occurred' }
   }

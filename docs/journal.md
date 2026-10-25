@@ -2069,3 +2069,51 @@ eceipt_uploaded, and payment_verified.
   - `pnpm test`: 23/23 test suites passed, 172/172 tests passed (100% green).
   - `pnpm typecheck`: 0 errors across all monorepo packages.
 
+
+---
+
+## 9.90 Platform-Wide Architectural Logic Audit, Flow Redirection & Role State Resolution (2026-10-25)
+
+- **Next.js Redirect Swallow Resolution in Dashboard Dispatcher (`apps/web/src/app/(portal)/dashboard/page.tsx`)**:
+  - **Issue**: `redirect()` was called inside a broad `try/catch` block. Next.js App Router implements `redirect()` by throwing an internal `NEXT_REDIRECT` exception. The catch block intercepted and suppressed the redirect exception, causing execution to fall through and bounce authenticated users back to `/login`.
+  - **Fix**: Resolved role and target path within the `try/catch` block, and dispatched `redirect(targetPath)` strictly outside `try/catch`.
+- **Parent Role Signup Routing (`apps/web/src/app/(public)/login/actions.ts`)**:
+  - **Issue**: The fallback role redirection in `signup` handled `admin` and `teacher` but fell through to `/student` for `parent`.
+  - **Fix**: Added explicit `else if (role === 'parent') redirect('/parent')`.
+- **Superadmin Role Boundary Normalization (`apps/web/src/middleware.ts`)**:
+  - **Issue**: `superadmin` role redirects constructed `/${role}` (`/superadmin`), an unrouted path that triggered 404/login redirects.
+  - **Fix**: Normalized `superadmin` target paths across middleware checks to `/admin`.
+- **Academy Branding, Logo & Version Visibility on Sign-In Page (`apps/web/src/app/(public)/login/page.tsx`)**:
+  - **Issue**: Login page lacked Academy branding and version indicators, displaying only an unbranded icon and "Welcome Back".
+  - **Fix**: Added the official Quran Learn Academy logo, serif branding, and `v{APP_VERSION} • Production Portal` badge.
+- **Classroom Role Detection & Observer Mode Safeguard (`apps/web/src/components/LiveClassroom.tsx`)**:
+  - **Issue**: When `?role=` was missing from the URL, `roleParam` defaulted unconditionally to `"teacher"`. Students joining live classes entered with teacher privileges and could trigger `sendModeration("end_class_all")` upon exit, terminating the class.
+  - **Fix**: Implemented session cookie detection (`demo_role`). Students enter as `student`, parents enter as `observer`, and teachers enter as `teacher`.
+- **Parent Classes Observer Link (`apps/web/src/app/(portal)/parent/classes/page.tsx`)**:
+  - Attached `?role=observer&child=...` to the parent "Join Classroom" action.
+- **Teacher Portal Sidebar Navigation Alignment (`apps/web/src/components/Sidebar.tsx`)**:
+  - Mapped `/teacher` to "Home" (Today's overview) and added `/teacher/schedule` as "Schedule", restoring full access to both views. Added project creator attribution ("A Project by Areeb Iqbal & Isbah Arfin").
+- **Progress API & Student/Teacher Casing Harmonization (`apps/web/src/app/api/progress/route.ts`, `student/progress/page.tsx`, `teacher/students/page.tsx`)**:
+  - **Issue**: API returned camelCase (`date`, `lesson`, `teacherName`), but student/teacher pages checked snake_case (`lesson_date`, `lesson_title`), causing notes to fall back to fixtures ("Recent Lesson", "Ustadha Maryam").
+  - **Fix**: Exposed both camelCase and snake_case on the API and supported both across client pages.
+- **Invoice Status & Date Mapping (`apps/web/src/app/api/invoices/route.ts`, `student/billing/page.tsx`, `parent/billing/page.tsx`)**:
+  - **Issue**: API returned `status: "verified"` and `submittedAt`. Student/parent billing checked `inv.status === "paid"` and `inv.created_at`, causing verified invoices to display as "Pending" and dates as fallback "October 2026".
+  - **Fix**: Returned both `created_at` and `submittedAt`, and checked `inv.status === "paid" || inv.status === "verified"`.
+- **Teacher Monthly Earnings Calculation (`apps/web/src/app/api/payouts/route.ts`, `teacher/page.tsx`)**:
+  - **Issue**: Teacher dashboard calculated earnings from `latest.payable_amount`, but API returned formatted string `payable: "PKR 5,000"`, leaving `payable_amount` undefined and showing "PKR 0".
+  - **Fix**: Returned `payable_amount` numeric value from API and parsed safely in the dashboard.
+- **Enrolments Pipeline Learner Mapping (`apps/web/src/app/api/enrolments/route.ts`, `teacher/students/page.tsx`)**:
+  - **Issue**: API returned `learner`, but teacher portal looked for `student_name`, causing learner names to render as undefined.
+  - **Fix**: Returned both `learner` and `student_name`.
+- **Student Profile Name Update Propagation (`apps/web/src/app/(portal)/student/profile/ProfileForm.tsx`)**:
+  - Updating full name now updates the `demo_user` session cookie and refreshes the router.
+- **Dynamic Client Timezone Detection (`apps/web/src/app/(portal)/PortalLayoutClient.tsx`)**:
+  - Top bar dynamically detects and displays the user's browser timezone (`Intl.DateTimeFormat().resolvedOptions().timeZone`) instead of hardcoded "Asia/Karachi".
+- **Descriptive Field Validation Error Messages (`trial/actions.ts`, `register/student/actions.ts`, `register/teacher/actions.ts`)**:
+  - Replaced generic "Invalid form data" with specific field names and issue descriptions.
+- **Verification & Quality Gate**:
+  - `pnpm test`: 23/23 test suites passed, 172/172 tests passed (100% green).
+  - `pnpm typecheck`: 0 errors.
+  - `next build`: 80/80 routes compiled, generated, and optimized with 0 errors.
+
+

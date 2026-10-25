@@ -26,7 +26,11 @@ export default function ProfileForm({
     setIsSaving(true);
     toast.loading("Saving profile...", { id: "profile" });
     
-    // Simulate API call for now (since we don't have an update endpoint yet)
+    try {
+      if (typeof document !== "undefined") {
+        document.cookie = `demo_user=${encodeURIComponent(formData.fullName)}; path=/; max-age=604800`;
+      }
+    } catch {}
     setTimeout(() => {
       toast.success("Profile settings saved successfully", { id: "profile" });
       setIsSaving(false);
