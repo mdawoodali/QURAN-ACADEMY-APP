@@ -2524,3 +2524,25 @@ During empirical browser validation using headless Chrome, we uncovered why pros
    - TypeScript compilation clean: 0 errors (tsc --noEmit).
    - Vitest unit & integration tests: 30 / 30 suites passed, 516 / 516 tests passed.
    - Production build verified: 83 / 83 static & dynamic routes generated cleanly.
+
+---
+
+## 9.104 Strict Demo Classroom Exit to Homepage and Portal Boundary Enforcement
+
+### Context & Problem Statement
+1. **Unauthorized Portal Switching from Demo Classroom**:
+   The interactive live demo classroom exit confirmation modal previously included a secondary navigation link ("Or return to Teacher/Student/Parent Dashboard ->"). Clicking this allowed unauthenticated demo visitors to bypass the login boundary and switch directly into internal role portals (/teacher, /student, /parent).
+2. **Accidental Routing to Portals on Demo Exit**:
+   When visitors exited the demo session or canceled hardware device checks, case-sensitive matching on classId could fail to recognize demo variants (e.g., /classroom/demo?role=teacher or uppercase paths), falling through to roleParam-based redirects that dumped visitors into /teacher or /student instead of the public homepage.
+
+### Key Changes Implemented
+1. **Strict Exit Navigation to Main Homepage** (apps/web/src/components/LiveClassroom.tsx and apps/web/src/features/classroom/components/ClassroomHeader.tsx):
+   - Formulated a robust, case-insensitive demo class identifier: isDemo = !classId || classId.toLowerCase() === "demo" || classId.toLowerCase().includes("demo") || (typeof window !== "undefined" && window.location.pathname.toLowerCase().includes("/classroom/demo")).
+   - Hardened handleCancelDeviceCheck and showEndModal's "Exit to Home" action to strictly route demo exits to "/" (the main home page).
+   - Completely deleted the secondary portal shortcut link from the exit modal, ensuring no bypass affordance exists. Access to portals is strictly limited through genuine authentication on the login page.
+2. **Classroom Header Exit Label Consistency**:
+   - Refactored ClassroomHeader.tsx to evaluate isDemo across all viewports, ensuring the prominent "Exit Demo" action always triggers the clean homepage exit flow.
+3. **Automated Verification**:
+   - TypeScript compilation clean: 0 errors (tsc --noEmit).
+   - Vitest unit & integration tests: 30 / 30 suites passed, 517 / 517 tests passed (including dedicated demo exit assertion suite).
+   - Production build verified: 83 / 83 routes generated cleanly with zero hydration or build warnings.

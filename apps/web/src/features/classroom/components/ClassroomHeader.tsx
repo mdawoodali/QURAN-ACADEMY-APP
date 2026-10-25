@@ -44,6 +44,8 @@ export default function ClassroomHeader({
   onToggleVoiceFollow,
   onEndClass,
 }: ClassroomHeaderProps) {
+  const isDemo = !classId || classId.toLowerCase() === "demo" || classId.toLowerCase().includes("demo");
+
   return (
     <header className="h-16 border-b border-white/10 flex items-center justify-between px-3 md:px-6 flex-shrink-0 z-20 bg-black/50 backdrop-blur-md text-white">
       {/* Left: Branding & Lesson Selector */}
@@ -58,13 +60,13 @@ export default function ClassroomHeader({
               Live Quran Classroom
             </h1>
             <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-950/80 text-amber-300 border border-amber-400/30 px-2 py-0.5 rounded-full hidden sm:inline-block">
-              {classId === "demo" ? "Interactive Demo Classroom" : role === "teacher" ? "Teacher Control" : role === "observer" ? "Silent Observer" : "Student View"} • {classId}
+              {isDemo ? "Interactive Demo Classroom" : role === "teacher" ? "Teacher Control" : role === "observer" ? "Silent Observer" : "Student View"} • {classId}
             </span>
           </div>
 
           {/* Lesson / Ayah Selector Dropdown */}
           <div className="flex items-center gap-1.5 mt-0.5">
-            {(isTeacher || classId === "demo") && onLessonChange ? (
+            {(isTeacher || isDemo) && onLessonChange ? (
               <div className="relative flex items-center">
                 <span className="text-[10px] uppercase font-bold text-amber-300/80 mr-1 hidden sm:inline">
                   Ayah:
@@ -169,12 +171,12 @@ export default function ClassroomHeader({
         {/* End / Leave Session Button */}
         <button
           onClick={onEndClass}
-          aria-label={classId === "demo" ? "Cancel & Exit Demo Class" : isTeacher ? "End Class" : "Leave Room"}
-          title={classId === "demo" ? "Cancel & Exit Demo Class" : isTeacher ? "End Session" : "Leave Session"}
+          aria-label={isDemo ? "Cancel & Exit Demo Class" : isTeacher ? "End Class" : "Leave Room"}
+          title={isDemo ? "Cancel & Exit Demo Class" : isTeacher ? "End Session" : "Leave Session"}
           className="bg-red-600/90 hover:bg-red-500 text-white px-3 sm:px-3.5 py-1.5 rounded-xl font-bold text-xs transition shadow-md flex items-center gap-1.5 cursor-pointer shrink-0"
         >
           <PhoneOff size={13} />
-          <span>{classId === "demo" ? "Exit Demo" : isTeacher ? "End Class" : "Leave Room"}</span>
+          <span>{isDemo ? "Exit Demo" : isTeacher ? "End Class" : "Leave Room"}</span>
         </button>
       </div>
     </header>

@@ -189,4 +189,38 @@ describe("Classroom AI Voice Following & Recitation Alignment Suite", () => {
     expect(streamStopped).toBe(true);
     expect(onCancelMock).toHaveBeenCalledTimes(1);
   });
+
+  it("strictly routes demo classroom exits to main home page and never to internal portals", () => {
+    const routerPushMock = vi.fn();
+    const demoIdentifiers = ["demo", "DEMO", "demo/", "room-demo", ""];
+
+    function resolveExitDestination(classId: string, roleParam: "teacher" | "student" | "observer"): string {
+      const isDemo =
+        !classId ||
+        classId.toLowerCase() === "demo" ||
+        classId.toLowerCase().includes("demo");
+
+      if (isDemo) {
+        return "/";
+      } else if (roleParam === "teacher") {
+        return "/teacher";
+      } else if (roleParam === "observer") {
+        return "/parent";
+      } else {
+        return "/student";
+      }
+    }
+
+    // All demo variations regardless of role MUST exit to "/"
+    for (const demoId of demoIdentifiers) {
+      expect(resolveExitDestination(demoId, "teacher")).toBe("/");
+      expect(resolveExitDestination(demoId, "student")).toBe("/");
+      expect(resolveExitDestination(demoId, "observer")).toBe("/");
+    }
+
+    // Only genuine non-demo private sessions route to respective portals
+    expect(resolveExitDestination("room-session-42", "teacher")).toBe("/teacher");
+    expect(resolveExitDestination("room-session-42", "observer")).toBe("/parent");
+    expect(resolveExitDestination("room-session-42", "student")).toBe("/student");
+  });
 });

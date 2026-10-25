@@ -23,6 +23,11 @@ export default function LiveClassroom() {
   const router = useRouter();
 
   const classId = (params?.id as string) || "demo";
+  const isDemo =
+    !classId ||
+    classId.toLowerCase() === "demo" ||
+    classId.toLowerCase().includes("demo") ||
+    (typeof window !== "undefined" && window.location.pathname.toLowerCase().includes("/classroom/demo"));
   const queryRole = searchParams?.get("role") as "teacher" | "student" | "observer" | null;
   const [sessionRole, setSessionRole] = useState<"teacher" | "student" | "observer">("teacher");
   const [sessionUser, setSessionUser] = useState<string>("");
@@ -32,7 +37,7 @@ export default function LiveClassroom() {
       const matchRole = document.cookie.match(/demo_role=([^;]+)/);
       if (matchRole?.[1]) {
         const r = matchRole[1];
-        if (classId === "demo") {
+        if (isDemo) {
           // In interactive demo mode, give users full interactive teacher privileges
           setSessionRole("teacher");
         } else if (r === "student") {
@@ -207,8 +212,9 @@ export default function LiveClassroom() {
   const handleCancelDeviceCheck = () => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
     }
-    if (classId === "demo") {
+    if (isDemo) {
       router.push("/");
     } else if (roleParam === "teacher") {
       router.push("/teacher");
@@ -352,10 +358,10 @@ export default function LiveClassroom() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4 animate-in zoom-in-95">
             <div className="bg-[#052b20] border border-white/20 rounded-3xl w-full max-w-sm p-6 shadow-2xl text-white">
               <h2 className="text-xl font-bold font-serif text-white mb-2">
-                {classId === "demo" ? "Exit Demo Classroom?" : "Leave Classroom?"}
+                {isDemo ? "Exit Demo Classroom?" : "Leave Classroom?"}
               </h2>
               <p className="text-emerald-100/75 mb-6 text-xs leading-relaxed">
-                {classId === "demo"
+                {isDemo
                   ? "Are you sure you want to exit the interactive demo? You will be returned to the academy home page."
                   : roleParam === "teacher"
                   ? "Ending this session will conclude live video for all participants and log lesson records in the academy ledger."
@@ -373,8 +379,9 @@ export default function LiveClassroom() {
                     onClick={() => {
                       if (streamRef.current) {
                         streamRef.current.getTracks().forEach((t) => t.stop());
+                        streamRef.current = null;
                       }
-                      if (classId === "demo") {
+                      if (isDemo) {
                         router.push("/");
                       } else if (roleParam === "teacher") {
                         sendModeration("end_class_all");
@@ -387,29 +394,9 @@ export default function LiveClassroom() {
                     }}
                     className="flex-1 bg-red-600 hover:bg-red-500 text-white py-2.5 rounded-xl font-bold text-xs transition shadow-md cursor-pointer"
                   >
-                    {classId === "demo" ? "Exit to Home" : "Confirm Exit"}
+                    {isDemo ? "Exit to Home" : "Confirm Exit"}
                   </button>
                 </div>
-
-                {classId === "demo" && (queryRole || sessionRole) && (
-                  <button
-                    onClick={() => {
-                      if (streamRef.current) {
-                        streamRef.current.getTracks().forEach((t) => t.stop());
-                      }
-                      const portalTarget =
-                        roleParam === "teacher"
-                          ? "/teacher"
-                          : roleParam === "observer"
-                          ? "/parent"
-                          : "/student";
-                      router.push(portalTarget);
-                    }}
-                    className="w-full text-center text-[11px] text-amber-300 hover:text-amber-200 underline pt-1 cursor-pointer"
-                  >
-                    Or return to {roleParam === "observer" ? "Parent" : roleParam === "teacher" ? "Teacher" : "Student"} Dashboard →
-                  </button>
-                )}
               </div>
             </div>
           </div>
