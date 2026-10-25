@@ -2557,3 +2557,18 @@ Resolve teacher user profile identity dynamically in the portal shell (layout.ts
 ### Changes
 - Updated apps/web/src/app/(portal)/layout.tsx to read user_metadata.full_name or profile name, defaulting fallback to Muhammad Isbah for teacher sessions.
 - Updated apps/web/src/components/Sidebar.tsx effective name logic to present Muhammad Isbah rather than Demo Teacher.
+
+---
+
+## 9.106 Redundant Horizontal Dashboard Removal (Task 2)
+
+### Context & Task
+Remove redundant horizontal dashboard navigation from teacher views to eliminate duplication with the persistent vertical sidebar.
+
+### Changes
+- Excised redundant sub-navigation header bars from:
+  - apps/web/src/app/(portal)/teacher/page.tsx
+  - apps/web/src/app/(portal)/teacher/schedule/page.tsx
+  - apps/web/src/app/(portal)/teacher/students/page.tsx
+  - apps/web/src/app/(portal)/teacher/earnings/page.tsx
+- Cleaned view layouts to rely solely on the primary vertical dashboard navigation.

@@ -56,25 +56,6 @@ export default function TeacherDashboard() {
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto w-full text-white">
-      {/* Sub-Navbar */}
-      <div className="flex gap-4 border-b border-white/10 pb-3 text-sm font-bold mb-8 overflow-x-auto">
-        <Link
-          href="/teacher"
-          className="text-amber-300 border-b-2 border-amber-400 pb-2 px-2 transition font-bold"
-        >
-          Today
-        </Link>
-        <Link href="/teacher/schedule" className="text-emerald-100/70 hover:text-white px-2 py-1 transition">
-          Weekly Schedule
-        </Link>
-        <Link href="/teacher/students" className="text-emerald-100/70 hover:text-white px-2 py-1 transition">
-          My Students &amp; Notes
-        </Link>
-        <Link href="/teacher/earnings" className="text-emerald-100/70 hover:text-white px-2 py-1 transition">
-          Earnings &amp; Bank Payouts
-        </Link>
-      </div>
-
       {/* Greeting */}
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-1">

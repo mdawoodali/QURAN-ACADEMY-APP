@@ -109,25 +109,6 @@ export default function TeacherSchedule() {
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto w-full text-white">
-      {/* Sub-Navbar */}
-      <div className="flex gap-4 border-b border-white/10 pb-3 text-sm font-bold mb-8 overflow-x-auto">
-        <Link href="/teacher" className="text-emerald-100/70 hover:text-white px-2 py-1 transition">
-          Today
-        </Link>
-        <Link
-          href="/teacher/schedule"
-          className="text-amber-300 border-b-2 border-amber-400 pb-2 px-2 transition font-bold"
-        >
-          Weekly Schedule
-        </Link>
-        <Link href="/teacher/students" className="text-emerald-100/70 hover:text-white px-2 py-1 transition">
-          My Students &amp; Notes
-        </Link>
-        <Link href="/teacher/earnings" className="text-emerald-100/70 hover:text-white px-2 py-1 transition">
-          Earnings &amp; Bank Payouts
-        </Link>
-      </div>
-
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
