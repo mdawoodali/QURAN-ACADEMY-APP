@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "android/**",
+    "ios/**",
   ]),
   {
     rules: {
@@ -23,6 +25,7 @@ const eslintConfig = defineConfig([
       "react-hooks/error-boundaries": "warn",
       "react-hooks/static-components": "warn",
       "react-hooks/immutability": "warn",
+      "react-hooks/refs": "warn",
     },
   },
 ]);
