@@ -28,7 +28,6 @@ export default function PublicNavbar() {
     if (typeof window !== "undefined") {
       try {
         sessionStorage.setItem("welcome_dismissed", "true");
-        localStorage.setItem("welcome_dismissed", "true");
       } catch {}
     }
   };

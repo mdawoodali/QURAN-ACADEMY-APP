@@ -1836,3 +1836,30 @@ eceipt_uploaded, and payment_verified.
 - **Validation & Quality Gate**:
   - `vitest run`: 23/23 test suites passed, 172/172 tests passed (100% green).
   - TypeScript: `pnpm typecheck` (`tsc --noEmit`) completed with 0 errors across all monorepo packages.
+
+
+---
+
+## 9.81 Restoration of Welcome Splash Starting Page (Hadith & Sunni/Shia Selection) & Dedicated Route
+
+- **Root Cause Analysis**:
+  - The starting page with the Hadith (*“The best among you is the one who learns the Quran and teaches it.”*) and **Sunni** / **Shia** tradition cards had stopped displaying.
+  - An earlier change had introduced a permanent `localStorage.setItem("welcome_dismissed", "true")` and a condition `const hasSect = localStorage.getItem("user_sect"); if (!dismissed && !hasSect)`.
+  - Because `SectContext` defaults `user_sect` in `localStorage`, `!hasSect` was permanently false, completely blocking the starting page from ever appearing on any browser that had visited before.
+
+- **Resolution Details**:
+  1. **Homepage Splash Lifecycle Restoration (`apps/web/src/app/(public)/page.tsx`)**:
+     - Removed the blocking `!hasSect` condition.
+     - Added automatic cleanup of legacy permanent locks (`localStorage.removeItem("welcome_dismissed")`).
+     - Reinstated session-based exhibition: displays the full-screen starting page on any fresh session visit where `sessionStorage.getItem("welcome_dismissed")` is absent.
+     - Added URL parameter override support (`?welcome=true` or `?splash=true`) so the splash can be summoned on demand at any time.
+  2. **Persistence Sanitization across Components (`WelcomeSplash.tsx`, `PublicNavbar.tsx`, `Sidebar.tsx`)**:
+     - Stripped all permanent `localStorage.setItem("welcome_dismissed", "true")` calls.
+     - Kept `sessionStorage` tracking so users who select Sunni/Shia are smoothly transitioned into the academy and not blocked while navigating between pages in the same session.
+  3. **Dedicated Route Creation (`apps/web/src/app/(public)/welcome/page.tsx`)**:
+     - Created a standalone `/welcome` page route that directly mounts `WelcomeSplash`.
+     - When visitors select Sunni or Shia, it sets the tradition context and transitions directly to the homepage (`/`).
+
+- **Validation & Quality Gate**:
+  - `vitest run`: 23/23 test suites passed, 172/172 tests passing (100% green).
+  - TypeScript: `pnpm typecheck` (`tsc --noEmit`) completed with 0 errors.

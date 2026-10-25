@@ -25,7 +25,6 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
     if (typeof window !== "undefined") {
       try {
         sessionStorage.setItem("welcome_dismissed", "true");
-        localStorage.setItem("welcome_dismissed", "true");
       } catch {}
     }
     // Smooth delay before triggering parent unmount to let animation play

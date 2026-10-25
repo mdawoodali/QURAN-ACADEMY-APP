@@ -14,13 +14,14 @@ export default function Home() {
 
   useEffect(() => {
     try {
-      const dismissed =
-        sessionStorage.getItem("welcome_dismissed") === "true" ||
-        localStorage.getItem("welcome_dismissed") === "true";
-      const hasSect = localStorage.getItem("user_sect");
+      // Clear legacy permanent lock from localStorage so the starting page works reliably
+      localStorage.removeItem("welcome_dismissed");
 
-      // Only display splash if user has never chosen a sect AND never dismissed it
-      if (!dismissed && !hasSect) {
+      const searchParams = new URLSearchParams(window.location.search);
+      const forceSplash = searchParams.get("welcome") === "true" || searchParams.get("splash") === "true";
+      const dismissed = sessionStorage.getItem("welcome_dismissed") === "true";
+
+      if (forceSplash || !dismissed) {
         queueMicrotask(() => setShowSplash(true));
       }
     } catch {
