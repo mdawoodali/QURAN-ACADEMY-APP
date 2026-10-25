@@ -30,29 +30,29 @@ export default function PortalLayoutClient({
   const isParent = pathname.startsWith("/parent");
 
   // Determine role-accurate display name
-  let effectiveName = userName || "Demo Student";
-  if (isTeacher && (effectiveName === "Demo Student" || !effectiveName || effectiveName.includes("Maryam Ahmed"))) {
-    effectiveName = "Demo Teacher";
-  } else if (isAdmin && (effectiveName === "Demo Student" || !effectiveName)) {
-    effectiveName = "Super Admin";
-  } else if (isParent && (effectiveName === "Demo Student" || !effectiveName)) {
-    effectiveName = "Family Guardian";
+  let effectiveName = userName || (isTeacher ? "Muhammad Isbah" : "User");
+  if (!userName || userName === "Demo Student" || userName === "Demo Teacher") {
+    if (isTeacher) {
+      effectiveName = "Muhammad Isbah";
+    } else if (isAdmin) {
+      effectiveName = "Super Admin";
+    } else if (isParent) {
+      effectiveName = "Family Guardian";
+    }
   }
 
   // Generate initials for avatar
   const initials =
-    effectiveName === "Demo Teacher"
-      ? "DT"
-      : effectiveName === "Demo Student"
-      ? "DS"
-      : effectiveName === "Super Admin"
+    effectiveName === "Super Admin"
       ? "SA"
+      : effectiveName === "Family Guardian"
+      ? "FG"
       : effectiveName
           .split(" ")
           .map((n) => n[0])
           .join("")
           .substring(0, 2)
-          .toUpperCase() || "U";
+          .toUpperCase() || "MI";
 
   return (
     <div className="flex h-screen bg-transparent overflow-hidden">
@@ -75,12 +75,10 @@ export default function PortalLayoutClient({
             <button 
               className="md:hidden text-white hover:text-amber-300 transition p-2 -ml-2 cursor-pointer"
               onClick={() => setMobileMenuOpen(true)}
+              aria-label="Open Navigation Menu"
             >
               <Menu size={24} />
             </button>
-            <div className="font-serif font-bold text-white text-base tracking-wide hidden sm:block">
-              {t("portalDashboard")}
-            </div>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-xs font-bold text-amber-300 bg-emerald-950/70 border border-amber-400/30 px-3.5 py-1.5 rounded-full hidden sm:block shadow-xs">

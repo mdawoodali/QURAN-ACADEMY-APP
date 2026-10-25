@@ -2618,3 +2618,14 @@ Remove hardcoded placeholder banking identities (e.g., 'Meezan Bank Ltd', mock I
 - Updated pps/web/src/app/(portal)/teacher/earnings/page.tsx to dynamically query genuine teacher bank details from 	eacher_details.bank_account.
 - Renders an informative zero-state if no account is registered, prompting tutor registration with the accounts desk.
 - Eliminated mock settlement figures, defaulting to PKR 0 authentic ledger when no settlements exist.
+
+---
+
+## 9.111 Portal Header Refinement & Label Removal (Task 7)
+
+### Context & Task
+Remove the redundant 'Portal Dashboard' title text from the primary portal layout top bar to provide a cleaner and less cluttered interface header.
+
+### Changes
+- Excised the {t("portalDashboard")} header label from pps/web/src/app/(portal)/PortalLayoutClient.tsx.
+- Streamlined mobile menu button with explicit ria-label accessibility attributes.
