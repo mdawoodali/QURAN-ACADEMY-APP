@@ -2653,3 +2653,19 @@ Temporarily relax validation requirements for National ID, physical address, and
 - Updated TeacherSchema in pps/web/src/app/(public)/register/teacher/actions.ts to make idCard, ddress, and ank optional with testing fallbacks.
 - Removed HTML equired attributes from corresponding fields in pps/web/src/app/(public)/register/teacher/page.tsx.
 - Tracked prominent reminder to restore strict production constraints when testing phase concludes.
+
+---
+
+## 9.114 Full Urdu Localization Across Entire Teacher Portal (Task 10)
+
+### Context & Task
+Resolve partial localization where switching language to Urdu only updated the sidebar while the rest of the portal remained in English.
+
+### Changes
+- Expanded LanguageContext.tsx with over 35 dedicated teacher portal translation keys covering scheduling, slot booking, student rosters, notes, and earnings.
+- Connected useLanguage() across all teacher portal views:
+  - pps/web/src/app/(portal)/teacher/page.tsx
+  - pps/web/src/app/(portal)/teacher/schedule/page.tsx
+  - pps/web/src/app/(portal)/teacher/students/page.tsx
+  - pps/web/src/app/(portal)/teacher/earnings/page.tsx
+- Applied Urdu typography (ont-urdu) and RTL alignment when Urdu mode is active, providing complete bilingual experience.
