@@ -2595,3 +2595,14 @@ Eliminate seeded fake learners ("Yusuf Khan") from the teacher portal student ro
 ### Changes
 - Removed hardcoded default student object and placeholder records from pps/web/src/app/(portal)/teacher/students/page.tsx.
 - Implemented clean empty-state UI when no students are enrolled or assigned to the authenticated teacher.
+
+---
+
+## 9.109 Teacher Student ID Addition & Safeguarding Protocol (Task 5)
+
+### Context & Task
+Provide teachers with a modal workflow to request adding students via Administrator-assigned Student IDs, incorporating the mutual safeguarding verification process (admin allocation + parental authorization).
+
+### Changes
+- Implemented Add Student by ID modal dialog in pps/web/src/app/(portal)/teacher/students/page.tsx.
+- Integrated safeguarding verification details informing teachers of admin Student ID issuance and parental confirmation requirements before student activation.

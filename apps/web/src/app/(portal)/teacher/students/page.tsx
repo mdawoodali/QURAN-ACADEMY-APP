@@ -249,7 +249,15 @@ export default function TeacherStudents() {
         </div>
 
         <div className="flex items-center gap-3">
-          
+          <button
+            type="button"
+            onClick={() => setShowAddStudentModal(true)}
+            className="bg-white/10 hover:bg-white/20 text-white border border-white/15 px-4 py-2.5 rounded-xl font-bold text-xs transition flex items-center gap-2 cursor-pointer"
+          >
+            <User size={14} className="text-amber-300" />
+            <span>Add Student by ID</span>
+          </button>
+
           {selectedStudent && (
             <button
               onClick={() => setShowNoteModal(true)}
