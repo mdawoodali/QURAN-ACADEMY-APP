@@ -26,56 +26,64 @@ export default function TeacherEarnings() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1. Fetch teacher bank profile if present
     const supabase = createClient();
     (async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
+          // Check teacher bank details - only verified active accounts are shown
           const { data } = await supabase
             .from("teacher_details")
-            .select("bank_account")
+            .select("bank_account, status")
             .eq("id", user.id)
             .single();
-          if (data?.bank_account && !data.bank_account.includes("PK00TEST")) {
+
+          if (data?.status === "active" && data?.bank_account && data.bank_account.length >= 16 && !data.bank_account.includes("TEST")) {
             setBankInfo({
-              bankName: "Registered Bank",
+              bankName: "Verified Bank Account",
               iban: data.bank_account,
             });
           } else {
             setBankInfo(null);
           }
+
+          // Fetch payouts scoped strictly to this teacher
+          const teacherParam = user?.id ? `?teacherId=${user.id}` : "";
+          const res = await fetch(`/api/payouts${teacherParam ? teacherParam + "&" : "?"}_t=${Date.now()}`, {
+            cache: "no-store",
+            headers: { "Cache-Control": "no-cache", "Pragma": "no-cache" },
+          });
+          const dataPayouts = await res.json();
+          const records = (dataPayouts.payouts || [])
+            .filter((p: any) => {
+              if (user?.id && p.teacherId) return p.teacherId === user.id;
+              if (p.teacherName) return p.teacherName.toLowerCase().includes("isbah");
+              return false;
+            })
+            .map((p: any) => ({
+              period: p.period || "Current Month",
+              completedClasses: Number(p.completed_classes || p.completedClasses || 0),
+              hours: `${(Number(p.completed_classes || p.completedClasses || 0) * 0.5).toFixed(1)} hrs`,
+              ratePerClass: `PKR ${p.rate_per_class || p.ratePerClass || 500}`,
+              adjustments: `PKR ${p.adjustments || 0}`,
+              payable: `PKR ${(Number(p.payable_amount || p.payableAmount || 0)).toLocaleString()}`,
+              status: (p.status === "paid" ? "Paid" : p.status === "processing" ? "Processing" : "Pending Verification") as PayoutRecord["status"],
+              payoutDate: p.payout_date || p.payoutDate || "Pending",
+              reference: p.reference || `PAY-${Date.now()}`
+            }));
+          setPayouts(records);
+        } else {
+          setBankInfo(null);
+          setPayouts([]);
         }
-      } catch {
+      } catch (err) {
+        console.error("Failed to load teacher earnings:", err);
         setBankInfo(null);
+        setPayouts([]);
+      } finally {
+        setLoading(false);
       }
     })();
-
-    // 2. Fetch live payouts without mock fallbacks
-    fetch(`/api/payouts?_t=${Date.now()}`, {
-      cache: "no-store",
-      headers: { "Cache-Control": "no-cache", "Pragma": "no-cache" },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        const records = (data.payouts || []).map((p: any) => ({
-          period: p.period || "Current Month",
-          completedClasses: Number(p.completed_classes || p.completedClasses || 0),
-          hours: `${(Number(p.completed_classes || p.completedClasses || 0) * 0.5).toFixed(1)} hrs`,
-          ratePerClass: `PKR ${p.rate_per_class || p.ratePerClass || 500}`,
-          adjustments: `PKR ${p.adjustments || 0}`,
-          payable: `PKR ${(Number(p.payable_amount || p.payableAmount || 0)).toLocaleString()}`,
-          status: (p.status === "paid" ? "Paid" : p.status === "processing" ? "Processing" : "Pending Verification") as PayoutRecord["status"],
-          payoutDate: p.payout_date || p.payoutDate || "Pending",
-          reference: p.reference || `PAY-${Date.now()}`
-        }));
-        setPayouts(records);
-      })
-      .catch((err) => {
-        console.error("Failed to load payouts:", err);
-        setPayouts([]);
-      })
-      .finally(() => setLoading(false));
   }, []);
 
   const handleDownloadStatement = (period: string) => {

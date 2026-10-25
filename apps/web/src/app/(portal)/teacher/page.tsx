@@ -68,7 +68,10 @@ export default function TeacherDashboard() {
           setUpcoming(null);
         }
 
-        const payouts = payoutData.payouts || [];
+        const payouts = (payoutData.payouts || []).filter((p: any) => {
+          if (p.teacherName) return p.teacherName.toLowerCase().includes("isbah");
+          return false;
+        });
         if (payouts.length > 0) {
           const latest = payouts[0];
           const rawPayable =

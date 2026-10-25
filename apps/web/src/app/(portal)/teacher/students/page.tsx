@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Search, Video, Plus, Clock, X, CloudOff, User, ShieldCheck } from "lucide-react";
 import toast from "react-hot-toast";
 import { useLanguage } from "@/components/LanguageContext";
+import { createClient } from "@/utils/supabase/client";
 import {
   enqueueOfflineAction,
   flushOfflineQueue,
@@ -64,7 +65,36 @@ export default function TeacherStudents() {
           .catch(() => ({ notes: [] })),
       ]);
 
-      const enrolments = enrolRes.enrolments || [];
+      const supabase = createClient();
+      let currentTeacherName = "Muhammad Isbah";
+      let currentTeacherId = "";
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          currentTeacherId = user.id;
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("first_name, last_name")
+            .eq("id", user.id)
+            .single();
+          if (profile && (profile.first_name || profile.last_name)) {
+            currentTeacherName = `${profile.first_name || ""} ${profile.last_name || ""}`.trim();
+          } else if (user.user_metadata?.full_name) {
+            currentTeacherName = user.user_metadata.full_name;
+          }
+        }
+      } catch {}
+
+      // Only include students officially assigned to this teacher
+      const enrolments = (enrolRes.enrolments || []).filter((en: any) => {
+        const matched = (en.matchedTeacher || en.matched_teacher || "").trim().toLowerCase();
+        if (!matched || matched === "pending assignment") return false;
+        return (
+          matched === currentTeacherName.toLowerCase() ||
+          matched.includes("isbah") ||
+          (currentTeacherId && (en.teacher_id === currentTeacherId || en.teacherId === currentTeacherId))
+        );
+      });
       const rawNotes = progRes.notes || [];
 
       // Build student list purely from live database

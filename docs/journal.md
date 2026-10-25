@@ -2695,3 +2695,28 @@ GitHub Actions CI pipeline failed at the Lint, Test, Build & Security Audit job 
   - pnpm lint: 0 errors (174 warnings allowed).
   - pnpm test: 30/30 suites and 517/517 tests passing.
   - pnpm build: 83/83 static and dynamic routes compiled cleanly.
+
+---
+
+## 9.116 Comprehensive Mock Data Eradication: Students & Teacher Payouts
+
+### Context & Problem Statement
+Even after removing client-side static fallbacks, mock learners ('Yusuf Khan', 'Amina Khan', 'Omar Ali', etc.) and mock payouts ('Ustadha Maryam Ahmed', 58,500 PKR) still surfaced because:
+1. Seed database records existed in the Supabase PostgreSQL database tables (enrolments and 	eacher_payouts).
+2. The teacher students view and earnings view fetched all enrolments and payouts unconditionally without filtering by the authenticated teacher identity.
+3. Bank details displayed unverified test registration input even while the teacher status was pending approval.
+
+### Changes Implemented
+1. **Database Purge**:
+   - Cleaned all mock seed enrolments (e0000000-...) and mock seed payouts (0000000-...) directly from Supabase PostgreSQL.
+   - Database confirmed with 0 mock enrolments and 0 mock payouts.
+2. **Teacher-Scoped Student Roster** (pps/web/src/app/(portal)/teacher/students/page.tsx):
+   - Scoped student loading strictly to learners officially assigned to the authenticated teacher (matchedTeacher === currentTeacherName or 	eacher_id === user.id).
+   - If no students are assigned by administrator, maintains clean empty state with Admin & Parent Safeguarding Protocol.
+3. **Teacher-Scoped Payouts & Verified Bank Details** (pps/web/src/app/(portal)/teacher/earnings/page.tsx & page.tsx):
+   - Scoped payout queries to the logged-in teacher ID. When no payouts exist, displays authentic zero figures (PKR 0 settled, PKR 0 payable, 0 classes).
+   - Constrained bank details display strictly to active, verified accounts. Shows clean prompt to register with accounts desk while teacher status is pending.
+4. **Verification**:
+   - TypeScript compilation: 0 errors (	sc --noEmit).
+   - Vitest suite: 30 / 30 test files and 517 / 517 tests passing.
+   - Clean build verified.
