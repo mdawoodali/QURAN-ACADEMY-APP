@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const { searchParams } = new URL(req.url);
-    const rawRoom = searchParams.get("roomId") || "default";
+    const rawRoom = searchParams.get("roomId") || searchParams.get("classId") || "default";
     const roomId = /^[a-zA-Z0-9_\-]{1,64}$/.test(rawRoom) ? rawRoom : "default";
 
     let supabase: any;
@@ -42,6 +42,8 @@ export async function GET(req: NextRequest) {
           updatedAt: new Date().toISOString(),
         },
         source: "default",
+      }, {
+        headers: { "Cache-Control": "no-store, no-cache, must-revalidate" }
       });
     }
 
@@ -73,19 +75,19 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const {
-      roomId = "default",
-      currentPage = 1,
-      currentSurah = 1,
-      currentAyah = 1,
-      tajweedMode = "color",
-      scriptMode = "uthmani",
-      selectedRule = null,
-      activeTab = "mushaf",
-      whiteboardStrokes = [],
-      teacherNotes = "",
-      lastUpdatedBy = "instructor",
-    } = body;
+    const nested = (body.state && typeof body.state === "object") ? body.state : {};
+    const rawRoom = body.roomId || body.classId || nested.roomId || nested.classId || "default";
+    const roomId = String(rawRoom);
+    const currentPage = body.currentPage ?? nested.currentPage ?? 1;
+    const currentSurah = body.currentSurah ?? nested.currentSurah ?? 1;
+    const currentAyah = body.currentAyah ?? nested.currentAyah ?? 1;
+    const tajweedMode = body.tajweedMode ?? nested.tajweedMode ?? "color";
+    const scriptMode = body.scriptMode ?? nested.scriptMode ?? "uthmani";
+    const selectedRule = body.selectedRule ?? nested.selectedRule ?? null;
+    const activeTab = body.activeTab ?? nested.activeTab ?? "mushaf";
+    const whiteboardStrokes = body.whiteboardStrokes ?? nested.whiteboardStrokes ?? [];
+    const teacherNotes = body.teacherNotes ?? nested.teacherNotes ?? "";
+    const lastUpdatedBy = body.lastUpdatedBy ?? nested.lastUpdatedBy ?? "instructor";
 
     if (!/^[a-zA-Z0-9_\-]{1,64}$/.test(String(roomId))) {
       return NextResponse.json({ error: "Invalid roomId format. Must be alphanumeric (1-64 chars)." }, { status: 400 });

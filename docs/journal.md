@@ -2231,3 +2231,30 @@ eceipt_uploaded, and payment_verified.
   - `pnpm typecheck`: 0 errors.
   - `pnpm lint`: 0 errors.
   - `next build`: 80/80 routes compiled successfully with Turbopack.
+
+## 9.94 Milestone 2 Implementation: Cache Integrity, PWA Service Worker Hardening & Synchronized State Purging (2026-10-25)
+
+- **Context & Core Objectives**:
+  - Implemented Milestone 2 (Cache Integrity & State Invalidation) to eliminate ghost states, stale session persistence, and service worker lock-in across all platform roles.
+- **Service Worker Hardening (`apps/web/public/sw.js` - v1.1.2)**:
+  - **Precache De-freezing**: Removed root `"/"` from static precache (`STATIC_ASSETS`), preventing public marketing and auth header state from freezing in local CacheStorage.
+  - **Strict Private Route Caching Exclusion**: Explicitly bypassed `/student`, `/parent`, `/teacher`, `/admin`, `/companion`, `/classroom`, `/api/`, `/ws/`, and Next.js RSC flight requests (`?_rsc=...`) from CacheStorage.
+  - **Static Asset Allowlist**: Restricted caching strictly to immutable static assets (`/_next/static/`, `.png`, `.jpg`, `.webp`, `.svg`, `.ico`, `.woff2`, `.mp3`).
+  - **Instant Cache Wipe**: Hardened `PURGE_CACHES` message listener to execute `Promise.all(keys.map(k => caches.delete(k)))` across all local caches.
+- **Sign-Out Synchronization & Storage Clearing**:
+  - In `PublicNavbar.tsx` and `Sidebar.tsx`, updated `handleSignOut`:
+    - Clears cookies (`demo_role`, `demo_user`) with dual `max-age=0` and expired epoch timestamps.
+    - Purges `localStorage` and `sessionStorage`.
+    - Iterates and deletes all browser `CacheStorage` keys directly.
+    - Dispatches `PURGE_CACHES` message to active Service Worker controller.
+    - Invokes `supabase.auth.signOut()` and redirects cleanly to `/login` with `router.refresh()`.
+- **Classroom State Parameter Normalization & Anti-Caching**:
+  - In `apps/web/src/app/api/classroom/state/route.ts`:
+    - GET endpoint now handles both `roomId` and `classId` query parameters seamlessly.
+    - Added `Cache-Control: no-store, no-cache, must-revalidate` headers to prevent intermediate browser or CDN caching of live classroom state.
+    - POST endpoint normalized to accept both flat and nested payloads (`body.state`), supporting `useClassroomSync.ts` without classroom state collapse.
+- **Verification & Test Status**:
+  - `pnpm test`: 28/28 test suites passed, **472/472 tests passed** (0 failed).
+  - `pnpm typecheck`: 0 errors.
+  - `pnpm lint`: 0 errors.
+  - `next build`: 80/80 routes compiled cleanly with Turbopack.

@@ -93,11 +93,31 @@ export default function Sidebar({ onClose, role, userName, initials }: { onClose
   }
 
   const handleSignOut = async () => {
-    document.cookie = "demo_role=; path=/; max-age=0";
-    document.cookie = "demo_user=; path=/; max-age=0";
-    await supabase.auth.signOut();
-    router.push('/login');
-    router.refresh();
+    try {
+      if (typeof document !== "undefined") {
+        document.cookie = "demo_role=; path=/; max-age=0";
+        document.cookie = "demo_user=; path=/; max-age=0";
+        document.cookie = "demo_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        document.cookie = "demo_user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+      }
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("demo_role");
+        localStorage.removeItem("demo_user");
+        sessionStorage.clear();
+        if ("caches" in window) {
+          caches.keys().then((keys) => keys.forEach((k) => caches.delete(k))).catch(() => {});
+        }
+        if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage("PURGE_CACHES");
+        }
+      }
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.warn("[Sidebar] Sign out error:", err);
+    } finally {
+      router.push('/login');
+      router.refresh();
+    }
   };
 
   return (
