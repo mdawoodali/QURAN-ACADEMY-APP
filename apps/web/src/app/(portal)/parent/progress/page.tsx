@@ -34,8 +34,8 @@ export default function ParentProgress() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/enrolments").then((r) => r.json()).catch(() => ({ enrolments: [] })),
-      fetch("/api/progress").then((r) => r.json()).catch(() => ({ notes: [] }))
+      fetch(`/api/enrolments?_t=${Date.now()}`, { cache: "no-store", headers: { "Cache-Control": "no-cache" } }).then((r) => r.json()).catch(() => ({ enrolments: [] })),
+      fetch(`/api/progress?_t=${Date.now()}`, { cache: "no-store", headers: { "Cache-Control": "no-cache" } }).then((r) => r.json()).catch(() => ({ notes: [] }))
     ])
       .then(([enrolData, progData]) => {
         const enrolments = enrolData.enrolments || [];

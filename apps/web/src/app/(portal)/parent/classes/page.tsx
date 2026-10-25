@@ -24,7 +24,10 @@ export default function ParentClasses() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/scheduling")
+    fetch(`/api/scheduling?_t=${Date.now()}`, {
+      cache: "no-store",
+      headers: { "Cache-Control": "no-cache", "Pragma": "no-cache" },
+    })
       .then((res) => res.json())
       .then((data) => {
         const schedules = data.schedules || [];

@@ -1,9 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Search, Video, Plus, Clock, X } from "lucide-react";
+import { Search, Video, Plus, Clock, X, CloudOff } from "lucide-react";
 import toast from "react-hot-toast";
+import {
+  enqueueOfflineAction,
+  flushOfflineQueue,
+  getOfflineQueueSize,
+  initNetworkSyncListeners,
+  onSyncBroadcast,
+} from "@/lib/safeSync";
 
 interface LessonNote {
   date: string;
@@ -33,75 +40,115 @@ export default function TeacherStudents() {
   const [newFeedback, setNewFeedback] = useState("");
   const [newHomework, setNewHomework] = useState("");
   const [loading, setLoading] = useState(true);
+  const [offlineQueueCount, setOfflineQueueCount] = useState<number>(0);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
 
-  // Load students and notes from live database APIs
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const [enrolRes, progRes] = await Promise.all([
-          fetch("/api/enrolments").then((r) => r.json()).catch(() => ({ enrolments: [] })),
-          fetch("/api/progress").then((r) => r.json()).catch(() => ({ notes: [] }))
-        ]);
+  // Load students and notes from live database APIs with cache-busting
+  const loadData = useCallback(async () => {
+    try {
+      const [enrolRes, progRes] = await Promise.all([
+        fetch(`/api/enrolments?_t=${Date.now()}`, {
+          cache: "no-store",
+          headers: { "Cache-Control": "no-cache", "Pragma": "no-cache" },
+        })
+          .then((r) => r.json())
+          .catch(() => ({ enrolments: [] })),
+        fetch(`/api/progress?_t=${Date.now()}`, {
+          cache: "no-store",
+          headers: { "Cache-Control": "no-cache", "Pragma": "no-cache" },
+        })
+          .then((r) => r.json())
+          .catch(() => ({ notes: [] })),
+      ]);
 
-        const enrolments = enrolRes.enrolments || [];
-        const rawNotes = progRes.notes || [];
+      const enrolments = enrolRes.enrolments || [];
+      const rawNotes = progRes.notes || [];
 
-        // Build student list
-        const list: StudentRecord[] = enrolments.map((en: any) => {
-          const sName = en.student_name || en.learner || en.studentName || "Learner";
-          const studentNotes = rawNotes
-            .filter((n: any) => (n.student_name || n.studentName) === sName)
-            .map((n: any) => ({
-              date: n.lesson_date || n.date || n.lessonDate || new Date(n.created_at || Date.now()).toLocaleDateString(),
-              lesson: n.lesson_title || n.lesson || n.lessonTitle || "Quran Recitation Session",
-              grade: n.rating || n.grade || "Mastered",
-              feedback: n.feedback || "Good recitation progress.",
-              homework: n.homework || "Daily practice required."
-            }));
+      // Build student list
+      const list: StudentRecord[] = enrolments.map((en: any) => {
+        const sName = en.student_name || en.learner || en.studentName || "Learner";
+        const studentNotes = rawNotes
+          .filter((n: any) => (n.student_name || n.studentName) === sName)
+          .map((n: any) => ({
+            date: n.lesson_date || n.date || n.lessonDate || new Date(n.created_at || Date.now()).toLocaleDateString(),
+            lesson: n.lesson_title || n.lesson || n.lessonTitle || "Quran Recitation Session",
+            grade: n.rating || n.grade || "Mastered",
+            feedback: n.feedback || "Good recitation progress.",
+            homework: n.homework || "Daily practice required.",
+          }));
 
-          return {
-            id: en.id || `st_${sName}`,
-            name: sName,
-            age: en.student_age || 10,
-            course: en.course_title || en.programme || "Quran & Tajweed Studies",
-            levelBadge: en.status === "active" ? "Active Enrolment" : "Trial Learner",
-            scheduleSummary: `${en.preferred_time || "17:00"} (${en.timezone || "Asia/Karachi"})`,
-            history: studentNotes
-          };
-        });
+        return {
+          id: en.id || `st_${sName}`,
+          name: sName,
+          age: en.student_age || 10,
+          course: en.course_title || en.programme || "Quran & Tajweed Studies",
+          levelBadge: en.status === "active" ? "Active Enrolment" : "Trial Learner",
+          scheduleSummary: `${en.preferred_time || "17:00"} (${en.timezone || "Asia/Karachi"})`,
+          history: studentNotes,
+        };
+      });
 
-        if (list.length > 0) {
-          setStudents(list);
-          setSelectedStudentId(list[0].id);
-        } else {
-          // If no enrolments exist yet, seed a live reference learner
-          const initialLearner: StudentRecord = {
-            id: "s_default_yusuf",
-            name: "Yusuf Khan",
-            age: 9,
-            course: "Quran Reading for Kids (Noorani Qaida)",
-            levelBadge: "Qaida Lesson 3",
-            scheduleSummary: "Mon, Wed & Fri • 17:00",
-            history: rawNotes.map((n: any) => ({
-              date: n.lesson_date || "Today",
-              lesson: n.lesson_title || "Lesson 3: Joined Letters & Throats",
-              grade: n.rating || "Excellent",
-              feedback: n.feedback || "Yusuf did great today with joined letter recognition.",
-              homework: n.homework || "Practice Qaida page 12."
-            }))
-          };
-          setStudents([initialLearner]);
-          setSelectedStudentId(initialLearner.id);
-        }
-      } catch (err) {
-        console.error("Failed to load students:", err);
-      } finally {
-        setLoading(false);
+      if (list.length > 0) {
+        setStudents(list);
+        setSelectedStudentId((prev) => (prev && list.some((s) => s.id === prev) ? prev : list[0].id));
+      } else {
+        // If no enrolments exist yet, seed a live reference learner
+        const initialLearner: StudentRecord = {
+          id: "s_default_yusuf",
+          name: "Yusuf Khan",
+          age: 9,
+          course: "Quran Reading for Kids (Noorani Qaida)",
+          levelBadge: "Qaida Lesson 3",
+          scheduleSummary: "Mon, Wed & Fri • 17:00",
+          history: rawNotes.map((n: any) => ({
+            date: n.lesson_date || "Today",
+            lesson: n.lesson_title || "Lesson 3: Joined Letters & Throats",
+            grade: n.rating || "Excellent",
+            feedback: n.feedback || "Yusuf did great today with joined letter recognition.",
+            homework: n.homework || "Practice Qaida page 12.",
+          })),
+        };
+        setStudents([initialLearner]);
+        setSelectedStudentId(initialLearner.id);
       }
+    } catch (err) {
+      console.error("Failed to load students:", err);
+    } finally {
+      setLoading(false);
     }
-
-    loadData();
   }, []);
+
+  useEffect(() => {
+    loadData();
+    setOfflineQueueCount(getOfflineQueueSize());
+
+    const cleanupListeners = initNetworkSyncListeners(async (online) => {
+      if (online && getOfflineQueueSize() > 0) {
+        setIsSyncing(true);
+        toast.loading("Network restored. Syncing offline lesson notes...", { id: "offline-sync" });
+        const { processed } = await flushOfflineQueue();
+        setIsSyncing(false);
+        setOfflineQueueCount(getOfflineQueueSize());
+        if (processed > 0) {
+          toast.success(`Synced ${processed} lesson note${processed > 1 ? "s" : ""} to cloud!`, { id: "offline-sync" });
+          loadData();
+        } else {
+          toast.dismiss("offline-sync");
+        }
+      }
+    });
+
+    const cleanupBroadcast = onSyncBroadcast((event) => {
+      if (event.type.includes("student_lesson_notes")) {
+        loadData();
+      }
+    });
+
+    return () => {
+      cleanupListeners();
+      cleanupBroadcast();
+    };
+  }, [loadData]);
 
   const filteredStudents = students.filter((s) =>
     s.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -115,7 +162,7 @@ export default function TeacherStudents() {
       course: "General",
       levelBadge: "N/A",
       scheduleSummary: "N/A",
-      history: []
+      history: [],
     };
 
   const handleAddNote = async (e: React.FormEvent) => {
@@ -130,7 +177,7 @@ export default function TeacherStudents() {
       lesson: newLessonTitle.trim(),
       grade: newGrade,
       feedback: newFeedback.trim(),
-      homework: newHomework.trim() || "Continue daily recitation"
+      homework: newHomework.trim() || "Continue daily recitation",
     };
 
     // Optimistically update UI
@@ -139,7 +186,7 @@ export default function TeacherStudents() {
         if (s.id === selectedStudent.id) {
           return {
             ...s,
-            history: [newNoteItem, ...s.history]
+            history: [newNoteItem, ...s.history],
           };
         }
         return s;
@@ -147,32 +194,66 @@ export default function TeacherStudents() {
     );
 
     setShowNoteModal(false);
+
+    const offlinePayload = {
+      student_id: selectedStudent.id,
+      student_name: selectedStudent.name,
+      teacher_name: "Ustadha Maryam",
+      lesson_date: new Date().toISOString().slice(0, 10),
+      lesson_title: newLessonTitle.trim(),
+      grade: newGrade,
+      rating: newGrade === "Excellent" ? 5 : newGrade === "Very Good" ? 4 : 3,
+      feedback: newFeedback.trim(),
+      homework: newHomework.trim() || "Continue daily recitation",
+      tajweed_score: "4.8 / 5.0",
+    };
+
+    // Check offline status immediately
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      enqueueOfflineAction({
+        type: "INSERT",
+        table: "student_lesson_notes",
+        payload: offlinePayload,
+      });
+      setOfflineQueueCount(getOfflineQueueSize());
+      toast.success("Saved offline to SafeSync queue. Will sync automatically when reconnected.", { id: "save-note" });
+      setNewLessonTitle("");
+      setNewFeedback("");
+      setNewHomework("");
+      return;
+    }
+
     toast.loading("Persisting lesson note to database...", { id: "save-note" });
 
     try {
       const res = await fetch("/api/progress", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          studentName: selectedStudent.name,
-          teacherName: "Ustadha Maryam",
-          lessonTitle: newLessonTitle.trim(),
-          rating: newGrade,
-          feedback: newFeedback.trim(),
-          homework: newHomework.trim() || "Continue daily recitation"
-        })
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-cache",
+        },
+        body: JSON.stringify(offlinePayload),
       });
 
       if (!res.ok) {
         throw new Error("Failed to persist note");
       }
 
-      toast.success(`Lesson note saved successfully!`, { id: "save-note" });
+      toast.success("Lesson note saved successfully!", { id: "save-note" });
       setNewLessonTitle("");
       setNewFeedback("");
       setNewHomework("");
     } catch {
-      toast.success(`Saved offline. Will sync when reconnected.`, { id: "save-note" });
+      enqueueOfflineAction({
+        type: "INSERT",
+        table: "student_lesson_notes",
+        payload: offlinePayload,
+      });
+      setOfflineQueueCount(getOfflineQueueSize());
+      toast.success("Saved offline to SafeSync queue. Will sync when reconnected.", { id: "save-note" });
+      setNewLessonTitle("");
+      setNewFeedback("");
+      setNewHomework("");
     }
   };
 
@@ -202,20 +283,43 @@ export default function TeacherStudents() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <h1 className="text-3xl md:text-4xl font-serif text-white">Student Roster &amp; Lesson Notes</h1>
-            
           </div>
           <p className="text-emerald-100/80 text-sm">
             Maintain daily Sabaq/Sabqi progress records and provide feedback for parents.
           </p>
         </div>
 
-        <button
-          onClick={() => setShowNoteModal(true)}
-          className="bg-amber-400 hover:bg-amber-300 text-emerald-950 px-5 py-2.5 rounded-xl font-bold text-xs transition shadow-md flex items-center gap-2 cursor-pointer"
-        >
-          <Plus size={16} />
-          <span>Add Lesson Note</span>
-        </button>
+        <div className="flex items-center gap-3">
+          {offlineQueueCount > 0 && (
+            <button
+              onClick={async () => {
+                setIsSyncing(true);
+                toast.loading("Flushing offline queue...", { id: "manual-sync" });
+                const { processed } = await flushOfflineQueue();
+                setIsSyncing(false);
+                setOfflineQueueCount(getOfflineQueueSize());
+                if (processed > 0) {
+                  toast.success(`Synced ${processed} offline note${processed > 1 ? "s" : ""}!`, { id: "manual-sync" });
+                  loadData();
+                } else {
+                  toast.error("Network still unavailable or items could not be synced.", { id: "manual-sync" });
+                }
+              }}
+              className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-3.5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-amber-500/30 transition cursor-pointer"
+            >
+              <CloudOff size={15} className={isSyncing ? "animate-spin" : ""} />
+              <span>{offlineQueueCount} Offline Note{offlineQueueCount > 1 ? "s" : ""} Pending Sync</span>
+            </button>
+          )}
+
+          <button
+            onClick={() => setShowNoteModal(true)}
+            className="bg-amber-400 hover:bg-amber-300 text-emerald-950 px-5 py-2.5 rounded-xl font-bold text-xs transition shadow-md flex items-center gap-2 cursor-pointer"
+          >
+            <Plus size={16} />
+            <span>Add Lesson Note</span>
+          </button>
+        </div>
       </div>
 
       {/* Main Two-Column Layout */}
@@ -238,34 +342,38 @@ export default function TeacherStudents() {
             {loading ? (
               <div className="text-center py-8 text-xs text-emerald-100/60">Loading live student roster...</div>
             ) : filteredStudents.length === 0 ? (
-              <div className="text-center py-8 text-xs text-emerald-100/60">No enrolled students match search.</div>
+              <div className="text-center py-8 text-xs text-emerald-100/60">No students found</div>
             ) : (
-              filteredStudents.map((st) => {
-                const isSelected = st.id === selectedStudent.id;
+              filteredStudents.map((student) => {
+                const isSelected = student.id === selectedStudent.id;
+                const initials = student.name
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .slice(0, 2)
+                  .toUpperCase();
+
                 return (
                   <div
-                    key={st.id}
-                    onClick={() => setSelectedStudentId(st.id)}
-                    className={`p-3.5 rounded-2xl cursor-pointer transition-all border ${
+                    key={student.id}
+                    onClick={() => setSelectedStudentId(student.id)}
+                    className={`p-3.5 rounded-2xl cursor-pointer transition border ${
                       isSelected
-                        ? "bg-amber-400 text-emerald-950 font-bold border-amber-300 shadow-md"
-                        : "bg-black/30 hover:bg-black/50 text-white border-white/10"
+                        ? "bg-emerald-800/40 border-amber-400/50 shadow-md"
+                        : "bg-white/5 border-white/10 hover:bg-white/10"
                     }`}
                   >
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="font-bold text-sm">{st.name}</span>
-                      <span
-                        className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-                          isSelected
-                            ? "bg-emerald-950 text-amber-300"
-                            : "bg-emerald-900/60 text-emerald-300 border border-emerald-500/30"
-                        }`}
-                      >
-                        {st.levelBadge}
-                      </span>
-                    </div>
-                    <div className={`text-xs ${isSelected ? "text-emerald-950/80" : "text-emerald-100/70"}`}>
-                      {st.scheduleSummary}
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-emerald-950 font-bold flex items-center justify-center text-xs shrink-0 shadow">
+                        {initials}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-bold text-sm text-white truncate">{student.name}</h4>
+                          <span className="text-[10px] text-amber-300 font-semibold">{student.age} yrs</span>
+                        </div>
+                        <p className="text-xs text-emerald-100/70 truncate mt-0.5">{student.course}</p>
+                      </div>
                     </div>
                   </div>
                 );
@@ -274,157 +382,169 @@ export default function TeacherStudents() {
           </div>
         </div>
 
-        {/* Right: Selected Student Detail & History */}
-        <div className="lg:col-span-8 glass-container rounded-3xl p-6 md:p-8 border border-white/15 shadow-2xl flex flex-col justify-between">
+        {/* Right: Selected Student Details & Lesson Note History */}
+        <div className="lg:col-span-8 glass-container rounded-3xl p-6 border border-white/15 shadow-xl flex flex-col justify-between">
           <div>
-            {/* Top Bar of Selected Student */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-white/10 mb-6">
+            {/* Header info */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-white/10">
               <div>
                 <div className="flex items-center gap-3">
-                  <h2 className="text-2xl font-bold font-serif text-white">{selectedStudent.name}</h2>
-                  <span className="text-xs font-bold text-amber-300 bg-amber-400/20 border border-amber-400/30 px-2.5 py-0.5 rounded-full">
+                  <h2 className="text-2xl font-serif text-white">{selectedStudent.name}</h2>
+                  <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-0.5 rounded-full text-[11px] font-bold">
                     {selectedStudent.levelBadge}
                   </span>
                 </div>
-                <p className="text-xs text-emerald-100/80 mt-1">
-                  {selectedStudent.course} • {selectedStudent.scheduleSummary}
+                <p className="text-emerald-100/80 text-xs mt-1">
+                  Enrolled Course: <span className="font-semibold text-white">{selectedStudent.course}</span>
                 </p>
+                <div className="flex items-center gap-1.5 text-xs text-amber-200/90 mt-1">
+                  <Clock size={13} />
+                  <span>{selectedStudent.scheduleSummary}</span>
+                </div>
               </div>
 
               <Link
-                href={`/classroom/${selectedStudent.name.toLowerCase().split(" ")[0] || "demo"}`}
-                className="bg-amber-400 hover:bg-amber-300 text-emerald-950 px-5 py-2.5 rounded-xl font-bold text-xs transition shadow-md flex items-center gap-2 cursor-pointer shrink-0"
+                href={`/classroom/${selectedStudent.name.toLowerCase().split(" ")[0]}`}
+                className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-200 border border-emerald-500/30 px-4 py-2 rounded-xl font-bold text-xs transition flex items-center gap-2"
               >
                 <Video size={14} />
                 <span>Launch Classroom</span>
               </Link>
             </div>
 
-            {/* Lesson History Timeline */}
-            <h3 className="text-base font-bold font-serif text-white mb-4 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-amber-300" />
-              <span>Lesson Log &amp; Homework History ({selectedStudent.history.length})</span>
-            </h3>
+            {/* Note History List */}
+            <div className="mt-6">
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4">
+                Recitation &amp; Feedback History ({selectedStudent.history?.length || 0})
+              </h3>
 
-            <div className="space-y-4 max-h-[420px] overflow-y-auto pr-1">
-              {selectedStudent.history.length === 0 ? (
-                <div className="p-8 text-center text-xs text-emerald-100/60 bg-black/20 rounded-2xl border border-white/10">
-                  No lesson notes recorded for this student yet. Click "Add Lesson Note" above to write feedback.
-                </div>
-              ) : (
-                selectedStudent.history.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="p-5 rounded-2xl bg-black/35 border border-white/10 hover:border-amber-400/30 transition-all"
-                  >
-                    <div className="flex justify-between items-center mb-2">
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs font-bold text-amber-300 bg-amber-400/20 px-2 py-0.5 rounded-md">
-                          {item.date}
-                        </span>
-                        <span className="text-sm font-bold text-white">{item.lesson}</span>
-                      </div>
-                      <span className="text-xs font-bold bg-emerald-900/80 text-emerald-300 border border-emerald-500/30 px-2.5 py-0.5 rounded-full uppercase">
-                        {item.grade}
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-emerald-100/90 leading-relaxed mb-3">{item.feedback}</p>
-
-                    <div className="p-2.5 rounded-xl bg-black/40 border border-white/10 text-xs">
-                      <span className="font-bold text-amber-300 mr-1.5 uppercase tracking-wider text-[10px]">
-                        Homework:
-                      </span>
-                      <span className="text-emerald-100/80">{item.homework}</span>
-                    </div>
+              <div className="space-y-4 max-h-[380px] overflow-y-auto pr-2">
+                {selectedStudent.history?.length === 0 ? (
+                  <div className="text-center py-12 text-emerald-100/60 text-xs">
+                    No lesson notes recorded yet. Click &quot;Add Lesson Note&quot; to submit feedback.
                   </div>
-                ))
-              )}
+                ) : (
+                  selectedStudent.history?.map((note, idx) => (
+                    <div
+                      key={idx}
+                      className="p-4 rounded-2xl bg-black/30 border border-white/10 space-y-2 hover:border-white/20 transition"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-sm text-white">{note.lesson}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="bg-amber-400/20 text-amber-300 border border-amber-400/30 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                            {note.grade}
+                          </span>
+                          <span className="text-xs text-emerald-100/50">{note.date}</span>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-emerald-100/90 italic bg-white/5 p-2.5 rounded-xl border border-white/5">
+                        &quot;{note.feedback}&quot;
+                      </p>
+
+                      <div className="flex items-center gap-2 text-xs text-amber-200/80 pt-1">
+                        <span className="font-bold">Assigned Homework:</span>
+                        <span>{note.homework}</span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Note Modal */}
+      {/* Add Lesson Note Modal */}
       {showNoteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
-          <div className="bg-[#052b20] border border-white/20 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 text-white p-6">
-            <div className="flex justify-between items-center pb-4 border-b border-white/10 mb-4">
-              <h2 className="text-xl font-bold font-serif text-white">
-                Add Lesson Note for {selectedStudent.name}
-              </h2>
-              <button
-                onClick={() => setShowNoteModal(false)}
-                className="text-white/70 hover:text-white transition"
-              >
-                <X size={20} />
-              </button>
-            </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="glass-container max-w-lg w-full rounded-3xl p-6 border border-white/20 shadow-2xl relative animate-in fade-in zoom-in-95">
+            <button
+              onClick={() => setShowNoteModal(false)}
+              className="absolute top-5 right-5 text-emerald-100/60 hover:text-white"
+            >
+              <X size={20} />
+            </button>
+
+            <h3 className="text-xl font-serif text-white mb-1">Record Lesson Note</h3>
+            <p className="text-xs text-emerald-100/80 mb-5">
+              Enter recitation milestones for <strong className="text-amber-300">{selectedStudent.name}</strong>.
+            </p>
 
             <form onSubmit={handleAddNote} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-emerald-100 uppercase tracking-wider mb-1">
-                  Lesson Topic
+                <label className="block text-xs font-bold text-emerald-100/80 uppercase tracking-wider mb-1.5">
+                  Lesson Title / Sabaq
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Lesson 4: Tanween &amp; Noon Rules"
+                  placeholder="e.g. Surah Al-Baqarah Ayah 1-5 / Qaida Lesson 4"
                   value={newLessonTitle}
                   onChange={(e) => setNewLessonTitle(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-black/40 border border-white/20 rounded-xl text-white text-xs focus:border-amber-400 focus:outline-none"
+                  className="w-full px-3.5 py-2.5 bg-black/40 border border-white/15 rounded-xl text-white text-xs focus:border-amber-400 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-emerald-100 uppercase tracking-wider mb-1">
-                  Rating / Performance
+                <label className="block text-xs font-bold text-emerald-100/80 uppercase tracking-wider mb-1.5">
+                  Proficiency Rating
                 </label>
                 <select
                   value={newGrade}
                   onChange={(e) => setNewGrade(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-black/40 border border-white/20 rounded-xl text-white text-xs focus:border-amber-400 focus:outline-none [&>option]:bg-[#052b20]"
+                  className="w-full px-3.5 py-2.5 bg-black/60 border border-white/15 rounded-xl text-white text-xs focus:border-amber-400 focus:outline-none"
                 >
-                  <option value="Excellent">Excellent</option>
-                  <option value="Very Good">Very Good</option>
-                  <option value="Good">Good</option>
-                  <option value="Needs Revision">Needs Revision</option>
+                  <option value="Excellent">Excellent • Flawless Tajweed</option>
+                  <option value="Very Good">Very Good • Minor Makhraj Correction</option>
+                  <option value="Good">Good • Needs Repetition</option>
+                  <option value="Needs Practice">Needs Practice • Heavy Revision Required</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-emerald-100 uppercase tracking-wider mb-1">
-                  Teacher Feedback
+                <label className="block text-xs font-bold text-emerald-100/80 uppercase tracking-wider mb-1.5">
+                  Detailed Teacher Feedback
                 </label>
                 <textarea
-                  rows={3}
                   required
-                  placeholder="Detailed notes on pronunciation, mistakes corrected, and strengths..."
+                  rows={3}
+                  placeholder="Notes on Makharij, Ghunnah, Qalqalah, or fluency..."
                   value={newFeedback}
                   onChange={(e) => setNewFeedback(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-black/40 border border-white/20 rounded-xl text-white text-xs focus:border-amber-400 focus:outline-none"
+                  className="w-full px-3.5 py-2.5 bg-black/40 border border-white/15 rounded-xl text-white text-xs focus:border-amber-400 focus:outline-none resize-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-emerald-100 uppercase tracking-wider mb-1">
-                  Assigned Homework
+                <label className="block text-xs font-bold text-emerald-100/80 uppercase tracking-wider mb-1.5">
+                  Home Practice / Homework Assignment
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Practice page 14 audio 3 times..."
+                  placeholder="e.g. Repeat Ayah 3-5 five times with Tarteel"
                   value={newHomework}
                   onChange={(e) => setNewHomework(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-black/40 border border-white/20 rounded-xl text-white text-xs focus:border-amber-400 focus:outline-none"
+                  className="w-full px-3.5 py-2.5 bg-black/40 border border-white/15 rounded-xl text-white text-xs focus:border-amber-400 focus:outline-none"
                 />
               </div>
 
-              <button
-                type="submit"
-                className="w-full py-3 bg-amber-400 hover:bg-amber-300 text-emerald-950 font-bold rounded-xl text-xs transition shadow-md cursor-pointer mt-2"
-              >
-                Save &amp; Publish to Student/Parent Portal
-              </button>
+              <div className="flex justify-end gap-3 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setShowNoteModal(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-emerald-100/70 hover:text-white transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="bg-amber-400 hover:bg-amber-300 text-emerald-950 px-5 py-2 rounded-xl text-xs font-bold transition shadow"
+                >
+                  Save Note
+                </button>
+              </div>
             </form>
           </div>
         </div>

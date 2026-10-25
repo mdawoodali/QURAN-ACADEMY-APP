@@ -3,6 +3,13 @@ import { connection } from "next/server";
 import { createAdminClient } from "@/utils/supabase/admin";
 import { createClient } from "@/utils/supabase/server";
 
+export const NO_CACHE_HEADERS = {
+  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
+  "Pragma": "no-cache",
+  "Expires": "0",
+  "Surrogate-Control": "no-store",
+};
+
 export interface InvoiceRecord {
   id: string;
   familyName: string;
@@ -46,7 +53,7 @@ export async function GET() {
         source: "supabase_postgresql",
         count: 0,
         error: error.message,
-      });
+      }, { headers: NO_CACHE_HEADERS });
     }
 
     const mapped: InvoiceRecord[] = (dbInvoices || []).map((inv: any) => ({
@@ -72,7 +79,7 @@ export async function GET() {
       invoices: mapped,
       source: "supabase_postgresql",
       count: mapped.length,
-    });
+    }, { headers: NO_CACHE_HEADERS });
   } catch (err: any) {
     console.error("[Invoices API] Unexpected error:", err);
     return NextResponse.json({
@@ -80,7 +87,7 @@ export async function GET() {
       source: "supabase_postgresql",
       count: 0,
       error: err?.message,
-    });
+    }, { headers: NO_CACHE_HEADERS });
   }
 }
 
@@ -102,7 +109,7 @@ export async function POST(req: NextRequest) {
     if (isNaN(numAmount) || numAmount <= 0 || !isFinite(numAmount)) {
       return NextResponse.json(
         { error: "Invalid amount. Must be a positive number greater than 0." },
-        { status: 400 }
+        { status: 400, headers: NO_CACHE_HEADERS }
       );
     }
 
@@ -111,7 +118,7 @@ export async function POST(req: NextRequest) {
     if (!SUPPORTED_CURRENCIES.includes(normCurrency)) {
       return NextResponse.json(
         { error: `Unsupported currency: ${currency}. Must be one of: ${SUPPORTED_CURRENCIES.join(", ")}` },
-        { status: 400 }
+        { status: 400, headers: NO_CACHE_HEADERS }
       );
     }
 
@@ -119,7 +126,7 @@ export async function POST(req: NextRequest) {
     if (!cleanTxRef || cleanTxRef.length < 3 || cleanTxRef.length > 100) {
       return NextResponse.json(
         { error: "Transaction reference is required (3 to 100 characters)." },
-        { status: 400 }
+        { status: 400, headers: NO_CACHE_HEADERS }
       );
     }
 
@@ -169,12 +176,12 @@ export async function POST(req: NextRequest) {
         message: "Payment receipt submitted successfully and saved to database.",
         invoice: newRecord,
       },
-      { status: 201 }
+      { status: 201, headers: NO_CACHE_HEADERS }
     );
   } catch (err: any) {
     return NextResponse.json(
       { error: "Failed to process receipt submission", details: err?.message },
-      { status: 500 }
+      { status: 500, headers: NO_CACHE_HEADERS }
     );
   }
 }
@@ -187,7 +194,7 @@ export async function PATCH(req: NextRequest) {
     if (!id || !status || !["verified", "rejected"].includes(status)) {
       return NextResponse.json(
         { error: "Valid ID and target status ('verified' | 'rejected') are required." },
-        { status: 400 }
+        { status: 400, headers: NO_CACHE_HEADERS }
       );
     }
 
@@ -217,11 +224,11 @@ export async function PATCH(req: NextRequest) {
       success: true,
       message: `Receipt ${id} marked as ${status}.`,
       invoice: updated,
-    });
+    }, { status: 200, headers: NO_CACHE_HEADERS });
   } catch (err: any) {
     return NextResponse.json(
       { error: "Failed to update receipt status", details: err?.message },
-      { status: 500 }
+      { status: 500, headers: NO_CACHE_HEADERS }
     );
   }
 }

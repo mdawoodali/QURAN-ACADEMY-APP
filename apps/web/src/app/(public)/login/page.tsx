@@ -2,7 +2,6 @@ import { Suspense } from 'react'
 import { login, loginWithGoogle } from './actions'
 import { BookOpen } from 'lucide-react'
 import Link from 'next/link'
-import { APP_VERSION } from '@quran/contracts'
 
 async function ErrorBanner({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const params = await searchParams;
@@ -35,9 +34,6 @@ export default function LoginPage(props: { searchParams: Promise<{ error?: strin
               </span>
             </div>
           </Link>
-          <span className="text-[11px] font-mono text-emerald-300/80 bg-emerald-950/80 border border-emerald-700/40 px-2.5 py-0.5 rounded-full mb-1">
-            v{APP_VERSION}
-          </span>
         </div>
         <h2 className="text-2xl sm:text-3xl font-serif text-white text-center mb-1">Welcome Back</h2>
         <p className="text-emerald-100/80 text-center text-sm mb-6">Sign in to access your classroom and portal.</p>

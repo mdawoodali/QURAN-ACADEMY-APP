@@ -134,10 +134,18 @@ export function useClassroomSync({
   ]);
 
   // Apply full snapshot from teacher on connection or reconnection catch-up
-  const applyFullSnapshot = useCallback((state: Partial<ClassroomToolState>) => {
+  const applyFullSnapshot = useCallback((state: any) => {
+    if (!state) return;
     if (state.activeLessonId !== undefined) setActiveLessonId(state.activeLessonId);
-    if (state.script !== undefined) setScript(state.script);
-    if (state.tajweedMode !== undefined) setTajweedMode(state.tajweedMode);
+    const resolvedScript = state.script || state.scriptMode || state.script_mode;
+    if (resolvedScript) setScript(resolvedScript as ScriptType);
+    if (state.tajweedMode !== undefined) {
+      setTajweedMode(
+        typeof state.tajweedMode === "boolean"
+          ? state.tajweedMode
+          : state.tajweedMode === "color" || state.tajweedMode === "true"
+      );
+    }
     if (state.fontSize !== undefined) setFontSize(state.fontSize);
     if (state.fontColor !== undefined) setFontColor(state.fontColor);
     if (state.underlines !== undefined) setUnderlines(state.underlines);
@@ -284,10 +292,22 @@ export function useClassroomSync({
     persistStateDebounceRef.current = setTimeout(() => {
       fetch('/api/classroom/state', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+        },
         body: JSON.stringify({
+          roomId: classId,
           classId,
           state: stateToPersist,
+          currentPage: stateToPersist?.currentPage || 1,
+          currentSurah: stateToPersist?.currentSurah || 1,
+          currentAyah: stateToPersist?.currentAyah || 1,
+          tajweedMode: stateToPersist?.tajweedMode ? "color" : "plain",
+          scriptMode: stateToPersist?.script || "uthmani",
+          script: stateToPersist?.script || "uthmani",
+          teacherNotes: stateToPersist?.teacherNotes || "",
+          lastUpdatedBy: role || "teacher",
         }),
       }).catch((err) => console.warn('Failed to persist classroom state:', err));
     }, 600);
@@ -492,7 +512,18 @@ export function useClassroomSync({
     isUnmountedRef.current = false;
 
     // 0. Restore persistent classroom state from Supabase
-    fetch(`/api/classroom/state?classId=${encodeURIComponent(classId)}`)
+    const stateParams = new URLSearchParams({
+      roomId: classId,
+      classId,
+      _t: Date.now().toString(),
+    });
+    fetch(`/api/classroom/state?${stateParams.toString()}`, {
+      cache: "no-store",
+      headers: {
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache",
+      },
+    })
       .then((res) => res.json())
       .then((data) => {
         if (!isUnmountedRef.current && data.state) {

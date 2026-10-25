@@ -22,7 +22,10 @@ export default function TeacherEarnings() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/payouts")
+    fetch(`/api/payouts?_t=${Date.now()}`, {
+      cache: "no-store",
+      headers: { "Cache-Control": "no-cache", "Pragma": "no-cache" },
+    })
       .then((res) => res.json())
       .then((data) => {
         const records = (data.payouts || []).map((p: any) => ({

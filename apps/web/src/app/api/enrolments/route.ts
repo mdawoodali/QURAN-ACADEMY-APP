@@ -3,6 +3,13 @@ import { connection } from "next/server";
 import { createAdminClient } from "@/utils/supabase/admin";
 import { createClient } from "@/utils/supabase/server";
 
+export const NO_CACHE_HEADERS = {
+  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
+  "Pragma": "no-cache",
+  "Expires": "0",
+  "Surrogate-Control": "no-store",
+};
+
 export interface EnrolmentRecord {
   id: string;
   learner: string;
@@ -65,7 +72,7 @@ export async function GET() {
         enrolments: mapped,
         source: "supabase_postgresql",
         count: mapped.length,
-      });
+      }, { headers: NO_CACHE_HEADERS });
     }
 
     // 2. Query student_details as fallback table
@@ -100,14 +107,14 @@ export async function GET() {
         enrolments: dbMapped,
         source: "supabase_postgresql",
         count: dbMapped.length,
-      });
+      }, { headers: NO_CACHE_HEADERS });
     }
 
     return NextResponse.json({
       enrolments: [],
       source: "supabase_postgresql",
       count: 0,
-    });
+    }, { headers: NO_CACHE_HEADERS });
   } catch (err: any) {
     console.error("[Enrolments API] Unexpected error:", err);
     return NextResponse.json({
@@ -115,7 +122,7 @@ export async function GET() {
       source: "supabase_postgresql",
       count: 0,
       error: err?.message,
-    });
+    }, { headers: NO_CACHE_HEADERS });
   }
 }
 
@@ -135,7 +142,7 @@ export async function POST(req: NextRequest) {
     } = body;
 
     if (!learnerName) {
-      return NextResponse.json({ error: "Learner name is required" }, { status: 400 });
+      return NextResponse.json({ error: "Learner name is required" }, { status: 400, headers: NO_CACHE_HEADERS });
     }
 
     let supabase: any;
@@ -179,12 +186,12 @@ export async function POST(req: NextRequest) {
           status: "trial_booked",
         },
       },
-      { status: 201 }
+      { status: 201, headers: NO_CACHE_HEADERS }
     );
   } catch (err: any) {
     return NextResponse.json(
       { error: "Failed to create enrolment", details: err?.message },
-      { status: 500 }
+      { status: 500, headers: NO_CACHE_HEADERS }
     );
   }
 }
@@ -197,7 +204,7 @@ export async function PATCH(req: NextRequest) {
     if (!id || !status) {
       return NextResponse.json(
         { error: "Enrolment ID and status are required." },
-        { status: 400 }
+        { status: 400, headers: NO_CACHE_HEADERS }
       );
     }
 
@@ -230,11 +237,11 @@ export async function PATCH(req: NextRequest) {
       success: true,
       message: `Enrolment ${id} status updated to ${status}.`,
       enrolment: data || { id, status, matchedTeacher, assessmentStage },
-    });
+    }, { status: 200, headers: NO_CACHE_HEADERS });
   } catch (err: any) {
     return NextResponse.json(
       { error: "Failed to update enrolment", details: err?.message },
-      { status: 500 }
+      { status: 500, headers: NO_CACHE_HEADERS }
     );
   }
 }

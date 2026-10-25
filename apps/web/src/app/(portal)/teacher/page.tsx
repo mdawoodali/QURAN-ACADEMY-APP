@@ -26,8 +26,8 @@ export default function TeacherDashboard() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/scheduling").then((r) => r.json()).catch(() => ({ schedules: [] })),
-      fetch("/api/payouts").then((r) => r.json()).catch(() => ({ payouts: [] }))
+      fetch(`/api/scheduling?_t=${Date.now()}`, { cache: "no-store", headers: { "Cache-Control": "no-cache" } }).then((r) => r.json()).catch(() => ({ schedules: [] })),
+      fetch(`/api/payouts?_t=${Date.now()}`, { cache: "no-store", headers: { "Cache-Control": "no-cache" } }).then((r) => r.json()).catch(() => ({ payouts: [] }))
     ])
       .then(([schedData, payoutData]) => {
         const schedules = schedData.schedules || [];

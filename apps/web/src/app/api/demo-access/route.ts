@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { revalidatePath } from "next/cache";
 
 export async function GET(request: NextRequest) {
   const role = request.nextUrl.searchParams.get("role") || "student";
@@ -12,6 +13,9 @@ export async function GET(request: NextRequest) {
       : "/student";
 
   const response = NextResponse.redirect(new URL(target, request.url));
+
+  // Anti-caching header to prevent stale redirects
+  response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
 
   // Set demo role cookie to bypass middleware on preview/demo evaluations
   response.cookies.set("demo_role", role, {
@@ -36,6 +40,10 @@ export async function GET(request: NextRequest) {
     sameSite: "lax",
     maxAge: 60 * 60 * 24 * 7,
   });
+
+  try {
+    revalidatePath("/", "layout");
+  } catch {}
 
   return response;
 }

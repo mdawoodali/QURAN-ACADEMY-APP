@@ -2,18 +2,21 @@
  * Quran Learn Academy — Production PWA Service Worker (v1.1.2)
  * Hardened Cache Invalidation & Private Route Isolation.
  *
- * Excludes private portals (/student, /parent, /teacher, /admin, /classroom, /companion),
- * Next.js RSC flight data, APIs, and WebSockets from cache storage to eliminate ghost states.
+ * Excludes private portals (/student, /parent, /teacher, /admin, /classroom, /companion, /dashboard, /auth),
+ * Next.js RSC flight data, APIs, WebSockets, and cross-origin requests from cache storage to eliminate ghost states.
  */
 
 const CACHE_NAME = "quran-academy-v1.1.2";
+
+// Pre-cache strictly immutable brand assets (never "/" or dynamic pages)
 const STATIC_ASSETS = [
   "/manifest.json",
   "/favicon.ico",
+  "/icon.png",
   "/logo_quran_learn_academy.png",
 ];
 
-// Install: Pre-cache strictly immutable brand assets (never "/" or dynamic pages)
+// Install: Pre-cache strictly immutable assets and immediately skip waiting
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -23,7 +26,7 @@ self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
 
-// Activate: Purge obsolete caches immediately
+// Activate: Purge obsolete caches immediately and take control of all active clients
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -39,63 +42,100 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Fetch: Pure static asset caching; strictly bypass private routes & RSC data
+// Fetch: Pure static asset caching; strictly bypass private routes & RSC flight data
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // 1. Strict bypass for non-GET, APIs, WebSockets, and RSC flight data
+  // 1. Strict origin isolation: bypass all cross-origin requests (Supabase, LiveKit, CDNs, APIs)
+  if (url.origin !== self.location.origin) {
+    return;
+  }
+
+  // 2. Strict bypass for non-GET requests
+  if (request.method !== "GET") {
+    return;
+  }
+
+  const lowerPath = url.pathname.toLowerCase();
+
+  // 3. Strict bypass for APIs, WebSockets, dev endpoints, and Next.js RSC flight requests
+  const isRscRequest =
+    url.searchParams.has("_rsc") ||
+    request.headers.get("RSC") === "1" ||
+    request.headers.has("Next-Router-State-Tree");
+
   if (
-    request.method !== "GET" ||
-    url.pathname.startsWith("/api/") ||
-    url.pathname.startsWith("/ws/") ||
-    url.searchParams.has("_rsc")
+    lowerPath.startsWith("/api/") ||
+    lowerPath.startsWith("/ws/") ||
+    lowerPath.startsWith("/dev/") ||
+    isRscRequest
   ) {
     return;
   }
 
-  // 2. Strict bypass for all private user portals & classroom sessions
-  if (
-    url.pathname.startsWith("/student") ||
-    url.pathname.startsWith("/parent") ||
-    url.pathname.startsWith("/teacher") ||
-    url.pathname.startsWith("/admin") ||
-    url.pathname.startsWith("/companion") ||
-    url.pathname.startsWith("/classroom")
-  ) {
+  // 4. Strict bypass for all private user portals, classroom sessions & auth flows
+  // Supports case-insensitive matching and subroute prefixes
+  const privatePrefixes = [
+    "/student",
+    "/parent",
+    "/teacher",
+    "/admin",
+    "/companion",
+    "/classroom",
+    "/dashboard",
+    "/auth",
+  ];
+
+  const isPrivateRoute = privatePrefixes.some(
+    (prefix) => lowerPath === prefix || lowerPath.startsWith(prefix + "/")
+  );
+
+  if (isPrivateRoute) {
     return;
   }
 
-  // 3. Static assets (fonts, images, audio, Next.js static bundles): Cache-first with network fallback
+  // 5. Static assets (fonts, images, audio, Next.js static bundles): Cache-first with network fallback
   const isStaticAsset =
-    url.pathname.startsWith("/_next/static/") ||
-    url.pathname.endsWith(".png") ||
-    url.pathname.endsWith(".jpg") ||
-    url.pathname.endsWith(".jpeg") ||
-    url.pathname.endsWith(".webp") ||
-    url.pathname.endsWith(".svg") ||
-    url.pathname.endsWith(".ico") ||
-    url.pathname.endsWith(".woff2") ||
-    url.pathname.endsWith(".mp3");
+    lowerPath.startsWith("/_next/static/") ||
+    lowerPath.endsWith(".png") ||
+    lowerPath.endsWith(".jpg") ||
+    lowerPath.endsWith(".jpeg") ||
+    lowerPath.endsWith(".webp") ||
+    lowerPath.endsWith(".svg") ||
+    lowerPath.endsWith(".ico") ||
+    lowerPath.endsWith(".woff") ||
+    lowerPath.endsWith(".woff2") ||
+    lowerPath.endsWith(".ttf") ||
+    lowerPath.endsWith(".mp3") ||
+    lowerPath.endsWith(".wav") ||
+    lowerPath.endsWith(".mp4");
 
   if (isStaticAsset) {
     event.respondWith(
       caches.match(request).then((cached) => {
         if (cached) return cached;
-        return fetch(request).then((response) => {
-          if (response.status === 200) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-          }
-          return response;
-        });
+        return fetch(request)
+          .then((response) => {
+            if (response.status === 200) {
+              const clone = response.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+            }
+            return response;
+          })
+          .catch(() => {
+            return new Response("Asset temporarily unavailable offline", {
+              status: 503,
+              statusText: "Service Unavailable",
+            });
+          });
       })
     );
     return;
   }
 
-  // 4. Public navigation pages: Network-first, NEVER store in cache to prevent stale auth UI
-  // Browser standard HTTP cache handles ETags/304 without service worker lock-in
+  // 6. Navigation and dynamic marketing pages: Bypass Service Worker completely
+  // Native browser HTTP cache handles ETags/304 without service worker lock-in or stale auth UI.
 });
 
 // Push Event: Deliver 15-minute class reminder notifications
@@ -154,16 +194,33 @@ self.addEventListener("notificationclick", (event) => {
   );
 });
 
-// Message Listener: Force update & instant cache wipe
+// Message Listener: Force update & instant cache wipe (string or structured object)
 self.addEventListener("message", (event) => {
-  if (event.data === "SKIP_WAITING") {
+  const isSkipWaiting =
+    event.data === "SKIP_WAITING" ||
+    event.data?.type === "SKIP_WAITING" ||
+    event.data?.action === "SKIP_WAITING";
+
+  if (isSkipWaiting) {
     self.skipWaiting();
+    return;
   }
-  if (event.data === "PURGE_CACHES") {
+
+  const isPurgeCaches =
+    event.data === "PURGE_CACHES" ||
+    event.data?.type === "PURGE_CACHES" ||
+    event.data?.action === "PURGE_CACHES";
+
+  if (isPurgeCaches) {
     event.waitUntil(
-      caches.keys().then((keys) => {
-        return Promise.all(keys.map((k) => caches.delete(k)));
-      })
+      caches
+        .keys()
+        .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
+        .then(() => {
+          if (event.source && "postMessage" in event.source) {
+            event.source.postMessage({ type: "CACHES_PURGED", success: true });
+          }
+        })
     );
   }
 });

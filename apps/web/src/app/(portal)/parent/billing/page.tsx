@@ -79,7 +79,10 @@ export default function ParentBilling() {
   const [loadingInvoices, setLoadingInvoices] = useState(true);
 
   const fetchInvoices = () => {
-    fetch("/api/invoices")
+    fetch(`/api/invoices?_t=${Date.now()}`, {
+      cache: "no-store",
+      headers: { "Cache-Control": "no-cache", "Pragma": "no-cache" },
+    })
       .then((res) => res.json())
       .then((data) => {
         setInvoices(data.invoices || []);

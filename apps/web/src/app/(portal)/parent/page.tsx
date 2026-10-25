@@ -21,8 +21,8 @@ export default function ParentPortal() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/enrolments").then((r) => r.json()).catch(() => ({ enrolments: [] })),
-      fetch("/api/scheduling").then((r) => r.json()).catch(() => ({ schedules: [] }))
+      fetch(`/api/enrolments?_t=${Date.now()}`, { cache: "no-store", headers: { "Cache-Control": "no-cache" } }).then((r) => r.json()).catch(() => ({ enrolments: [] })),
+      fetch(`/api/scheduling?_t=${Date.now()}`, { cache: "no-store", headers: { "Cache-Control": "no-cache" } }).then((r) => r.json()).catch(() => ({ schedules: [] }))
     ])
       .then(([enrolData, schedData]) => {
         const enrolments = enrolData.enrolments || [];

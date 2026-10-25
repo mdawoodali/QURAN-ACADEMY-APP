@@ -24,8 +24,8 @@ export default function StudentDashboard() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/scheduling").then((r) => r.json()).catch(() => ({ schedules: [] })),
-      fetch("/api/progress").then((r) => r.json()).catch(() => ({ notes: [] }))
+      fetch(`/api/scheduling?_t=${Date.now()}`, { cache: "no-store", headers: { "Cache-Control": "no-cache" } }).then((r) => r.json()).catch(() => ({ schedules: [] })),
+      fetch(`/api/progress?_t=${Date.now()}`, { cache: "no-store", headers: { "Cache-Control": "no-cache" } }).then((r) => r.json()).catch(() => ({ notes: [] }))
     ])
       .then(([schedData, progData]) => {
         const schedules = schedData.schedules || [];

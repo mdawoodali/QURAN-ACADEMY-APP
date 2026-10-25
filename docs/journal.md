@@ -2279,3 +2279,30 @@ eceipt_uploaded, and payment_verified.
   - `pnpm typecheck`: 0 errors across all monorepo packages.
   - `pnpm lint`: 0 errors.
   - `next build`: 80/80 static & dynamic routes compiled cleanly.
+
+## 9.96 Milestone 2 Implementation, Unified Signout Invalidation, Google OAuth Domain Callback Resolution & Customer UI Polish (2026-10-25)
+
+- **Service Worker Hardening & Origin Isolation (pps/web/public/sw.js)**:
+  - Implemented strict origin isolation (url.origin !== self.location.origin) to bypass third-party CDNs, Supabase, and LiveKit Cloud from Service Worker caching.
+  - Excluded Next.js RSC flight requests (_rsc, RSC: 1, Next-Router-State-Tree) and private user portals (/student, /parent, /teacher, /admin, /companion, /classroom, /dashboard, /auth).
+  - Implemented PURGE_CACHES listener with structured event handling and confirmation postMessage callbacks.
+  - Synchronized the hardened service worker across Android and iOS mobile wrappers (pps/web/android/.../sw.js, pps/web/ios/.../sw.js).
+- **Unified Multi-Target Signout Engine (pps/web/src/lib/authSignOut.ts)**:
+  - Deployed executeSignOut() across PublicNavbar.tsx and Sidebar.tsx.
+  - Clears cookies (demo_role, demo_user, Supabase tokens), wipes localStorage and sessionStorage (while preserving accessibility and language keys qa_language, user_sect), and deletes CacheStorage buckets.
+- **Dynamic API Anti-Caching & Loader Timestamps**:
+  - Attached Cache-Control: no-store, no-cache, must-revalidate across all dynamic endpoints (/api/invoices, /api/payouts, /api/portal/stats, /api/progress, /api/scheduling, /api/classroom/state, /api/health).
+  - Added cache-busting timestamp parameters (?_t=) and { cache: "no-store" } to client loaders across all portal dashboards.
+- **Google OAuth Dynamic Origin Resolution (pps/web/src/app/(public)/login/actions.ts)**:
+  - Fixed domain mismatch where process.env.NEXT_PUBLIC_APP_URL hardcoded primary domain callbacks on preview and custom deployments (quran-academy-app-dawood15.vercel.app).
+  - Dynamically extracts x-forwarded-host and x-forwarded-proto to preserve PKCE cookies and prevent Google Authentication failed errors.
+- **Role Boundary Enforcement for Authenticated Visitors (pps/web/src/middleware.ts)**:
+  - Intercepts authenticated visitors (demo_role) navigating to /login or /register and routes them to their role portal, eliminating the conflicting view of a login form under an active profile avatar.
+- **UI Telemetry Polish (pps/web/src/app/(public)/login/page.tsx)**:
+  - Removed technical version pill badge (1.1.1) from customer login card.
+- **Quality Gates & Test Metrics**:
+  - pnpm test: 29/29 test suites passed, **509/509 tests passed** (0 failed, including 35 new tests in cache-integrity-m2.test.ts).
+  - pnpm typecheck: 0 errors.
+  - pnpm lint: 0 errors.
+  - 
+ext build: 80/80 routes compiled cleanly with Turbopack.

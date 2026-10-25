@@ -3,6 +3,13 @@ import { connection } from "next/server";
 import { createAdminClient } from "@/utils/supabase/admin";
 import { createClient } from "@/utils/supabase/server";
 
+export const NO_CACHE_HEADERS = {
+  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
+  "Pragma": "no-cache",
+  "Expires": "0",
+  "Surrogate-Control": "no-store",
+};
+
 const RUNTIME_SCHEDULE_STORE: any[] = [];
 const RUNTIME_ASSIGNMENT_STORE: any[] = [];
 
@@ -96,14 +103,14 @@ export async function GET() {
       assignments: finalAssignments,
       source: mappedSchedules.length > 0 ? "supabase_postgresql" : "database_seed",
       count: finalSchedules.length,
-    });
+    }, { headers: NO_CACHE_HEADERS });
   } catch (error: unknown) {
     return NextResponse.json({
       schedules: RUNTIME_SCHEDULE_STORE,
       assignments: RUNTIME_ASSIGNMENT_STORE,
       source: "supabase_postgresql",
       count: RUNTIME_SCHEDULE_STORE.length,
-    });
+    }, { headers: NO_CACHE_HEADERS });
   }
 }
 
@@ -204,9 +211,9 @@ export async function POST(req: Request) {
       success: true,
       message: "Schedule persisted to database.",
       schedule: createdSchedule,
-    }, { status: 200 });
+    }, { status: 200, headers: NO_CACHE_HEADERS });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Internal error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }

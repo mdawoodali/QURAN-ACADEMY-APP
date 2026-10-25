@@ -1,6 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 import { cookies, headers } from 'next/headers'
 import { createClient } from '@/utils/supabase/server'
 import { sanitizeRedirectPath } from '@/lib/security/redirect'
@@ -46,6 +47,10 @@ export async function login(formData: FormData) {
         cookieStore.set('demo_role', userRole, { path: '/' })
         cookieStore.set('demo_user', userName, { path: '/' })
 
+        try {
+          revalidatePath('/', 'layout')
+        } catch {}
+
         if (safeRedirect) {
           redirect(safeRedirect)
         }
@@ -74,6 +79,10 @@ export async function login(formData: FormData) {
   // Persist demo role cookie for local development & preview modes
   cookieStore.set('demo_role', role, { path: '/' })
   cookieStore.set('demo_user', email || 'Demo User', { path: '/' })
+
+  try {
+    revalidatePath('/', 'layout')
+  } catch {}
 
   if (safeRedirect) {
     redirect(safeRedirect)
@@ -126,6 +135,10 @@ export async function signup(formData: FormData) {
         cookieStore.set('demo_role', userRole, { path: '/' })
         cookieStore.set('demo_user', userName, { path: '/' })
 
+        try {
+          revalidatePath('/', 'layout')
+        } catch {}
+
         if (safeRedirect) {
           redirect(safeRedirect)
         }
@@ -153,6 +166,10 @@ export async function signup(formData: FormData) {
   cookieStore.set('demo_role', role, { path: '/' })
   cookieStore.set('demo_user', email, { path: '/' })
 
+  try {
+    revalidatePath('/', 'layout')
+  } catch {}
+
   if (safeRedirect) {
     redirect(safeRedirect)
   }
@@ -175,11 +192,11 @@ export async function loginWithGoogle(formData?: FormData) {
   const safeRedirect = await getSafeRedirectPath(redirectParam)
 
   const headerList = await headers()
-  const host = headerList.get('x-forwarded-host') || headerList.get('host') || 'localhost:3000'
-  const proto = headerList.get('x-forwarded-proto') || (host.includes('localhost') ? 'http' : 'https')
-  const rawOrigin = host.includes('localhost')
+  const host = headerList.get('x-forwarded-host') || headerList.get('host')
+  const proto = headerList.get('x-forwarded-proto') || (host && host.includes('localhost') ? 'http' : 'https')
+  const rawOrigin = host
     ? `${proto}://${host}`
-    : (process.env.NEXT_PUBLIC_APP_URL || `${proto}://${host}`)
+    : (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000')
   const origin = rawOrigin.replace(/\/+$/, '')
 
   let callbackUrl = `${origin}/auth/callback`

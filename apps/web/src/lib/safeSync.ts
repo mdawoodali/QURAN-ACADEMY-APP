@@ -258,9 +258,52 @@ export async function flushOfflineQueue(): Promise<{ processed: number; remainin
   for (const item of queue) {
     try {
       if (item.type === "INSERT") {
-        const { error } = await safeSupabaseInsert(item.table, item.payload);
-        if (error) throw error;
-        processedCount++;
+        let inserted = false;
+        try {
+          const { error } = await safeSupabaseInsert(item.table, item.payload);
+          if (!error) {
+            inserted = true;
+            processedCount++;
+          }
+        } catch (err) {
+          console.warn(`[SafeSync] Direct Supabase insert failed for ${item.table}, attempting HTTP API fallback...`, err);
+        }
+
+        // If direct Supabase client fails (e.g. demo credentials or network hurdle), attempt HTTP API fallback
+        if (!inserted && item.table === "student_lesson_notes" && typeof window !== "undefined") {
+          try {
+            const res = await fetch("/api/progress", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                studentId: item.payload.student_id,
+                studentName: item.payload.student_name,
+                teacherName: item.payload.teacher_name,
+                lessonDate: item.payload.lesson_date,
+                lessonTitle: item.payload.lesson_title,
+                grade: item.payload.grade,
+                rating: item.payload.rating,
+                feedback: item.payload.feedback,
+                homework: item.payload.homework,
+                sabaq: item.payload.sabaq,
+                sabqi: item.payload.sabqi,
+                manzil: item.payload.manzil,
+                tajweedScore: item.payload.tajweed_score,
+              }),
+            });
+            if (res.ok) {
+              inserted = true;
+              processedCount++;
+              broadcastSyncEvent("student_lesson_notes_inserted", { payload: item.payload });
+            }
+          } catch (httpErr) {
+            console.warn("[SafeSync] HTTP API fallback also failed:", httpErr);
+          }
+        }
+
+        if (!inserted) {
+          failedItems.push(item);
+        }
       } else if (item.type === "UPDATE" && item.filter) {
         const { error } = await safeSupabaseUpdate(item.table, item.filter, item.payload);
         if (error) throw error;

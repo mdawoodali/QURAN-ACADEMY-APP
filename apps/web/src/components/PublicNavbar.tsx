@@ -10,6 +10,7 @@ import { useSect } from "./SectContext";
 import { APP_VERSION } from "@quran/contracts";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/utils/supabase/client";
+import { executeSignOut } from "@/lib/authSignOut";
 
 interface UserProfile {
   name: string;
@@ -190,25 +191,7 @@ export default function PublicNavbar() {
 
   const handleSignOut = async () => {
     try {
-      if (typeof document !== "undefined") {
-        document.cookie = "demo_role=; path=/; max-age=0";
-        document.cookie = "demo_user=; path=/; max-age=0";
-        document.cookie = "demo_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-        document.cookie = "demo_user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-      }
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("demo_role");
-        localStorage.removeItem("demo_user");
-        sessionStorage.clear();
-        if ("caches" in window) {
-          caches.keys().then((keys) => keys.forEach((k) => caches.delete(k))).catch(() => {});
-        }
-        if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
-          navigator.serviceWorker.controller.postMessage("PURGE_CACHES");
-        }
-      }
-      const supabase = createClient();
-      await supabase.auth.signOut();
+      await executeSignOut();
     } catch (err) {
       console.warn("[PublicNavbar] Sign out error:", err);
     } finally {

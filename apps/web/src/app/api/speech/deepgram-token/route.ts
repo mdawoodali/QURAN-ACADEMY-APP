@@ -2,6 +2,13 @@ import { NextResponse } from "next/server";
 import { connection } from "next/server";
 import { DeepgramClient } from "@deepgram/sdk";
 
+export const NO_CACHE_HEADERS = {
+  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
+  "Pragma": "no-cache",
+  "Expires": "0",
+  "Surrogate-Control": "no-store",
+};
+
 export async function GET() {
   try {
     await connection();
@@ -15,7 +22,7 @@ export async function GET() {
     return NextResponse.json({
       configured: false,
       message: "DEEPGRAM_API_KEY is not configured in .env.local. Falling back to local browser speech recognition."
-    });
+    }, { headers: NO_CACHE_HEADERS });
   }
 
   try {
@@ -27,13 +34,13 @@ export async function GET() {
       model: "nova-3",
       language: "ar",
       message: "Deepgram Nova-3 Multilingual (Arabic) connection verified for ultra-low latency voice following."
-    });
+    }, { headers: NO_CACHE_HEADERS });
   } catch (error: unknown) {
     console.error("Deepgram initialization error:", error);
     const message = error instanceof Error ? error.message : "Deepgram error";
     return NextResponse.json({
       configured: false,
       error: message
-    }, { status: 500 });
+    }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }

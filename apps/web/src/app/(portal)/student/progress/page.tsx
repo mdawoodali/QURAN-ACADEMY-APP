@@ -18,7 +18,10 @@ export default function StudentProgress() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/progress")
+    fetch(`/api/progress?_t=${Date.now()}`, {
+      cache: "no-store",
+      headers: { "Cache-Control": "no-cache", "Pragma": "no-cache" },
+    })
       .then((res) => res.json())
       .then((data) => {
         const raw = data.notes || [];

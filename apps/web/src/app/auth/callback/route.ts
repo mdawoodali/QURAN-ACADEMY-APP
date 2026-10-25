@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
 import { sanitizeRedirectPath } from "@/lib/security/redirect";
@@ -52,7 +53,13 @@ export async function GET(request: Request) {
         cookieStore.set("demo_role", role, { path: "/", maxAge: 60 * 60 * 24 * 7 });
         cookieStore.set("demo_user", name, { path: "/", maxAge: 60 * 60 * 24 * 7 });
 
+        try {
+          revalidatePath("/", "layout");
+        } catch {}
+
         const redirectResponse = NextResponse.redirect(new URL(targetPath, origin));
+        redirectResponse.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+
         // Transfer all cookies from cookieStore (including Supabase auth tokens) to redirect response
         cookieStore.getAll().forEach((cookie) => {
           redirectResponse.cookies.set(cookie.name, cookie.value, {
@@ -71,5 +78,7 @@ export async function GET(request: Request) {
   }
 
   // URL to redirect to after sign in process completes or fails
-  return NextResponse.redirect(new URL("/login?error=Google%20Authentication%20failed", origin));
+  const errorRedirect = NextResponse.redirect(new URL("/login?error=Google%20Authentication%20failed", origin));
+  errorRedirect.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+  return errorRedirect;
 }

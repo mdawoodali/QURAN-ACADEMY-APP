@@ -32,7 +32,10 @@ export default function StudentBilling() {
   const [currentPlan, setCurrentPlan] = useState("Standard Plan • £65/mo (3 Days/Wk)");
 
   useEffect(() => {
-    fetch("/api/invoices")
+    fetch(`/api/invoices?_t=${Date.now()}`, {
+      cache: "no-store",
+      headers: { "Cache-Control": "no-cache", "Pragma": "no-cache" },
+    })
       .then((res) => res.json())
       .then((data) => {
         const raw = data.invoices || [];

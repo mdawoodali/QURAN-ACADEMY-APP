@@ -3,6 +3,13 @@ import { createClient } from "@/utils/supabase/server";
 import { AccessToken } from "livekit-server-sdk";
 import { APP_VERSION, MIN_SUPPORTED_VERSION } from "@quran/contracts";
 
+export const NO_CACHE_HEADERS = {
+  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
+  "Pragma": "no-cache",
+  "Expires": "0",
+  "Surrogate-Control": "no-store",
+};
+
 export async function GET(request: Request) {
   const startTime = Date.now();
   const checks: Record<string, { status: "healthy" | "warning" | "error"; latencyMs?: number; details: string }> = {};
@@ -113,5 +120,5 @@ export async function GET(request: Request) {
     totalLatencyMs: totalTime,
     environment: process.env.NODE_ENV || "development",
     checks,
-  });
+  }, { headers: NO_CACHE_HEADERS });
 }

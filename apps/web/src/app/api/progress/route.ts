@@ -3,6 +3,13 @@ import { connection } from "next/server";
 import { createAdminClient } from "@/utils/supabase/admin";
 import { createClient } from "@/utils/supabase/server";
 
+export const NO_CACHE_HEADERS = {
+  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
+  "Pragma": "no-cache",
+  "Expires": "0",
+  "Surrogate-Control": "no-store",
+};
+
 export async function GET(req: NextRequest) {
   try {
     await connection();
@@ -30,7 +37,7 @@ export async function GET(req: NextRequest) {
     const { data: notes, error } = await query;
     if (error) {
       console.warn("[Progress API] Database error:", error.message);
-      return NextResponse.json({ notes: [], count: 0, error: error.message });
+      return NextResponse.json({ notes: [], count: 0, error: error.message }, { headers: NO_CACHE_HEADERS });
     }
 
     const mapped = (notes || []).map((n: any) => ({
@@ -55,9 +62,9 @@ export async function GET(req: NextRequest) {
       tajweedScore: n.tajweed_score || "4.8 / 5.0",
     }));
 
-    return NextResponse.json({ notes: mapped, count: mapped.length });
+    return NextResponse.json({ notes: mapped, count: mapped.length }, { headers: NO_CACHE_HEADERS });
   } catch (err: any) {
-    return NextResponse.json({ notes: [], count: 0, error: err?.message });
+    return NextResponse.json({ notes: [], count: 0, error: err?.message }, { headers: NO_CACHE_HEADERS });
   }
 }
 
@@ -124,12 +131,12 @@ export async function POST(req: NextRequest) {
           feedback,
         },
       },
-      { status: 201 }
+      { status: 201, headers: NO_CACHE_HEADERS }
     );
   } catch (err: any) {
     return NextResponse.json(
       { error: "Failed to record lesson note", details: err?.message },
-      { status: 500 }
+      { status: 500, headers: NO_CACHE_HEADERS }
     );
   }
 }

@@ -109,6 +109,16 @@ export async function middleware(request: NextRequest) {
       url.pathname = demoRole === "superadmin" ? "/admin" : `/${demoRole}`;
       return NextResponse.redirect(url);
     }
+    if (isAuthRoute && !url.searchParams.has("error")) {
+      const redirectParam = url.searchParams.get("redirect");
+      const safeRedirect = sanitizeRedirectPath(redirectParam);
+      if (safeRedirect) {
+        return NextResponse.redirect(new URL(safeRedirect, request.url));
+      }
+      url.pathname = demoRole === "superadmin" ? "/admin" : `/${demoRole}`;
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
     return response;
   }
 

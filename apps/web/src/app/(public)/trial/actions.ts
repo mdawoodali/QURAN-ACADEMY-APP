@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
+import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'
 import { z } from 'zod'
 
@@ -73,6 +74,10 @@ export async function submitTrialRegistration(rawData: Record<string, unknown>) 
     } catch (dbErr) {
       console.warn("[TrialRegistration] student_details insert error:", dbErr);
     }
+
+    try {
+      revalidatePath('/', 'layout');
+    } catch {}
 
     return { success: true }
   } catch (err) {

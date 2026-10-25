@@ -27,7 +27,10 @@ export default function AdminOverview() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/portal/stats")
+    fetch(`/api/portal/stats?_t=${Date.now()}`, {
+      cache: "no-store",
+      headers: { "Cache-Control": "no-cache", "Pragma": "no-cache" },
+    })
       .then((res) => res.json())
       .then((data) => {
         if (data.stats) {

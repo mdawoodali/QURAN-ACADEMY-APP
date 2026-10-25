@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AccessToken } from "livekit-server-sdk";
 
+export const NO_CACHE_HEADERS = {
+  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
+  "Pragma": "no-cache",
+  "Expires": "0",
+  "Surrogate-Control": "no-store",
+};
+
 export async function GET(req: NextRequest) {
   return handleTokenRequest(req);
 }
@@ -41,7 +48,7 @@ async function handleTokenRequest(req: NextRequest) {
       mode: "sandbox",
       message: "LiveKit server credentials not found in .env.local. Running in WebRTC sandbox pairing mode.",
       setupInstructions: "Set LIVEKIT_API_KEY, LIVEKIT_API_SECRET, and NEXT_PUBLIC_LIVEKIT_URL in apps/web/.env.local for LiveKit Cloud pairing."
-    });
+    }, { headers: NO_CACHE_HEADERS });
   }
 
   try {
@@ -69,13 +76,13 @@ async function handleTokenRequest(req: NextRequest) {
       role,
       mode: "live",
       message: "LiveKit token generated successfully for multi-user WebRTC room."
-    });
+    }, { headers: NO_CACHE_HEADERS });
   } catch (error: unknown) {
     console.error("LiveKit token generation error:", error);
     const message = error instanceof Error ? error.message : "LiveKit error";
     return NextResponse.json(
       { error: "Failed to generate LiveKit room token", details: message },
-      { status: 500 }
+      { status: 500, headers: NO_CACHE_HEADERS }
     );
   }
 }

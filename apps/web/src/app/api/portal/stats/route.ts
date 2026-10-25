@@ -3,6 +3,13 @@ import { connection } from "next/server";
 import { createAdminClient } from "@/utils/supabase/admin";
 import { createClient } from "@/utils/supabase/server";
 
+export const NO_CACHE_HEADERS = {
+  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
+  "Pragma": "no-cache",
+  "Expires": "0",
+  "Surrogate-Control": "no-store",
+};
+
 export async function GET(req: NextRequest) {
   try {
     await connection();
@@ -82,7 +89,7 @@ export async function GET(req: NextRequest) {
         pendingEnrolmentsCount: pendingEnrolmentsCount || 0,
       },
       source: "supabase_postgresql",
-    });
+    }, { headers: NO_CACHE_HEADERS });
   } catch (err: any) {
     return NextResponse.json({
       stats: {
@@ -97,6 +104,6 @@ export async function GET(req: NextRequest) {
       },
       source: "fallback",
       error: err?.message,
-    });
+    }, { headers: NO_CACHE_HEADERS });
   }
 }
