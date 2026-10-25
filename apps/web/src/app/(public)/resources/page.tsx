@@ -41,8 +41,16 @@ export interface SavedItem {
   dateAdded: string;
 }
 
-export default function ResourcesPage() {
-  const { isSunni, isShia } = useSect();
+export default function ResourcesPage({ forcedSect }: { forcedSect?: "sunni" | "shia" } = {}) {
+  const context = useSect();
+  const isSunni = forcedSect ? forcedSect === "sunni" : context.isSunni;
+  const isShia = forcedSect ? forcedSect === "shia" : context.isShia;
+
+  useEffect(() => {
+    if (forcedSect && context.sect !== forcedSect) {
+      context.setSect(forcedSect);
+    }
+  }, [forcedSect, context]);
   const [activeTab, setActiveTab] = useState<ResourceTab>("quran");
   const [searchQuery, setSearchQuery] = useState("");
 

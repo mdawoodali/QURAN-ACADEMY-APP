@@ -1863,3 +1863,38 @@ eceipt_uploaded, and payment_verified.
 - **Validation & Quality Gate**:
   - `vitest run`: 23/23 test suites passed, 172/172 tests passing (100% green).
   - TypeScript: `pnpm typecheck` (`tsc --noEmit`) completed with 0 errors.
+
+
+---
+
+## 9.82 Dedicated Sunni & Shia Separate Webpages & Sectarian Navbar Switcher Removal
+
+- **Objective**:
+  - Implement two distinct webpages (`/sunni` and `/shia`) so Sunni and Shia visitors have dedicated, unmixed experiences.
+  - Remove the manual Sunni / Shia toggle button from the navbar (`PublicNavbar.tsx`).
+  - Wire the starting screen (`WelcomeSplash`) directly to the dedicated tradition routes (`/sunni` and `/shia`).
+  - Separate tradition-specific resource libraries (`/sunni/resources` and `/shia/resources`) while keeping core academy pages shared.
+
+- **Implementation Details**:
+  1. **Navbar Toggle Removal & Context-Aware Routing (`PublicNavbar.tsx`)**:
+     - Removed manual Sunni / Shia toggle buttons from both desktop top bar and mobile drawer.
+     - Brand logo and "Home" navigation links automatically route to `homeHref` (`/sunni` or `/shia` based on current tradition context).
+     - "Resources" navigation link routes to `resourcesHref` (`/sunni/resources` or `/shia/resources`).
+  2. **URL Path-Driven Tradition Detection (`SectContext.tsx`)**:
+     - Integrated `usePathname()` from `next/navigation` into `SectProvider`.
+     - Automatically locks `sect` to `"shia"` whenever navigating under `/shia` or `/shia/*`.
+     - Automatically locks `sect` to `"sunni"` whenever navigating under `/sunni` or `/sunni/*`.
+     - Synchronizes cookies and local state without requiring manual user toggling.
+  3. **Dedicated Tradition Webpages (`/sunni`, `/shia`, `/sunni/resources`, `/shia/resources`)**:
+     - Extracted reusable landing presentation into [`HomeView.tsx`](file:///c:/Users/AAMIR%20SHAMSI/Agentic_Ai/Quran_Academy/apps/web/src/components/HomeView.tsx).
+     - Created `apps/web/src/app/(public)/sunni/page.tsx` rendering the Sunni academy landing page.
+     - Created `apps/web/src/app/(public)/shia/page.tsx` rendering the Shia academy landing page.
+     - Created `apps/web/src/app/(public)/sunni/resources/page.tsx` preloading the Sunni Islamic library (Hadiths, Hanafi/Shafi'i prayer times, Sunni calendar).
+     - Created `apps/web/src/app/(public)/shia/resources/page.tsx` preloading the Shia Islamic library (Nahj al-Balagha, Mafatih al-Jinan, Shia Duas & Ziaraat, Ahkam, Jafari prayer times, Shia calendar).
+  4. **Starting Page Routing (`page.tsx` & `welcome/page.tsx`)**:
+     - When a visitor selects **Sunni** on the starting splash, the app smoothly redirects to `/sunni`.
+     - When a visitor selects **Shia** on the starting splash, the app smoothly redirects to `/shia`.
+
+- **Validation & Quality Gate**:
+  - `vitest run`: 23/23 test suites passed, 172/172 tests passed (100% green).
+  - TypeScript: `pnpm typecheck` (`tsc --noEmit`) passed with 0 errors across all monorepo packages.
