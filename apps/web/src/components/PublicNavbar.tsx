@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Menu, X, Mail } from "lucide-react";
 import { useLanguage, TranslationKey } from "./LanguageContext";
 import { useSect } from "./SectContext";
+import { APP_VERSION } from "@quran/contracts";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function PublicNavbar() {

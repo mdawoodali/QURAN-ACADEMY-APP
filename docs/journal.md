@@ -1998,3 +1998,4 @@ eceipt_uploaded, and payment_verified.
 - **Verification**:
   - Vitest test suite: 170/170 tests passing across all 23 suites.
   - Zero linting errors.
+  - Resolved `@quran/contracts` import resolution in `PublicNavbar.tsx` following upstream branch integration.
