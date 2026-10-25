@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Mic, MicOff, Video, VideoOff, Volume2, ShieldCheck, Wifi, Sparkles, Check } from "lucide-react";
+import { Mic, MicOff, Video, VideoOff, Volume2, ShieldCheck, Wifi, Sparkles, Check, X } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface DeviceCheckModalProps {
@@ -9,6 +9,7 @@ interface DeviceCheckModalProps {
   role: "teacher" | "student" | "observer";
   participantName: string;
   onJoin: (settings: { isMicOn: boolean; isCameraOn: boolean; audioInputId: string; videoInputId: string }) => void;
+  onCancel?: () => void;
 }
 
 export default function DeviceCheckModal({
@@ -16,6 +17,7 @@ export default function DeviceCheckModal({
   role,
   participantName,
   onJoin,
+  onCancel,
 }: DeviceCheckModalProps) {
   const [isMicOn, setIsMicOn] = useState(true);
   const [isCameraOn, setIsCameraOn] = useState(true);
@@ -191,6 +193,24 @@ export default function DeviceCheckModal({
     });
   };
 
+  const handleCancel = () => {
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach((t) => t.stop());
+      localStreamRef.current = null;
+    }
+    if (audioContextRef.current && audioContextRef.current.state !== "closed") {
+      try {
+        audioContextRef.current.close();
+      } catch {}
+    }
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+    if (onCancel) {
+      onCancel();
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -214,6 +234,17 @@ export default function DeviceCheckModal({
             <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-950 text-amber-300 border border-amber-400/30 px-2.5 py-1 rounded-full">
               {role === "teacher" ? "Ustadha / Teacher" : role === "observer" ? "Parent Observer" : "Student"}
             </span>
+            {onCancel && (
+              <button
+                type="button"
+                onClick={handleCancel}
+                aria-label="Cancel and Exit"
+                title="Cancel & Exit"
+                className="p-1.5 text-emerald-200/70 hover:text-white hover:bg-white/10 rounded-xl transition cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            )}
           </div>
         </div>
 
@@ -356,18 +387,29 @@ export default function DeviceCheckModal({
         </div>
 
         {/* Modal Footer CTA */}
-        <div className="p-5 border-t border-white/10 bg-black/40 flex items-center justify-between gap-4">
+        <div className="p-5 border-t border-white/10 bg-black/40 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
           <div className="text-xs text-emerald-100/70 hidden sm:block">
-            Camera & audio connected
+            {onCancel ? "Not ready? You can cancel and exit at any time." : "Camera & audio connected"}
           </div>
 
-          <button
-            onClick={handleConfirmJoin}
-            className="w-full sm:w-auto px-8 py-3 bg-amber-400 hover:bg-amber-300 text-emerald-950 font-bold rounded-xl text-sm transition shadow-lg flex items-center justify-center gap-2 cursor-pointer font-serif"
-          >
-            <Check size={16} />
-            <span>Enter Live Classroom</span>
-          </button>
+          <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+            {onCancel && (
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="flex-1 sm:flex-initial px-5 py-3 rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 text-white font-medium text-xs sm:text-sm transition cursor-pointer text-center"
+              >
+                Cancel & Exit
+              </button>
+            )}
+            <button
+              onClick={handleConfirmJoin}
+              className="flex-1 sm:flex-initial px-7 py-3 bg-amber-400 hover:bg-amber-300 text-emerald-950 font-bold rounded-xl text-sm transition shadow-lg flex items-center justify-center gap-2 cursor-pointer font-serif"
+            >
+              <Check size={16} />
+              <span>Enter Live Classroom</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

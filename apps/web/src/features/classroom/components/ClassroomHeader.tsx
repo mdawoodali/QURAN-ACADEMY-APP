@@ -169,10 +169,12 @@ export default function ClassroomHeader({
         {/* End / Leave Session Button */}
         <button
           onClick={onEndClass}
-          className="bg-red-600/90 hover:bg-red-500 text-white px-3.5 py-1.5 rounded-xl font-bold text-xs transition shadow-md flex items-center gap-1.5 cursor-pointer"
+          aria-label={classId === "demo" ? "Cancel & Exit Demo Class" : isTeacher ? "End Class" : "Leave Room"}
+          title={classId === "demo" ? "Cancel & Exit Demo Class" : isTeacher ? "End Session" : "Leave Session"}
+          className="bg-red-600/90 hover:bg-red-500 text-white px-3 sm:px-3.5 py-1.5 rounded-xl font-bold text-xs transition shadow-md flex items-center gap-1.5 cursor-pointer shrink-0"
         >
           <PhoneOff size={13} />
-          <span className="hidden sm:inline">{isTeacher ? "End Class" : "Leave Room"}</span>
+          <span>{classId === "demo" ? "Exit Demo" : isTeacher ? "End Class" : "Leave Room"}</span>
         </button>
       </div>
     </header>

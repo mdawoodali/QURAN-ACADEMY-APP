@@ -204,6 +204,21 @@ export default function LiveClassroom() {
     }
   };
 
+  const handleCancelDeviceCheck = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+    }
+    if (classId === "demo") {
+      router.push("/");
+    } else if (roleParam === "teacher") {
+      router.push("/teacher");
+    } else if (roleParam === "observer") {
+      router.push("/parent");
+    } else {
+      router.push("/student");
+    }
+  };
+
   // Camera stream toggle
   const toggleCamera = async () => {
     if (isCameraOn) {
@@ -289,6 +304,7 @@ export default function LiveClassroom() {
         role={roleParam}
         participantName={childParam}
         onJoin={handleDeviceCheckComplete}
+        onCancel={handleCancelDeviceCheck}
       />
 
       {/* 2. Floating Video Bubble (PiP) */}

@@ -28,6 +28,7 @@ export function useVoiceFollow({ currentWords, onMatchWord, audioStream }: UseVo
   const deepgramStreamRef = useRef<MediaStream | null>(null);
   const deepgramRecorderRef = useRef<MediaRecorder | null>(null);
   const isStartingSpeechRef = useRef(false);
+  const hasNotifiedVoiceRef = useRef(false);
 
   const processSpokenTranscript = useCallback(
     (rawText: string) => {
@@ -123,7 +124,7 @@ export function useVoiceFollow({ currentWords, onMatchWord, audioStream }: UseVo
 
     if (!SpeechRecognition) {
       setVoiceError("Speech recognition is not supported in this browser. Please use Google Chrome or Edge.");
-      toast.error("Speech API not supported in this browser");
+      toast.error("Speech API not supported in this browser", { id: "voice-follow-status" });
       isStartingSpeechRef.current = false;
       return;
     }
@@ -145,7 +146,10 @@ export function useVoiceFollow({ currentWords, onMatchWord, audioStream }: UseVo
         setVoiceError(null);
         setEngine("Web Speech");
         isStartingSpeechRef.current = false;
-        toast.success("AI Arabic Voice Follow active (Web Speech)");
+        if (!hasNotifiedVoiceRef.current) {
+          hasNotifiedVoiceRef.current = true;
+          toast.success("AI Arabic Voice Follow active (Web Speech)", { id: "voice-follow-status" });
+        }
       };
 
       recognition.onerror = (e: { error: string }) => {
@@ -243,7 +247,10 @@ export function useVoiceFollow({ currentWords, onMatchWord, audioStream }: UseVo
             deepgramRecorderRef.current = recorder;
             setEngine("Deepgram AI");
             setVoiceError(null);
-            toast.success("AI Voice Follow active");
+            if (!hasNotifiedVoiceRef.current) {
+              hasNotifiedVoiceRef.current = true;
+              toast.success("AI Voice Follow active", { id: "voice-follow-status" });
+            }
           } catch (micErr) {
             console.warn("[Deepgram] Failed to access microphone, falling back to Web Speech:", micErr);
             triggerFallback();
@@ -284,6 +291,7 @@ export function useVoiceFollow({ currentWords, onMatchWord, audioStream }: UseVo
   }, [audioStream, currentWords, processSpokenTranscript, startWebSpeechFallback]);
 
   const stopVoiceFollow = useCallback(() => {
+    hasNotifiedVoiceRef.current = false;
     isVoiceFollowOnRef.current = false;
     setIsVoiceFollowOn(false);
     setEngine(null);
@@ -314,8 +322,9 @@ export function useVoiceFollow({ currentWords, onMatchWord, audioStream }: UseVo
   const toggleVoiceFollow = useCallback(() => {
     if (isVoiceFollowOn) {
       stopVoiceFollow();
-      toast("AI Arabic Voice Follow paused");
+      toast("AI Arabic Voice Follow paused", { id: "voice-follow-status" });
     } else {
+      hasNotifiedVoiceRef.current = false;
       isVoiceFollowOnRef.current = true;
       setIsVoiceFollowOn(true);
       startVoiceFollow();

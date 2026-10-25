@@ -2495,3 +2495,32 @@ During empirical browser validation using headless Chrome, we uncovered why pros
 3. **Automated Verification**:
    - TypeScript compilation clean (`tsc --noEmit`).
    - Vitest test suite verified: **514 / 514 tests passing** across 30 suites.
+
+---
+
+## 9.103 Voice Follow Toast De-duplication and Pre-Call Demo Cancel Action
+
+### Context & Problem Statement
+1. **Endless Toast Notification Cascade**:
+   When users recited or spoke in the classroom with AI Arabic Voice Follow enabled, speech recognition continuously fired browser onend loops during natural pauses and restarted via recognition.start(). Each restart executed recognition.onstart, which unconditionally invoked toast.success("AI Arabic Voice Follow active (Web Speech)") without a deduplication ID or state guard, rapidly stacking dozens of green toasts that obscured the viewport.
+2. **Missing Pre-Call Cancel Option**:
+   When prospective students or demo visitors opened the live demo classroom, they were presented with DeviceCheckModal (the camera/mic hardware calibration dialog) with only an "Enter Live Classroom" button and no way to cancel or back out if they changed their mind without entering.
+3. **Demo Session Exit Visibility**:
+   Inside the live demo class, the exit button in the header was styled generically as "Leave Room" and had its text hidden on smaller viewports, making the exit/cancel affordance non-obvious.
+
+### Key Changes Implemented
+1. **Voice Follow Toast Throttling & Deduplication** (apps/web/src/features/classroom/hooks/useVoiceFollow.ts):
+   - Introduced hasNotifiedVoiceRef = useRef(false) to guarantee the active toast only triggers upon the initial connection/toggle.
+   - Attached an explicit deduplication identifier { id: "voice-follow-status" } to all voice-follow status notifications (Web Speech activation, Deepgram Nova-3 connection, pause, and fallback errors), preventing react-hot-toast from stacking redundant banners.
+   - Cleared and reset the guard in stopVoiceFollow and toggleVoiceFollow.
+2. **Device Calibration Modal Cancel Support** (apps/web/src/features/classroom/components/DeviceCheckModal.tsx):
+   - Added onCancel?: () => void to DeviceCheckModalProps.
+   - Added an X close button in the modal top bar and a prominent "Cancel & Exit" button in the footer.
+   - Implemented handleCancel to release media tracks (localStream.getTracks().forEach(t => t.stop())), close the audio analyser context, and invoke the cancel handler.
+3. **Live Classroom Cancel & Exit Navigation** (apps/web/src/components/LiveClassroom.tsx and ClassroomHeader.tsx):
+   - Wired handleCancelDeviceCheck into <DeviceCheckModal onCancel={...} /> to stop active tracks and return demo users to / (or authenticated users to their corresponding dashboard).
+   - In ClassroomHeader.tsx, updated the exit button when classId === "demo" to clearly display "Exit Demo" with full accessibility label "Cancel & Exit Demo Class" across all viewport sizes.
+4. **Automated Verification**:
+   - TypeScript compilation clean: 0 errors (tsc --noEmit).
+   - Vitest unit & integration tests: 30 / 30 suites passed, 516 / 516 tests passed.
+   - Production build verified: 83 / 83 static & dynamic routes generated cleanly.

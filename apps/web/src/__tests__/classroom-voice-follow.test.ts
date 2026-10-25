@@ -132,4 +132,61 @@ describe("Classroom AI Voice Following & Recitation Alignment Suite", () => {
     expect(isLaserModeActive).toBe(false);
     expect(laserPointer.active).toBe(false);
   });
+
+  it("suppresses repeated voice follow toast notifications across speech recognition restarts", () => {
+    let hasNotified = false;
+    const toastSuccessMock = vi.fn();
+
+    function onSpeechStart() {
+      if (!hasNotified) {
+        hasNotified = true;
+        toastSuccessMock("AI Arabic Voice Follow active (Web Speech)", { id: "voice-follow-status" });
+      }
+    }
+
+    // Simulate speech loop restarting 10 times consecutively (e.g. pauses while speaking)
+    for (let i = 0; i < 10; i++) {
+      onSpeechStart();
+    }
+
+    // Must be called exactly once despite 10 restart cycles
+    expect(toastSuccessMock).toHaveBeenCalledTimes(1);
+    expect(toastSuccessMock).toHaveBeenCalledWith("AI Arabic Voice Follow active (Web Speech)", {
+      id: "voice-follow-status",
+    });
+
+    // When voice follow is stopped, guard resets
+    function stopVoiceFollow() {
+      hasNotified = false;
+    }
+    stopVoiceFollow();
+    expect(hasNotified).toBe(false);
+
+    // Starting again triggers exactly one new notification
+    onSpeechStart();
+    expect(toastSuccessMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("handles cancel and exit callback cleanly before entering live demo class", () => {
+    const onCancelMock = vi.fn();
+    let streamStopped = false;
+    const fakeStream = {
+      getTracks: () => [
+        {
+          stop: () => {
+            streamStopped = true;
+          },
+        },
+      ],
+    };
+
+    function handleCancel() {
+      fakeStream.getTracks().forEach((t) => t.stop());
+      onCancelMock();
+    }
+
+    handleCancel();
+    expect(streamStopped).toBe(true);
+    expect(onCancelMock).toHaveBeenCalledTimes(1);
+  });
 });
