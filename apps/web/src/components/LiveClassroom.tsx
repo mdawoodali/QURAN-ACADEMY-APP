@@ -31,16 +31,23 @@ export default function LiveClassroom() {
       const matchRole = document.cookie.match(/demo_role=([^;]+)/);
       if (matchRole?.[1]) {
         const r = matchRole[1];
-        if (r === "student") setSessionRole("student");
-        else if (r === "parent") setSessionRole("observer");
-        else setSessionRole("teacher");
+        if (classId === "demo") {
+          // In interactive demo mode, give users full interactive teacher privileges
+          setSessionRole("teacher");
+        } else if (r === "student") {
+          setSessionRole("student");
+        } else if (r === "parent") {
+          setSessionRole("observer");
+        } else {
+          setSessionRole("teacher");
+        }
       }
       const matchUser = document.cookie.match(/demo_user=([^;]+)/);
       if (matchUser?.[1]) {
         setSessionUser(decodeURIComponent(matchUser[1]));
       }
     }
-  }, []);
+  }, [classId]);
 
   const roleParam: "teacher" | "student" | "observer" = queryRole || sessionRole;
   const childParam =
@@ -94,18 +101,6 @@ export default function LiveClassroom() {
   const currentWordsList = script === "indopak" ? currentLesson.wordsIndoPak : currentLesson.wordsUthmani;
   const currentWordStrings = currentWordsList.map((item) => item.word);
 
-  // Ultra-low latency voice follow hook
-  const {
-    isVoiceFollowOn,
-    activeSpeechEngine,
-    lastSpokenText,
-    voiceError,
-    toggleVoiceFollow
-  } = useVoiceFollow({
-    currentWords: currentWordStrings,
-    onMatchWord: sendHighlight
-  });
-
   // Local media & tool states
   const [isMicOn, setIsMicOn] = useState(true);
   const [isCameraOn, setIsCameraOn] = useState(true);
@@ -115,6 +110,19 @@ export default function LiveClassroom() {
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+
+  // Ultra-low latency voice follow hook
+  const {
+    isVoiceFollowOn,
+    activeSpeechEngine,
+    lastSpokenText,
+    voiceError,
+    toggleVoiceFollow
+  } = useVoiceFollow({
+    currentWords: currentWordStrings,
+    onMatchWord: sendHighlight,
+    audioStream: streamRef.current
+  });
 
   // Derived effective mic state (muted if user turned it off or remote-muted by teacher)
   const isEffectiveMicOn = isMicOn && !remoteMuted;

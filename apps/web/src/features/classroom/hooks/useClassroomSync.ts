@@ -316,34 +316,38 @@ export function useClassroomSync({
   // Emitters with anti-spam deduplication & throttling
   const sendHighlight = useCallback(
     (index: number | null) => {
-      if (role === "observer") return;
       // Thwart button mashing / duplicate highlight spam
       if (highlightedIndexRef.current === index) return;
       highlightedIndexRef.current = index;
       setHighlightedIndex(index);
-      broadcast({ type: "highlight", index });
-      persistRoomState({ ...stateSnapshotRef.current, highlightedIndex: index });
+
+      // In demo mode or for active participants, broadcast and persist
+      if (role !== "observer" || classId === "demo") {
+        broadcast({ type: "highlight", index });
+        persistRoomState({ ...stateSnapshotRef.current, highlightedIndex: index });
+      }
     },
-    [broadcast, role]
+    [broadcast, role, classId, persistRoomState]
   );
 
   const sendSplit = useCallback(
     (index: number | null) => {
-      if (role === "observer") return;
       setSplitIndex(index);
-      if (index !== null) {
-        broadcast({ type: "split", index });
-      } else {
-        broadcast({ type: "close_split" });
+      if (role !== "observer" || classId === "demo") {
+        if (index !== null) {
+          broadcast({ type: "split", index });
+        } else {
+          broadcast({ type: "close_split" });
+        }
       }
     },
-    [broadcast, role]
+    [broadcast, role, classId]
   );
 
   const sendLessonChange = useCallback(
     (lessonId: string) => {
-      // Only teachers can change the curriculum lesson
-      if (role !== "teacher") {
+      // Only teachers can change the curriculum lesson (or anyone in interactive demo mode)
+      if (role !== "teacher" && classId !== "demo") {
         console.warn("[Sync Shield] Student/Observer cannot change classroom lesson");
         return;
       }
@@ -358,26 +362,26 @@ export function useClassroomSync({
       persistRoomState({ ...stateSnapshotRef.current, activeLessonId: lessonId, highlightedIndex: 0 });
       toast.success("Classroom Lesson Switched");
     },
-    [broadcast, role]
+    [broadcast, role, classId, persistRoomState]
   );
 
   const sendLaserPointer = useCallback(
     (laser: LaserPointerState) => {
-      if (role === "observer") return;
       setLaserPointer(laser);
-      const now = Date.now();
-      // Throttle mouse / touch drag stream to 30fps (33ms) to avoid mobile network saturation
-      if (now - lastLaserTimeRef.current > 33 || !laser.active) {
-        lastLaserTimeRef.current = now;
-        broadcast({ type: "laser", ...laser });
+      if (role !== "observer" || classId === "demo") {
+        const now = Date.now();
+        // Throttle mouse / touch drag stream to 30fps (33ms) to avoid mobile network saturation
+        if (now - lastLaserTimeRef.current > 33 || !laser.active) {
+          lastLaserTimeRef.current = now;
+          broadcast({ type: "laser", ...laser });
+        }
       }
     },
-    [broadcast, role]
+    [broadcast, role, classId]
   );
 
   const sendToolSync = useCallback(
     (partialState: Partial<ClassroomToolState>) => {
-      if (role === "observer") return;
 
       if (partialState.fontSize !== undefined) setFontSize(partialState.fontSize);
       if (partialState.fontColor !== undefined) setFontColor(partialState.fontColor);
@@ -389,26 +393,29 @@ export function useClassroomSync({
       if (partialState.activeLessonId !== undefined) setActiveLessonId(partialState.activeLessonId);
       if (partialState.bandwidthMode !== undefined) setBandwidthMode(partialState.bandwidthMode);
 
-      persistRoomState({ ...stateSnapshotRef.current, ...partialState });
-      broadcast({
-        type: "tool_sync",
-        state: {
-          fontSize,
-          fontColor,
-          underlines,
-          circles,
-          colorHighlights,
-          script,
-          tajweedMode,
-          activeLessonId,
-          bandwidthMode,
-          ...partialState,
-        },
-      });
+      if (role !== "observer" || classId === "demo") {
+        persistRoomState({ ...stateSnapshotRef.current, ...partialState });
+        broadcast({
+          type: "tool_sync",
+          state: {
+            fontSize,
+            fontColor,
+            underlines,
+            circles,
+            colorHighlights,
+            script,
+            tajweedMode,
+            activeLessonId,
+            bandwidthMode,
+            ...partialState,
+          },
+        });
+      }
     },
     [
       broadcast,
       role,
+      classId,
       fontSize,
       fontColor,
       underlines,
@@ -418,6 +425,7 @@ export function useClassroomSync({
       tajweedMode,
       activeLessonId,
       bandwidthMode,
+      persistRoomState,
     ]
   );
 

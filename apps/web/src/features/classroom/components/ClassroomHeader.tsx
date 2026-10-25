@@ -58,7 +58,7 @@ export default function ClassroomHeader({
               Live Quran Classroom
             </h1>
             <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-950/80 text-amber-300 border border-amber-400/30 px-2 py-0.5 rounded-full hidden sm:inline-block">
-              {role === "teacher" ? "Teacher Control" : role === "observer" ? "Silent Observer" : "Student View"} • {classId}
+              {classId === "demo" ? "Interactive Demo Classroom" : role === "teacher" ? "Teacher Control" : role === "observer" ? "Silent Observer" : "Student View"} • {classId}
             </span>
           </div>
 

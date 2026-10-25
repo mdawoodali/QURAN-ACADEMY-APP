@@ -35,6 +35,13 @@ export const PHONETIC_MAP: Record<number, string[]> = {
   3: ["العالمين", "عالمين", "الْعَالَمِينَ", "الْعٰلَمِیْنَ"]
 };
 
+export const QURAN_PHONETIC_FALLBACK: Record<number, string[]> = {
+  0: ["alhamdu", "alhamd", "alhamdulillah", "elhamd", "hamd", "al-hamdu", "الحمد", "حمد", "bismi", "bismillah"],
+  1: ["lillahi", "lillah", "allah", "lellah", "lillāhi", "لله", "الله"],
+  2: ["rabbi", "rabb", "rab", "rub", "rab-bi", "رب", "ar-rahman", "rahman"],
+  3: ["alameen", "alalamin", "al-alameen", "aalamin", "alamin", "al-ʿālamīn", "العالمين", "عالمين", "ar-rahim", "rahim"]
+};
+
 // Default single-ayah baseline kept for backward compatibility and existing tests
 export const SCRIPT_DATA: Record<ScriptType, TajweedWord[]> = {
   uthmani: [
