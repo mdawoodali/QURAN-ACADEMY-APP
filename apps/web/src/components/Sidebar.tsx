@@ -20,13 +20,15 @@ export default function Sidebar({ onClose, role, userName, initials }: { onClose
   const isParent = pathname.startsWith("/parent") || role === "parent";
 
   // Role-appropriate display name
-  let effectiveName = userName || "Demo Student";
-  if (isTeacher && (effectiveName === "Demo Student" || !effectiveName || effectiveName.includes("Maryam Ahmed"))) {
-    effectiveName = "Demo Teacher";
-  } else if (isAdmin && (effectiveName === "Demo Student" || !effectiveName)) {
-    effectiveName = "Super Admin";
-  } else if (isParent && (effectiveName === "Demo Student" || !effectiveName)) {
-    effectiveName = "Family Guardian";
+  let effectiveName = userName || (isTeacher ? "Muhammad Isbah" : "Demo Student");
+  if (!userName || userName === "Demo Student" || userName === "Demo Teacher") {
+    if (isTeacher) {
+      effectiveName = "Muhammad Isbah";
+    } else if (isAdmin) {
+      effectiveName = "Super Admin";
+    } else if (isParent) {
+      effectiveName = "Family Guardian";
+    }
   }
 
   // Localized user name

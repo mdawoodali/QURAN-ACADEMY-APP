@@ -18,7 +18,7 @@ export default async function PortalLayout({ children }: { children: React.React
     if (demoRole === "admin") {
       fullName = "Super Admin";
     } else if (demoRole === "teacher") {
-      fullName = "Demo Teacher";
+      fullName = demoUser || "Muhammad Isbah";
     } else if (demoRole === "parent") {
       fullName = "Family Guardian";
     } else if (demoUser) {
@@ -36,7 +36,9 @@ export default async function PortalLayout({ children }: { children: React.React
         .single();
 
       if (profile) {
-        fullName = `${profile.first_name} ${profile.last_name}`.trim() || user.email || fullName;
+        fullName = `${profile.first_name} ${profile.last_name}`.trim() || user.user_metadata?.full_name || user.email || fullName;
+      } else if (user.user_metadata?.full_name) {
+        fullName = user.user_metadata.full_name;
       }
     }
   } catch (err) {

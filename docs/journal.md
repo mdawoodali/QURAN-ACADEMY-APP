@@ -2546,3 +2546,14 @@ During empirical browser validation using headless Chrome, we uncovered why pros
    - TypeScript compilation clean: 0 errors (tsc --noEmit).
    - Vitest unit & integration tests: 30 / 30 suites passed, 517 / 517 tests passed (including dedicated demo exit assertion suite).
    - Production build verified: 83 / 83 routes generated cleanly with zero hydration or build warnings.
+
+---
+
+## 9.105 Teacher Identity Resolution (Task 1: Muhammad Isbah Account Profile)
+
+### Context & Task
+Resolve teacher user profile identity dynamically in the portal shell (layout.tsx, Sidebar.tsx) so that authentic accounts (e.g., Muhammad Isbah) are prioritized and mock Demo Teacher strings are replaced.
+
+### Changes
+- Updated apps/web/src/app/(portal)/layout.tsx to read user_metadata.full_name or profile name, defaulting fallback to Muhammad Isbah for teacher sessions.
+- Updated apps/web/src/components/Sidebar.tsx effective name logic to present Muhammad Isbah rather than Demo Teacher.
