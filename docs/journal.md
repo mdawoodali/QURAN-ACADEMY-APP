@@ -2584,3 +2584,14 @@ Provide teachers with an interactive mechanism to book recurring lesson slots fo
 - Implemented BookSlotModal and "+ Book / Schedule Slot" in pps/web/src/app/(portal)/teacher/schedule/page.tsx.
 - Connected slot creation to POST /api/scheduling supporting day, time, student name, course, and duration parameters.
 - Enabled one-click slot booking directly from open availability cells on the schedule grid.
+
+---
+
+## 9.108 Eradicate Mock Student Seed Data (Task 4)
+
+### Context & Task
+Eliminate seeded fake learners ("Yusuf Khan") from the teacher portal student roster to ensure authentic zero-state rendering.
+
+### Changes
+- Removed hardcoded default student object and placeholder records from pps/web/src/app/(portal)/teacher/students/page.tsx.
+- Implemented clean empty-state UI when no students are enrolled or assigned to the authenticated teacher.
