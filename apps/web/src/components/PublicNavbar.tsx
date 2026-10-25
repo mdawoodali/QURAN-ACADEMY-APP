@@ -13,8 +13,9 @@ export default function PublicNavbar() {
   const { setSect, isSunni, isShia } = useSect();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const homeHref = isShia ? "/shia" : "/sunni";
+  const homeHref = isShia ? "/shia/home" : "/sunni/home";
   const resourcesHref = isShia ? "/shia/resources" : "/sunni/resources";
+  const welcomeHref = isShia ? "/shia" : "/sunni";
 
   useEffect(() => {
     if (typeof document !== "undefined") {
@@ -142,7 +143,7 @@ export default function PublicNavbar() {
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 h-20 sm:h-22 flex items-center justify-between gap-4">
           
           {/* Brand Official Logo: Elegantly proportioned and aligned within navbar */}
-          <Link href="/welcome" onClick={handleGoHome} 
+          <Link href={welcomeHref} onClick={handleGoHome} 
             className="flex items-center shrink-0 group py-1"
             title="Quran Learn Academy"
           >

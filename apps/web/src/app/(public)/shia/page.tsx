@@ -1,17 +1,17 @@
 "use client";
 
-import { useEffect } from "react";
-import { useSect } from "@/components/SectContext";
-import HomeView from "@/components/HomeView";
+import { useRouter } from "next/navigation";
+import WelcomeSplash from "@/components/WelcomeSplash";
 
-export default function ShiaPage() {
-  const { setSect, sect } = useSect();
+export default function ShiaWelcomePage() {
+  const router = useRouter();
 
-  useEffect(() => {
-    if (sect !== "shia") {
-      setSect("shia");
-    }
-  }, [sect, setSect]);
-
-  return <HomeView />;
+  return (
+    <WelcomeSplash
+      targetSect="shia"
+      onGetStarted={() => {
+        router.push("/shia/home");
+      }}
+    />
+  );
 }

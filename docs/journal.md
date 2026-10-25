@@ -1942,3 +1942,40 @@ eceipt_uploaded, and payment_verified.
   - `pnpm typecheck`: 0 errors.
   - `pnpm test`: 23/23 test suites passed, 172/172 tests passed (100% green).
   - Next.js Turbopack Production Build (`next build`): 78/78 routes compiled cleanly in 6.4s with 0 errors.
+
+
+---
+
+## 9.85 Complete Separation of Sunni & Shia Welcome and Home Routes
+
+- **Objective**:
+  - Treat Sunni and Shia as totally independent web journeys without cross-tradition choice buttons on their respective entry points.
+  - Dedicate `/sunni` strictly to the Sunni welcome screen with a single `"Let's Start →"` action leading to `/sunni/home`.
+  - Dedicate `/shia` strictly to the Shia welcome screen with a single `"Let's Start →"` action leading to `/shia/home`.
+  - Provide dedicated resource hubs (`/sunni/resources` and `/shia/resources`) and tradition-anchored navbar links.
+
+- **Implementation Details**:
+  1. **Single-Tradition Welcome Screen (`WelcomeSplash.tsx`)**:
+     - Added `targetSect?: "sunni" | "shia"` support.
+     - When `targetSect="sunni"`:
+       - Displays Sunni Academy badge and Sahih Bukhari Hadith citation.
+       - Replaces multi-sect choices with a single prominent `"Let's Start →"` button navigating to `/sunni/home`.
+     - When `targetSect="shia"`:
+       - Displays Shia Academy badge and authentic Wasail al-Shia citation.
+       - Replaces multi-sect choices with a single prominent `"Let's Start →"` button navigating to `/shia/home`.
+  2. **Dedicated Routes Hierarchy**:
+     - `/sunni` -> Sunni Welcome Page (`SunniWelcomePage`)
+     - `/sunni/home` -> Sunni Academy Home (`SunniHomePage`)
+     - `/sunni/resources` -> Dedicated Sunni Islamic library
+     - `/shia` -> Shia Welcome Page (`ShiaWelcomePage`)
+     - `/shia/home` -> Shia Academy Home (`ShiaHomePage`)
+     - `/shia/resources` -> Dedicated Shia Islamic library
+  3. **Navbar Dynamic Routing (`PublicNavbar.tsx`)**:
+     - Automatically binds "Home" to `homeHref` (`/sunni/home` or `/shia/home`).
+     - Automatically binds "Resources" to `resourcesHref` (`/sunni/resources` or `/shia/resources`).
+     - Binds the top-left official logo to `welcomeHref` (`/sunni` or `/shia`).
+
+- **Validation & Quality Gate**:
+  - `pnpm typecheck`: 0 errors.
+  - `pnpm test`: 23/23 test suites passed, 172/172 tests passed (100% green).
+  - Next.js Turbopack Production Build (`next build`): 80/80 routes compiled cleanly in 4.3s with 0 errors.

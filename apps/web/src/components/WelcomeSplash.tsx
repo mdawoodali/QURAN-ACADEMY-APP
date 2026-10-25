@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { BookOpen, CheckCircle } from "lucide-react";
@@ -11,14 +10,21 @@ import { useSect } from "./SectContext";
 
 interface WelcomeSplashProps {
   onGetStarted: (sect?: "sunni" | "shia") => void;
+  targetSect?: "sunni" | "shia";
 }
 
-export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
+export default function WelcomeSplash({ onGetStarted, targetSect }: WelcomeSplashProps) {
   const { language, setLanguage } = useLanguage();
   const [isExiting, setIsExiting] = useState(false);
-  const [selectedSect, setSelectedSect] = useState<"sunni" | "shia" | null>(null);
+  const [selectedSect, setSelectedSect] = useState<"sunni" | "shia" | null>(targetSect || null);
 
   const { setSect } = useSect();
+
+  useEffect(() => {
+    if (targetSect) {
+      setSect(targetSect);
+    }
+  }, [targetSect, setSect]);
 
   const handleSelect = (sect: "sunni" | "shia") => {
     setSelectedSect(sect);
@@ -29,7 +35,7 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
         sessionStorage.setItem("welcome_dismissed", "true");
       } catch {}
     }
-    // Smooth delay before triggering parent unmount to let animation play
+    // Smooth delay before triggering parent navigation
     setTimeout(() => {
       onGetStarted(sect);
     }, 600);
@@ -117,6 +123,22 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
           </div>
         </motion.div>
 
+        {/* Sect Identification Badge if specific sect page */}
+        {targetSect && (
+          <motion.div
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="mb-2"
+          >
+            <span className="inline-block px-4 py-1 bg-amber-400/20 text-amber-300 border border-amber-400/40 rounded-full text-xs font-bold tracking-wider uppercase">
+              {targetSect === "shia" 
+                ? (language === "ur" ? "اہل تشیع اکیڈمی" : "Shia Academy") 
+                : (language === "ur" ? "اہل سنت اکیڈمی" : "Sunni Academy")}
+            </span>
+          </motion.div>
+        )}
+
         {/* Main Heading: Hadith */}
         <motion.h1
           initial={{ opacity: 0, y: 10 }}
@@ -143,89 +165,123 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
           transition={{ duration: 0.6, delay: 0.25 }}
           className="text-[9px] sm:text-xs md:text-sm text-emerald-200/90 font-sans font-medium tracking-widest uppercase drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] mb-3 sm:mb-5"
         >
-          {language === "ur"
-            ? "— صحیح بخاری، حدیث ۵۰۲۷"
-            : "— Sahih Bukhari Hadith 5027"}
+          {targetSect === "shia"
+            ? (language === "ur" ? "— رسول اللہ ﷺ (بحار الأنوار / وسائل الشيعة)" : "— Holy Prophet Muhammad (pbuh) — Wasail al-Shia")
+            : (language === "ur" ? "— صحیح بخاری، حدیث ۵۰۲۷" : "— Sahih Bukhari Hadith 5027")}
         </motion.p>
 
-        {/* Two Options: "Sunni" and "Shia" */}
+        {/* Action Controls */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 0.35 }}
           className="w-full flex flex-col items-center shrink-0"
         >
-          <div className="flex flex-row items-center justify-center gap-3 sm:gap-6 w-full max-w-md px-4">
-            {/* Sunni Option */}
-            <Link
-              href="/sunni"
-              onClick={(e) => {
-                e.preventDefault();
-                handleSelect("sunni");
-              }}
-              className={`welcome-cta-btn group relative pop-hover overflow-hidden w-40 sm:w-52 py-2.5 sm:py-3.5 px-5 rounded-full font-bold text-xs sm:text-base flex flex-col items-center justify-center transition-all cursor-pointer ${
-                selectedSect === "sunni" ? "is-active" : ""
-              } ${isExiting ? "pointer-events-none opacity-80" : ""}`}
-            >
-              <div className="flex items-center justify-center z-10">
-                <span className={language === "ur" ? "font-urdu text-sm sm:text-lg" : "tracking-wide"}>
-                  {language === "ur" ? "اہل سنت (Sunni)" : "Sunni"}
+          {/* Case 1: Specific Sect Page -> Single "Let's Start" Button */}
+          {targetSect ? (
+            <div className="flex flex-col items-center justify-center w-full max-w-sm px-4">
+              <Link
+                href={targetSect === "shia" ? "/shia/home" : "/sunni/home"}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleSelect(targetSect);
+                }}
+                className={`welcome-cta-btn group relative pop-hover overflow-hidden w-56 sm:w-64 py-3 sm:py-3.5 px-8 rounded-full font-bold text-sm sm:text-base flex items-center justify-center transition-all cursor-pointer shadow-xl ${
+                  isExiting ? "pointer-events-none opacity-80" : ""
+                }`}
+              >
+                <span className={language === "ur" ? "font-urdu text-base sm:text-lg" : "tracking-wide"}>
+                  {language === "ur" ? "شروع کریں →" : "Let's Start →"}
                 </span>
+
+                {/* Ornamental underline */}
+                <span className="absolute bottom-1.5 left-6 right-6 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <span className="h-[2px] bg-gradient-to-l from-amber-400 to-transparent w-0 group-hover:w-1/2 transition-all duration-300 ease-out origin-right rounded-full" />
+                  <span className="flex items-center gap-[2px] px-1 scale-0 group-hover:scale-100 transition-transform duration-300 ease-out">
+                    <span className="w-1 h-1 rounded-full bg-amber-400/80 shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.9)] shrink-0" />
+                    <span className="w-1 h-1 rounded-full bg-amber-400/80 shrink-0" />
+                  </span>
+                  <span className="h-[2px] bg-gradient-to-r from-amber-400 to-transparent w-0 group-hover:w-1/2 transition-all duration-300 ease-out origin-left rounded-full" />
+                </span>
+              </Link>
+            </div>
+          ) : (
+            /* Case 2: General Root / Welcome Page -> Two Sect Options */
+            <div className="flex flex-col items-center justify-center w-full max-w-md px-4">
+              <div className="flex flex-row items-center justify-center gap-3 sm:gap-6 w-full">
+                {/* Sunni Option */}
+                <Link
+                  href="/sunni"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleSelect("sunni");
+                  }}
+                  className={`welcome-cta-btn group relative pop-hover overflow-hidden w-40 sm:w-52 py-2.5 sm:py-3.5 px-5 rounded-full font-bold text-xs sm:text-base flex flex-col items-center justify-center transition-all cursor-pointer ${
+                    selectedSect === "sunni" ? "is-active" : ""
+                  } ${isExiting ? "pointer-events-none opacity-80" : ""}`}
+                >
+                  <div className="flex items-center justify-center z-10">
+                    <span className={language === "ur" ? "font-urdu text-sm sm:text-lg" : "tracking-wide"}>
+                      {language === "ur" ? "اہل سنت (Sunni)" : "Sunni"}
+                    </span>
+                  </div>
+
+                  {/* Ornamental underline */}
+                  <span className="absolute bottom-1.5 left-4 right-4 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <span className="h-[2px] bg-gradient-to-l from-amber-400 to-transparent w-0 group-hover:w-1/2 transition-all duration-300 ease-out origin-right rounded-full" />
+                    <span className="flex items-center gap-[2px] px-1 scale-0 group-hover:scale-100 transition-transform duration-300 ease-out">
+                      <span className="w-1 h-1 rounded-full bg-amber-400/80 shrink-0" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.9)] shrink-0" />
+                      <span className="w-1 h-1 rounded-full bg-amber-400/80 shrink-0" />
+                    </span>
+                    <span className="h-[2px] bg-gradient-to-r from-amber-400 to-transparent w-0 group-hover:w-1/2 transition-all duration-300 ease-out origin-left rounded-full" />
+                  </span>
+                </Link>
+
+                {/* Shia Option */}
+                <Link
+                  href="/shia"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleSelect("shia");
+                  }}
+                  className={`welcome-cta-btn group relative pop-hover overflow-hidden w-40 sm:w-52 py-2.5 sm:py-3.5 px-5 rounded-full font-bold text-xs sm:text-base flex flex-col items-center justify-center transition-all cursor-pointer ${
+                    selectedSect === "shia" ? "is-active" : ""
+                  } ${isExiting ? "pointer-events-none opacity-80" : ""}`}
+                >
+                  <div className="flex items-center justify-center z-10">
+                    <span className={language === "ur" ? "font-urdu text-sm sm:text-lg" : "tracking-wide"}>
+                      {language === "ur" ? "اہل تشیع (Shia)" : "Shia"}
+                    </span>
+                  </div>
+
+                  {/* Ornamental underline */}
+                  <span className="absolute bottom-1.5 left-4 right-4 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <span className="h-[2px] bg-gradient-to-l from-amber-400 to-transparent w-0 group-hover:w-1/2 transition-all duration-300 ease-out origin-right rounded-full" />
+                    <span className="flex items-center gap-[2px] px-1 scale-0 group-hover:scale-100 transition-transform duration-300 ease-out">
+                      <span className="w-1 h-1 rounded-full bg-amber-400/80 shrink-0" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.9)] shrink-0" />
+                      <span className="w-1 h-1 rounded-full bg-amber-400/80 shrink-0" />
+                    </span>
+                    <span className="h-[2px] bg-gradient-to-r from-amber-400 to-transparent w-0 group-hover:w-1/2 transition-all duration-300 ease-out origin-left rounded-full" />
+                  </span>
+                </Link>
               </div>
 
-              {/* Ornamental underline */}
-              <span className="absolute bottom-1.5 left-4 right-4 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <span className="h-[2px] bg-gradient-to-l from-amber-400 to-transparent w-0 group-hover:w-1/2 transition-all duration-300 ease-out origin-right rounded-full" />
-                <span className="flex items-center gap-[2px] px-1 scale-0 group-hover:scale-100 transition-transform duration-300 ease-out">
-                  <span className="w-1 h-1 rounded-full bg-amber-400/80 shrink-0" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.9)] shrink-0" />
-                  <span className="w-1 h-1 rounded-full bg-amber-400/80 shrink-0" />
-                </span>
-                <span className="h-[2px] bg-gradient-to-r from-amber-400 to-transparent w-0 group-hover:w-1/2 transition-all duration-300 ease-out origin-left rounded-full" />
-              </span>
-            </Link>
-
-            {/* Shia Option */}
-            <Link
-              href="/shia"
-              onClick={(e) => {
-                e.preventDefault();
-                handleSelect("shia");
-              }}
-              className={`welcome-cta-btn group relative pop-hover overflow-hidden w-40 sm:w-52 py-2.5 sm:py-3.5 px-5 rounded-full font-bold text-xs sm:text-base flex flex-col items-center justify-center transition-all cursor-pointer ${
-                selectedSect === "shia" ? "is-active" : ""
-              } ${isExiting ? "pointer-events-none opacity-80" : ""}`}
-            >
-              <div className="flex items-center justify-center z-10">
-                <span className={language === "ur" ? "font-urdu text-sm sm:text-lg" : "tracking-wide"}>
-                  {language === "ur" ? "اہل تشیع (Shia)" : "Shia"}
-                </span>
-              </div>
-
-              {/* Ornamental underline */}
-              <span className="absolute bottom-1.5 left-4 right-4 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <span className="h-[2px] bg-gradient-to-l from-amber-400 to-transparent w-0 group-hover:w-1/2 transition-all duration-300 ease-out origin-right rounded-full" />
-                <span className="flex items-center gap-[2px] px-1 scale-0 group-hover:scale-100 transition-transform duration-300 ease-out">
-                  <span className="w-1 h-1 rounded-full bg-amber-400/80 shrink-0" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.9)] shrink-0" />
-                  <span className="w-1 h-1 rounded-full bg-amber-400/80 shrink-0" />
-                </span>
-                <span className="h-[2px] bg-gradient-to-r from-amber-400 to-transparent w-0 group-hover:w-1/2 transition-all duration-300 ease-out origin-left rounded-full" />
-              </span>
-            </Link>
-          </div>
-
-          {/* Direct Enter / Skip Option */}
-          <Link
-            href="/sunni"
-            onClick={(e) => {
-              e.preventDefault();
-              handleSelect("sunni");
-            }}
-            className="mt-2 text-[11px] sm:text-xs text-emerald-200/60 hover:text-amber-300 underline underline-offset-4 transition-colors cursor-pointer"
-          >
-            {language === "ur" ? "براہِ راست ویب سائٹ پر جائیں →" : "Continue to website directly →"}
-          </Link>
+              {/* Direct Enter / Skip Option */}
+              <Link
+                href="/sunni/home"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleSelect("sunni");
+                }}
+                className="mt-2 text-[11px] sm:text-xs text-emerald-200/60 hover:text-amber-300 underline underline-offset-4 transition-colors cursor-pointer"
+              >
+                {language === "ur" ? "براہِ راست ویب سائٹ پر جائیں →" : "Continue to website directly →"}
+              </Link>
+            </div>
+          )}
         </motion.div>
       </main>
 

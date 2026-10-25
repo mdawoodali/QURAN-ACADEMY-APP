@@ -1,17 +1,17 @@
 "use client";
 
-import { useEffect } from "react";
-import { useSect } from "@/components/SectContext";
-import HomeView from "@/components/HomeView";
+import { useRouter } from "next/navigation";
+import WelcomeSplash from "@/components/WelcomeSplash";
 
-export default function SunniPage() {
-  const { setSect, sect } = useSect();
+export default function SunniWelcomePage() {
+  const router = useRouter();
 
-  useEffect(() => {
-    if (sect !== "sunni") {
-      setSect("sunni");
-    }
-  }, [sect, setSect]);
-
-  return <HomeView />;
+  return (
+    <WelcomeSplash
+      targetSect="sunni"
+      onGetStarted={() => {
+        router.push("/sunni/home");
+      }}
+    />
+  );
 }
