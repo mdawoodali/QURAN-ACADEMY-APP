@@ -8,9 +8,9 @@ export default function WelcomePage() {
 
   const handleGetStarted = (sect?: "sunni" | "shia") => {
     if (sect === "shia") {
-      router.push("/shia");
+      router.push("/shia/home");
     } else {
-      router.push("/sunni");
+      router.push("/sunni/home");
     }
   };
 

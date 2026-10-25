@@ -2019,3 +2019,34 @@ eceipt_uploaded, and payment_verified.
 - **Verification**:
   - Vitest test suite: 172/172 tests passing across all 23 suites.
   - TypeScript compiler (`pnpm typecheck`): 0 errors across workspace.
+
+
+---
+
+## 9.88 Platform-Wide UI/UX, Navigation Flow & Redirection Resolution (2026-10-25)
+
+- **Navbar Authenticated State & Portal Navigation (`PublicNavbar.tsx`)**:
+  - **Issue**: Authenticated users browsing public marketing or resource pages were presented with a static "Log In" button. Clicking it redirected them back to `/login` even though their session was active.
+  - **Fix**: Implemented live authentication status detection (`isLoggedIn`). When active, desktop navigation and the mobile drawer display a pulsating golden **"My Portal"** / **"میرا پورٹل"** button routing directly to `/dashboard` (which dispatches to their specific role portal: student, teacher, admin, or parent).
+- **Eliminated Double-Splash Loop (`page.tsx`, `welcome/page.tsx`, `WelcomeSplash.tsx`)**:
+  - **Issue**: Selecting Sunni or Shia on the general homepage (`/`) or `/welcome` previously redirected to `/sunni` or `/shia`, displaying a second splash screen that forced users to click "Let's Start →" an extra time.
+  - **Fix**: Directly routed sect choices on `/` and `/welcome` to `/sunni/home` and `/shia/home`. Kept direct entry points at `/sunni` and `/shia` for external campaigns and bookmarks.
+- **Parent Portal Quick Evaluation Access (`login/page.tsx`)**:
+  - **Issue**: The Quick Portal Access grid only exposed Admin, Teacher, and Student buttons, leaving the Family/Parent portal inaccessible without manually typing `/parent`.
+  - **Fix**: Expanded the grid to 4 columns (`grid-cols-2 sm:grid-cols-4`) and added a **Parent** button routing via `/api/demo-access?role=parent`.
+- **Live Teacher Application & Direct Self-Registration Link (`teach-with-us/page.tsx`)**:
+  - **Issue**: The "Submit Application" button was a static `type="button"` with no form submission logic or feedback, giving applicants no response.
+  - **Fix**: Connected the form to `POST /api/inquiries` (source: `teach_with_us`), added full submission state handling (loading, success, error), and added direct onboarding callouts leading to `/register/teacher`.
+- **Interactive Wizard Steps (`TrialFunnel.tsx`)**:
+  - **Issue**: The multi-step wizard numbered indicators (1, 2, 3, 4) were static non-clickable divs, forcing users to click "Back" repeatedly to edit earlier inputs.
+  - **Fix**: Converted earlier steps into interactive buttons with focus and active-step ring highlights.
+- **Footer Student Portal Redirection (`Footer.tsx`)**:
+  - **Issue**: The Student Portal link was hardcoded to `/login`.
+  - **Fix**: Updated to `/dashboard`, sending authenticated students directly to `/student` and unauthenticated visitors to `/login`.
+- **Supabase Client Standardization (`Sidebar.tsx`)**:
+  - Standardized Supabase browser client initialization via `createClient` from `@/utils/supabase/client`, eliminating legacy `127.0.0.1:54321` dummy fallbacks.
+- **Verification & Quality Gate**:
+  - `pnpm test`: 23/23 test suites passed, 172/172 tests passed (100% green).
+  - `pnpm typecheck`: 0 errors.
+  - `pnpm lint`: 0 errors.
+  - `next build`: 80/80 routes compiled, optimized, and generated successfully in 16.1s.

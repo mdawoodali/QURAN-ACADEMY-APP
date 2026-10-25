@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Home, PlaySquare, Book, TrendingUp, CreditCard, User, HelpCircle, BookOpen, X, LogOut, FileUp, Activity, Mail } from "lucide-react";
-import { createBrowserClient } from '@supabase/ssr'
+import { createClient } from '@/utils/supabase/client'
 import { useLanguage } from './LanguageContext';
 import { APP_VERSION } from '@quran/contracts';
 
@@ -12,10 +12,7 @@ export default function Sidebar({ onClose, role, userName, initials }: { onClose
   const router = useRouter();
   const { language, setLanguage, t } = useLanguage();
   
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321',
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy'
-  );
+  const supabase = createClient();
 
   const isTeacher = pathname.startsWith("/teacher") || role === "teacher";
   const isAdmin = pathname.startsWith("/admin") || role === "admin";

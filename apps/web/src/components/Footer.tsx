@@ -278,7 +278,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/login" className="hover:text-amber-300 transition flex items-center gap-1.5">
+                <Link href="/dashboard" className="hover:text-amber-300 transition flex items-center gap-1.5">
                   <span className="text-amber-400 text-xs">▸</span> {t("studentPortal")}
                 </Link>
               </li>

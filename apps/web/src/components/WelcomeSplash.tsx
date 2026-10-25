@@ -212,7 +212,7 @@ export default function WelcomeSplash({ onGetStarted, targetSect }: WelcomeSplas
               <div className="flex flex-row items-center justify-center gap-3 sm:gap-6 w-full">
                 {/* Sunni Option */}
                 <Link
-                  href="/sunni"
+                  href="/sunni/home"
                   onClick={(e) => {
                     e.preventDefault();
                     handleSelect("sunni");
@@ -241,7 +241,7 @@ export default function WelcomeSplash({ onGetStarted, targetSect }: WelcomeSplas
 
                 {/* Shia Option */}
                 <Link
-                  href="/shia"
+                  href="/shia/home"
                   onClick={(e) => {
                     e.preventDefault();
                     handleSelect("shia");

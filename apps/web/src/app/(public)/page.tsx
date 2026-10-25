@@ -36,9 +36,9 @@ export default function Home() {
       }
     }
     if (sect === "shia") {
-      router.push("/shia");
+      router.push("/shia/home");
     } else if (sect === "sunni") {
-      router.push("/sunni");
+      router.push("/sunni/home");
     }
   };
 

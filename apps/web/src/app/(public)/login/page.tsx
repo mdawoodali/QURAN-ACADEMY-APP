@@ -110,7 +110,7 @@ export default function LoginPage(props: { searchParams: Promise<{ error?: strin
           <span className="text-[11px] text-amber-300 font-bold uppercase tracking-wider block mb-3">
             Quick Portal Access (Demo & Evaluation)
           </span>
-          <div className="grid grid-cols-3 gap-2 text-xs font-bold">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-bold">
             <Link
               href="/api/demo-access?role=admin"
               className="py-2.5 px-1 bg-amber-400/20 hover:bg-amber-400 text-amber-300 hover:text-emerald-950 border border-amber-400/40 rounded-xl transition-all shadow-sm text-center"
@@ -128,6 +128,12 @@ export default function LoginPage(props: { searchParams: Promise<{ error?: strin
               className="py-2.5 px-1 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl transition-all shadow-sm text-center"
             >
               Student
+            </Link>
+            <Link
+              href="/api/demo-access?role=parent"
+              className="py-2.5 px-1 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl transition-all shadow-sm text-center"
+            >
+              Parent
             </Link>
           </div>
         </div>

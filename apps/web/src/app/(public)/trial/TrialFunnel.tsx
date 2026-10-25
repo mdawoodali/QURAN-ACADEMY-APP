@@ -60,9 +60,23 @@ export default function TrialFunnel() {
       <div className="flex justify-between items-center mb-8 px-2">
         {[1, 2, 3, 4].map(s => (
           <div key={s} className="flex items-center">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-sm transition-all ${step >= s ? 'bg-amber-400 text-emerald-950 font-serif' : 'bg-black/35 text-emerald-100/40 border border-white/10'}`}>
+            <button
+              type="button"
+              onClick={() => s <= step && setStep(s)}
+              disabled={s > step}
+              className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-sm transition-all ${
+                s <= step ? 'cursor-pointer hover:scale-105' : 'cursor-not-allowed opacity-60'
+              } ${
+                step === s
+                  ? 'bg-amber-400 text-emerald-950 font-serif ring-2 ring-amber-300/60 ring-offset-2 ring-offset-transparent'
+                  : step > s
+                  ? 'bg-amber-400/80 text-emerald-950 font-serif'
+                  : 'bg-black/35 text-emerald-100/40 border border-white/10'
+              }`}
+              title={s <= step ? `Go to step ${s}` : `Step ${s}`}
+            >
               {s}
-            </div>
+            </button>
             {s < 4 && <div className={`w-8 sm:w-16 md:w-24 h-1 transition-all ${step > s ? 'bg-amber-400' : 'bg-white/15'}`} />}
           </div>
         ))}
