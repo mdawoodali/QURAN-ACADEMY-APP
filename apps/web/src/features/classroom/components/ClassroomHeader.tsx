@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { BookOpen, Mic, Wifi, PhoneOff, Radio } from "lucide-react";
+import { BookOpen, Mic, Wifi, PhoneOff, Radio, ChevronDown } from "lucide-react";
 import { ScriptType, LiveKitStatus, ClassroomLesson } from "../types";
 import { CURRICULUM_LESSONS } from "../constants";
 
@@ -62,20 +62,27 @@ export default function ClassroomHeader({
             </span>
           </div>
 
-          {/* Lesson Selector Dropdown */}
+          {/* Lesson / Ayah Selector Dropdown */}
           <div className="flex items-center gap-1.5 mt-0.5">
-            {isTeacher && onLessonChange ? (
-              <select
-                value={activeLessonId}
-                onChange={(e) => onLessonChange(e.target.value)}
-                className="bg-black/50 border border-white/20 text-amber-300 text-[11px] font-bold rounded-lg px-2 py-0.5 focus:outline-none focus:border-amber-400 max-w-[200px] sm:max-w-[260px] truncate cursor-pointer [&>option]:bg-[#052b20] [&>option]:text-white"
-              >
-                {lessons.map((les) => (
-                  <option key={les.id} value={les.id}>
-                    {les.title}
-                  </option>
-                ))}
-              </select>
+            {(isTeacher || classId === "demo") && onLessonChange ? (
+              <div className="relative flex items-center">
+                <span className="text-[10px] uppercase font-bold text-amber-300/80 mr-1 hidden sm:inline">
+                  Ayah:
+                </span>
+                <select
+                  value={activeLessonId}
+                  onChange={(e) => onLessonChange(e.target.value)}
+                  className="appearance-none bg-black/60 hover:bg-black/80 border border-amber-400/40 hover:border-amber-400 text-amber-300 text-[11px] font-bold rounded-lg pl-2 pr-6 py-0.5 focus:outline-none focus:ring-1 focus:ring-amber-400 max-w-[210px] sm:max-w-[280px] truncate cursor-pointer [&>option]:bg-[#052b20] [&>option]:text-white shadow-xs"
+                  aria-label="Select Surah and Ayah"
+                >
+                  {lessons.map((les) => (
+                    <option key={les.id} value={les.id}>
+                      {les.title}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={12} className="absolute right-1.5 text-amber-400/80 pointer-events-none" />
+              </div>
             ) : (
               <span className="text-[11px] text-emerald-100/80 font-medium truncate">
                 {surahName}

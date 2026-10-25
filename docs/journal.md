@@ -2400,3 +2400,29 @@ The user reported that the classroom laser pointer *"aint working"*. An exhausti
    - Added unit test covering laser activation at (50%, 50%), coordinate streaming, and clean deactivation to `apps/web/src/__tests__/classroom-voice-follow.test.ts`.
    - All 514 tests passing across 30 test suites.
    - Turbopack production build verified (83/83 routes).
+
+
+---
+
+## 9.100 Classroom Ayah & Surah Dropdown Visibility & Dual-Mount Accessibility
+
+### Context & Root Cause Analysis
+The user asked: *"where is the aayat drop down ?"*.
+Investigation revealed why the user could not locate or see the Ayah selector:
+1. **Conditional Render Lockout in Header**:
+   In `ClassroomHeader.tsx`, the Ayah selector was wrapped in `{isTeacher && onLessonChange ? ... : <span className="text-[11px]...">{surahName}</span>}`. When visiting as an observer or parent, `isTeacher` evaluated to `false`. Consequently, instead of a selectable dropdown, the app only rendered static plain text: `Surah Al-Fatihah • Ayah 2`.
+2. **Missing UI Affordance & Labels**:
+   Even when visible to teachers, the native `<select>` lacked an explicit label ("Ayah:"), had an obscured native arrow, and lacked a styled chevron icon.
+3. **No Direct Whiteboard Selector**:
+   On the Teacher Interactive Whiteboard header where the user interacts with the Mushaf, the lesson title was displayed as plain text (`Lesson: Surah Al-Fatihah...`) without any quick-select capability.
+
+### Key Changes Implemented
+1. **Always-Accessible Header Dropdown**:
+   - In `ClassroomHeader.tsx`, updated visibility guard to `{(isTeacher || classId === "demo") && onLessonChange ? (...)}` so the dropdown is permanently available and interactive in demo sessions and teacher modes.
+   - Added an explicit `Ayah:` uppercase label and a custom styled `ChevronDown` icon with an amber border, dark backdrop, and accessible `aria-label="Select Surah and Ayah"`.
+2. **Direct Whiteboard Ayah Quick-Switch**:
+   - In `LiveClassroom.tsx`, replaced the static `Lesson: Surah...` text on the Teacher Interactive Whiteboard with an active Ayah selector dropdown with matching golden chevron styling and full synchronization with `sendLessonChange`.
+   - Allows teachers and demo users to effortlessly jump between Ayat (Surah Al-Fatihah 1:1, 1:2, Complete 1:1–7, Surah Al-Ikhlas, Surah Al-Falaq, Surah An-Nas, and Noorani Qaida) directly from the whiteboard header.
+3. **Automated Verification**:
+   - All 514 vitest tests passing across 30 test files (100% green).
+   - TypeScript compilation verified with 0 errors (`tsc --noEmit`).

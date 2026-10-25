@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { ChevronDown } from "lucide-react";
 
 import {
   ClassroomHeader,
@@ -377,9 +378,24 @@ export default function LiveClassroom() {
               <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse" />
               Teacher Interactive Whiteboard
             </span>
-            <span className="text-xs text-emerald-100/60 font-mono">
-              Lesson: <strong className="text-white uppercase">{currentLesson.title}</strong>
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-emerald-100/70 font-mono hidden sm:inline">Ayah:</span>
+              <div className="relative flex items-center">
+                <select
+                  value={activeLessonId}
+                  onChange={(e) => sendLessonChange(e.target.value)}
+                  className="appearance-none bg-black/60 hover:bg-black/80 border border-amber-400/40 hover:border-amber-400 text-amber-300 text-[11px] font-bold rounded-lg pl-2 pr-6 py-1 focus:outline-none focus:ring-1 focus:ring-amber-400 max-w-[220px] sm:max-w-[280px] truncate cursor-pointer [&>option]:bg-[#052b20] [&>option]:text-white shadow-xs"
+                  aria-label="Whiteboard Ayah Selector"
+                >
+                  {CURRICULUM_LESSONS.map((les) => (
+                    <option key={les.id} value={les.id}>
+                      {les.title}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={12} className="absolute right-1.5 text-amber-400/80 pointer-events-none" />
+              </div>
+            </div>
           </div>
 
           <div className="flex-1 glass-container rounded-3xl border border-white/15 shadow-2xl flex flex-col p-4 md:p-6 overflow-hidden relative">
