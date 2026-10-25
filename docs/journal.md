@@ -2629,3 +2629,15 @@ Remove the redundant 'Portal Dashboard' title text from the primary portal layou
 ### Changes
 - Excised the {t("portalDashboard")} header label from pps/web/src/app/(portal)/PortalLayoutClient.tsx.
 - Streamlined mobile menu button with explicit ria-label accessibility attributes.
+
+---
+
+## 9.112 Personalized Teacher Name Greeting (Task 8)
+
+### Context & Task
+Replace the hardcoded 'Assalamu alaikum, Demo Teacher' greeting banner with the genuine teacher name resolved dynamically from user credentials (e.g., Muhammad Isbah).
+
+### Changes
+- Updated pps/web/src/app/(portal)/teacher/page.tsx to query authenticated profile data on mount.
+- Renders Assalamu alaikum, {teacherName} personalized greeting banner.
+- Cleaned placeholder upcoming class card to render an authentic empty schedule state when no lessons are scheduled today.
