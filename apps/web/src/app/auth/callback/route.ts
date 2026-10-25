@@ -41,6 +41,14 @@ export async function GET(request: Request) {
         cookieStore.set("demo_user", name, { path: "/", maxAge: 60 * 60 * 24 * 7 });
 
         const redirectResponse = NextResponse.redirect(new URL(targetPath, origin));
+        // Transfer all cookies from cookieStore (including Supabase auth tokens) to redirect response
+        cookieStore.getAll().forEach((cookie) => {
+          redirectResponse.cookies.set(cookie.name, cookie.value, {
+            path: "/",
+            sameSite: "lax",
+            secure: process.env.NODE_ENV === "production",
+          });
+        });
         redirectResponse.cookies.set("demo_role", role, { path: "/", maxAge: 60 * 60 * 24 * 7 });
         redirectResponse.cookies.set("demo_user", name, { path: "/", maxAge: 60 * 60 * 24 * 7 });
         return redirectResponse;

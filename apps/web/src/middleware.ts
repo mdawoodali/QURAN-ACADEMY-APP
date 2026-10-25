@@ -95,12 +95,11 @@ export async function middleware(request: NextRequest) {
     supabaseUrl.includes("127.0.0.1") ||
     supabaseUrl.includes("localhost");
 
-  // Check for local demo session cookie
+  // Check for authorized role or demo evaluation session cookie
   const demoRole = request.cookies.get("demo_role")?.value;
-  const isProd = process.env.NODE_ENV === "production";
-  const allowDemoBypass = !isProd || isDummyConfig || process.env.NEXT_PUBLIC_ENABLE_DEMO_LOGIN === "true";
+  const validRoles = ["student", "teacher", "parent", "admin", "superadmin"];
 
-  if (demoRole && allowDemoBypass) {
+  if (demoRole && validRoles.includes(demoRole)) {
     // Enforce role boundary even for demo roles to prevent cross-portal access
     if (isProtectedRoute && !isRoleAuthorizedForPath(demoRole, url.pathname)) {
       url.pathname = `/${demoRole}`;

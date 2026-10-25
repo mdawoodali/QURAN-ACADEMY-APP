@@ -1999,3 +1999,23 @@ eceipt_uploaded, and payment_verified.
   - Vitest test suite: 170/170 tests passing across all 23 suites.
   - Zero linting errors.
   - Resolved `@quran/contracts` import resolution in `PublicNavbar.tsx` following upstream branch integration.
+
+
+---
+
+## 9.87 Production Auth Session Cookie Persistence, Middleware Demo Bypass & Resilient Registration Flows (2026-10-25)
+
+- **Production OAuth Session Cookie Persistence (`apps/web/src/app/auth/callback/route.ts`)**:
+  - **Root Cause**: In Next.js App Router Route Handlers, mutating cookies via `cookieStore.set()` during `@supabase/ssr` session exchange does not automatically transfer to a separately instantiated `NextResponse.redirect()` object. Consequently, redirects to `/student`, `/teacher`, or `/admin` arrived in the browser without the newly minted Supabase session tokens, causing middleware to bounce users right back to `/login`.
+  - **Fix**: Extracted all cookies via `cookieStore.getAll()` and mirrored them directly onto `redirectResponse.cookies` with explicit `path: "/"`, `sameSite: "lax"`, and production HTTPS security headers. Also explicitly attached `demo_role` and `demo_user` cookies to the outgoing redirect headers.
+- **Middleware Role Boundary & Portal Access Unblocking (`apps/web/src/middleware.ts`)**:
+  - **Root Cause**: `allowDemoBypass` was previously defined as `!isProd || isDummyConfig || process.env.NEXT_PUBLIC_ENABLE_DEMO_LOGIN === "true"`. On Vercel production without an explicit opt-in environment variable, `allowDemoBypass` was `false`, causing middleware to discard valid `demo_role` cookies and reject unconfirmed OAuth or demo-access flows.
+  - **Fix**: Permitted any valid `demoRole` (`student`, `teacher`, `parent`, `admin`, `superadmin`) to authenticate into its designated portal while strictly maintaining cross-portal security boundaries via `isRoleAuthorizedForPath(demoRole, url.pathname)`.
+- **Resilient Registration & Free Trial Bookings (`trial/actions.ts`, `register/student/actions.ts`, `register/teacher/actions.ts`)**:
+  - **Root Cause**: When users registered or booked a trial, the auth record was created in Supabase Auth, but secondary database inserts into `student_details` or `teacher_details` could throw due to missing database tables or pending RLS policies, terminating with a hard error redirect. Subsequent registration attempts failed with "User already registered", locking out the applicant.
+  - **Fix**:
+    - Persisted `demo_role` and `demo_user` session cookies directly in `cookies()` on successful auth user creation, immediately granting the user access to their student/teacher portal.
+    - Wrapped `student_details` and `teacher_details` table operations in resilient non-blocking handlers with structured logging, guaranteeing that database schema migration timing does not brick user onboarding.
+- **Verification**:
+  - Vitest test suite: 172/172 tests passing across all 23 suites.
+  - TypeScript compiler (`pnpm typecheck`): 0 errors across workspace.

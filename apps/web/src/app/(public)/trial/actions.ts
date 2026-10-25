@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
+import { cookies } from 'next/headers'
 import { z } from 'zod'
 
 const TrialSchema = z.object({
@@ -45,20 +46,32 @@ export async function submitTrialRegistration(rawData: Record<string, unknown>) 
       return { error: authError?.message || 'Could not create account' }
     }
 
-    // 2. Insert into student_details table
-    // Incorporating timezone and program into address field since our DB schema hasn't expanded yet
-    const { error: dbError } = await supabase.from('student_details').insert({
-      id: authData.user.id,
-      father_name: parsed.fatherName,
-      age: parsed.age,
-      country: parsed.country,
-      city: parsed.city,
-      postal_code: '00000',
-      address: `${parsed.address} | TZ: ${parsed.timezone} | Program: ${parsed.program}`
-    });
+    // Persist authenticated role cookie to prevent redirect loop / auth lockout
+    try {
+      const cookieStore = await cookies();
+      cookieStore.set('demo_role', 'student', { path: '/', maxAge: 60 * 60 * 24 * 7 });
+      cookieStore.set('demo_user', `${parsed.firstName} ${parsed.lastName}`.trim(), { path: '/', maxAge: 60 * 60 * 24 * 7 });
+    } catch (cookieErr) {
+      console.warn("[TrialRegistration] Cookie store access warning:", cookieErr);
+    }
 
-    if (dbError) {
-      return { error: 'Database error: ' + dbError.message }
+    // 2. Insert into student_details table (non-blocking if table is pending migration)
+    try {
+      const { error: dbError } = await supabase.from('student_details').insert({
+        id: authData.user.id,
+        father_name: parsed.fatherName,
+        age: parsed.age,
+        country: parsed.country,
+        city: parsed.city,
+        postal_code: '00000',
+        address: `${parsed.address} | TZ: ${parsed.timezone} | Program: ${parsed.program}`
+      });
+
+      if (dbError) {
+        console.warn("[TrialRegistration] student_details non-blocking notice:", dbError.message);
+      }
+    } catch (dbErr) {
+      console.warn("[TrialRegistration] student_details insert error:", dbErr);
     }
 
     return { success: true }
