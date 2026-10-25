@@ -1,12 +1,23 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
+import { sanitizeRedirectPath } from "@/lib/security/redirect";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
   const origin = requestUrl.origin;
   const cookieStore = await cookies();
+
+  const nextParam =
+    requestUrl.searchParams.get("next") ||
+    requestUrl.searchParams.get("redirect") ||
+    cookieStore.get("auth_redirect")?.value;
+
+  if (cookieStore.has("auth_redirect")) {
+    cookieStore.delete("auth_redirect");
+  }
+  const safeRedirect = sanitizeRedirectPath(nextParam);
 
   if (code) {
     try {
@@ -29,13 +40,14 @@ export async function GET(request: Request) {
           "Student";
 
         const targetPath =
-          role === "admin"
+          safeRedirect ||
+          (role === "admin"
             ? "/admin"
             : role === "teacher"
             ? "/teacher"
             : role === "parent"
             ? "/parent"
-            : "/student";
+            : "/student");
 
         cookieStore.set("demo_role", role, { path: "/", maxAge: 60 * 60 * 24 * 7 });
         cookieStore.set("demo_user", name, { path: "/", maxAge: 60 * 60 * 24 * 7 });

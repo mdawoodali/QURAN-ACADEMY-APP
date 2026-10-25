@@ -14,7 +14,13 @@ async function ErrorBanner({ searchParams }: { searchParams: Promise<{ error?: s
   );
 }
 
-export default function LoginPage(props: { searchParams: Promise<{ error?: string }> }) {
+async function RedirectHiddenInput({ searchParams }: { searchParams: Promise<{ redirect?: string }> }) {
+  const params = await searchParams;
+  if (!params?.redirect) return null;
+  return <input type="hidden" name="redirect" value={params.redirect} />;
+}
+
+export default function LoginPage(props: { searchParams: Promise<{ error?: string; redirect?: string }> }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-transparent px-4 py-12">
       <div className="max-w-md w-full glass-container rounded-3xl p-8 border border-white/15 shadow-2xl">
@@ -42,6 +48,9 @@ export default function LoginPage(props: { searchParams: Promise<{ error?: strin
 
         {/* 1. Google OAuth 1-Tap Sign In */}
         <form action={loginWithGoogle} className="mb-5">
+          <Suspense fallback={null}>
+            <RedirectHiddenInput searchParams={props.searchParams} />
+          </Suspense>
           <button
             type="submit"
             className="w-full flex items-center justify-center gap-3 bg-white hover:bg-stone-100 text-stone-900 py-3.5 rounded-xl font-bold transition shadow-md cursor-pointer border border-stone-200 text-sm"
@@ -78,6 +87,9 @@ export default function LoginPage(props: { searchParams: Promise<{ error?: strin
 
         {/* 2. Email & Password Sign In */}
         <form className="space-y-4">
+          <Suspense fallback={null}>
+            <RedirectHiddenInput searchParams={props.searchParams} />
+          </Suspense>
           <div>
             <label className="block text-sm font-semibold text-emerald-100 mb-2" htmlFor="email">Email Address</label>
             <input 

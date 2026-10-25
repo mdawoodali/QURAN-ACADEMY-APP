@@ -1,22 +1,23 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { checkRateLimit } from "@/lib/security/rateLimit";
-
+import { sanitizeRedirectPath } from "@/lib/security/redirect";
 
 function isRoleAuthorizedForPath(role: string, pathname: string): boolean {
   if (role === "admin" || role === "superadmin") {
     return true; // Admins can supervise all portals
   }
-  if (pathname.startsWith("/admin")) {
+  const normalized = pathname.toLowerCase();
+  if (normalized.startsWith("/admin")) {
     return false; // Only admin can access /admin
   }
-  if (pathname.startsWith("/teacher")) {
+  if (normalized.startsWith("/teacher")) {
     return role === "teacher";
   }
-  if (pathname.startsWith("/parent")) {
+  if (normalized.startsWith("/parent")) {
     return role === "parent";
   }
-  if (pathname.startsWith("/student")) {
+  if (normalized.startsWith("/student")) {
     return role === "student" || role === "parent" || role === "teacher";
   }
   return true;
@@ -24,10 +25,11 @@ function isRoleAuthorizedForPath(role: string, pathname: string): boolean {
 
 export async function middleware(request: NextRequest) {
   const url = request.nextUrl.clone();
+  const normalizedPath = url.pathname.toLowerCase();
 
   // 0. OAuth Auth Code Interception: If Supabase redirects auth code to root /?code=... or any non-callback route,
   // immediately forward to /auth/callback to finalize session exchange and enter the dashboard.
-  if (url.searchParams.has("code") && url.pathname !== "/auth/callback") {
+  if (url.searchParams.has("code") && normalizedPath !== "/auth/callback") {
     const callbackUrl = new URL("/auth/callback", request.url);
     callbackUrl.search = url.search;
     return NextResponse.redirect(callbackUrl);
@@ -39,8 +41,8 @@ export async function middleware(request: NextRequest) {
     "127.0.0.1";
 
   // 1. API Rate Limiting Enforcement (thwarts DDoS, brute-force & token abuse)
-  if (url.pathname.startsWith("/api/")) {
-    const rateLimit = checkRateLimit(ip, url.pathname);
+  if (normalizedPath.startsWith("/api/")) {
+    const rateLimit = checkRateLimit(ip, normalizedPath);
 
     if (!rateLimit.allowed) {
       return new NextResponse(
@@ -77,12 +79,14 @@ export async function middleware(request: NextRequest) {
   );
 
   const isAuthRoute =
-    url.pathname.startsWith("/login") || url.pathname.startsWith("/register");
+    normalizedPath.startsWith("/login") || normalizedPath.startsWith("/register");
   const isProtectedRoute =
-    url.pathname.startsWith("/student") ||
-    url.pathname.startsWith("/teacher") ||
-    url.pathname.startsWith("/admin") ||
-    url.pathname.startsWith("/parent");
+    normalizedPath.startsWith("/student") ||
+    normalizedPath.startsWith("/teacher") ||
+    normalizedPath.startsWith("/admin") ||
+    normalizedPath.startsWith("/parent") ||
+    normalizedPath.startsWith("/companion") ||
+    normalizedPath.startsWith("/classroom");
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -101,7 +105,7 @@ export async function middleware(request: NextRequest) {
 
   if (demoRole && validRoles.includes(demoRole)) {
     // Enforce role boundary even for demo roles to prevent cross-portal access
-    if (isProtectedRoute && !isRoleAuthorizedForPath(demoRole, url.pathname)) {
+    if (isProtectedRoute && !isRoleAuthorizedForPath(demoRole, normalizedPath)) {
       url.pathname = demoRole === "superadmin" ? "/admin" : `/${demoRole}`;
       return NextResponse.redirect(url);
     }
@@ -109,10 +113,15 @@ export async function middleware(request: NextRequest) {
   }
 
   if (isDummyConfig) {
+    if (isProtectedRoute) {
+      const originalPathAndQuery = `${url.pathname}${url.search}`;
+      url.pathname = "/login";
+      url.search = "";
+      url.searchParams.set("redirect", originalPathAndQuery);
+      return NextResponse.redirect(url);
+    }
     return response;
   }
-
-
 
   // Fast-path for public marketing and content pages (/, /about-us, /resources, etc.)
   // Never block public page rendering on external Supabase auth round-trips
@@ -140,20 +149,29 @@ export async function middleware(request: NextRequest) {
   });
 
   let user = null;
-  try {
-    const authPromise = supabase.auth.getUser();
-    const timeoutPromise = new Promise<{ data: { user: null } }>((resolve) =>
-      setTimeout(() => resolve({ data: { user: null } }), 2500)
-    );
-    const result = await Promise.race([authPromise, timeoutPromise]);
-    user = result?.data?.user || null;
-  } catch (authErr) {
-    console.warn("[Middleware Auth Check Timeout/Error]", authErr);
-    user = null;
+  const hasAuthCookies = request.cookies.getAll().some(
+    (c) => c.name.startsWith("sb-") || c.name.includes("auth-token")
+  );
+
+  if (hasAuthCookies) {
+    try {
+      const authPromise = supabase.auth.getUser();
+      const timeoutPromise = new Promise<{ data: { user: null } }>((resolve) =>
+        setTimeout(() => resolve({ data: { user: null } }), 2500)
+      );
+      const result = await Promise.race([authPromise, timeoutPromise]);
+      user = result?.data?.user || null;
+    } catch (authErr) {
+      console.warn("[Middleware Auth Check Timeout/Error]", authErr);
+      user = null;
+    }
   }
 
   if (!user && isProtectedRoute) {
+    const originalPathAndQuery = `${url.pathname}${url.search}`;
     url.pathname = "/login";
+    url.search = "";
+    url.searchParams.set("redirect", originalPathAndQuery);
     return NextResponse.redirect(url);
   }
 
@@ -168,13 +186,13 @@ export async function middleware(request: NextRequest) {
       const profileTimeout = new Promise<{ data: null }>((resolve) =>
         setTimeout(() => resolve({ data: null }), 1500)
       );
-      const res: any = await Promise.race([profilePromise, profileTimeout]);
+      const res = await Promise.race([profilePromise, profileTimeout]) as { data: { role?: string } | null };
       if (res?.data?.role) userRole = res.data.role;
     } catch {
       // Keep userRole fallback
     }
 
-    if (!isRoleAuthorizedForPath(userRole, url.pathname)) {
+    if (!isRoleAuthorizedForPath(userRole, normalizedPath)) {
       url.pathname = userRole === "superadmin" ? "/admin" : `/${userRole}`;
       return NextResponse.redirect(url);
     }
@@ -191,13 +209,21 @@ export async function middleware(request: NextRequest) {
       const profileTimeout = new Promise<{ data: null }>((resolve) =>
         setTimeout(() => resolve({ data: null }), 1500)
       );
-      const res: any = await Promise.race([profilePromise, profileTimeout]);
+      const res = await Promise.race([profilePromise, profileTimeout]) as { data: { role?: string } | null };
       if (res?.data?.role) profileRole = res.data.role;
     } catch {
       profileRole = "student";
     }
 
+    const redirectParam = url.searchParams.get("redirect");
+    const safeRedirect = sanitizeRedirectPath(redirectParam);
+    if (safeRedirect) {
+      const targetUrl = new URL(safeRedirect, request.url);
+      return NextResponse.redirect(targetUrl);
+    }
+
     url.pathname = profileRole === "superadmin" ? "/admin" : `/${profileRole}`;
+    url.search = "";
     return NextResponse.redirect(url);
   }
 

@@ -176,6 +176,13 @@ export default function RootLayout({
         className={`${sourceSerif.variable} ${figtree.variable} ${amiriQuran.variable} ${notoSansArabic.variable} ${vidaloka.variable} ${cinzel.variable} font-sans antialiased`}
         suppressHydrationWarning
       >
+        {/* Skip to Main Content Link for A11y & Screen Readers */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2.5 focus:bg-amber-400 focus:text-emerald-950 focus:rounded-xl focus:font-bold focus:shadow-2xl focus:ring-2 focus:ring-emerald-950 transition-all"
+        >
+          Skip to main content
+        </a>
         <SectProvider>
           <LanguageProvider>
             {children}

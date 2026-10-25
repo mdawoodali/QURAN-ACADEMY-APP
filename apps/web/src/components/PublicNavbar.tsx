@@ -19,6 +19,15 @@ interface UserProfile {
   initials: string;
 }
 
+export function getDashboardHref(role?: string | null): string {
+  if (!role) return "/dashboard";
+  if (role === "admin" || role === "superadmin") return "/admin";
+  if (role === "teacher") return "/teacher";
+  if (role === "parent") return "/parent";
+  if (role === "student") return "/student";
+  return "/dashboard";
+}
+
 export default function PublicNavbar() {
   const router = useRouter();
   const { language, setLanguage, t } = useLanguage();
@@ -32,7 +41,7 @@ export default function PublicNavbar() {
   const homeHref = isShia ? "/shia/home" : "/sunni/home";
   const resourcesHref = isShia ? "/shia/resources" : "/sunni/resources";
   const welcomeHref = isShia ? "/shia" : "/sunni";
-  const dashboardHref = userProfile?.role ? `/${userProfile.role}` : "/dashboard";
+  const dashboardHref = getDashboardHref(userProfile?.role);
 
   // Dropdown outside click & Escape key listener
   useEffect(() => {

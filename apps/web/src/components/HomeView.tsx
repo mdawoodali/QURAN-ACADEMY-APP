@@ -17,7 +17,7 @@ export default function HomeView() {
       className="w-full min-h-screen bg-[var(--color-page)] flex flex-col items-center"
     >
       {/* Hero Section */}
-      <main className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 py-8 md:py-20 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+      <main id="main-content" className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 py-8 md:py-20 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
         {/* Left Column */}
         <div className="flex flex-col items-start space-y-5 sm:space-y-6">
           <span className="text-amber-300 font-bold tracking-widest text-xs sm:text-sm uppercase">

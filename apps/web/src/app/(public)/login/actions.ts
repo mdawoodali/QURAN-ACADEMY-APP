@@ -3,10 +3,17 @@
 import { redirect } from 'next/navigation'
 import { cookies, headers } from 'next/headers'
 import { createClient } from '@/utils/supabase/server'
+import { sanitizeRedirectPath } from '@/lib/security/redirect'
+
+export async function getSafeRedirectPath(redirectUrl?: string | null): Promise<string | null> {
+  return sanitizeRedirectPath(redirectUrl)
+}
 
 export async function login(formData: FormData) {
   const email = (formData.get('email') as string || '').trim().toLowerCase()
   const password = (formData.get('password') as string || '')
+  const redirectParam = (formData.get('redirect') as string || '').trim()
+  const safeRedirect = await getSafeRedirectPath(redirectParam)
   const cookieStore = await cookies()
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -39,7 +46,11 @@ export async function login(formData: FormData) {
         cookieStore.set('demo_role', userRole, { path: '/' })
         cookieStore.set('demo_user', userName, { path: '/' })
 
-        if (userRole === 'admin') redirect('/admin')
+        if (safeRedirect) {
+          redirect(safeRedirect)
+        }
+
+        if (userRole === 'admin' || userRole === 'superadmin') redirect('/admin')
         if (userRole === 'teacher') redirect('/teacher')
         if (userRole === 'parent') redirect('/parent')
         redirect('/student')
@@ -52,7 +63,7 @@ export async function login(formData: FormData) {
   }
 
   // Determine user role based on email or credentials
-  const role = email.includes('admin')
+  const role = (email.includes('superadmin') || email.includes('admin'))
     ? 'admin'
     : email.includes('teacher')
     ? 'teacher'
@@ -63,6 +74,10 @@ export async function login(formData: FormData) {
   // Persist demo role cookie for local development & preview modes
   cookieStore.set('demo_role', role, { path: '/' })
   cookieStore.set('demo_user', email || 'Demo User', { path: '/' })
+
+  if (safeRedirect) {
+    redirect(safeRedirect)
+  }
 
   if (role === 'admin') {
     redirect('/admin')
@@ -78,6 +93,8 @@ export async function login(formData: FormData) {
 export async function signup(formData: FormData) {
   const email = (formData.get('email') as string || '').trim().toLowerCase()
   const password = (formData.get('password') as string || '')
+  const redirectParam = (formData.get('redirect') as string || '').trim()
+  const safeRedirect = await getSafeRedirectPath(redirectParam)
   const cookieStore = await cookies()
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -109,7 +126,11 @@ export async function signup(formData: FormData) {
         cookieStore.set('demo_role', userRole, { path: '/' })
         cookieStore.set('demo_user', userName, { path: '/' })
 
-        if (userRole === 'admin') redirect('/admin')
+        if (safeRedirect) {
+          redirect(safeRedirect)
+        }
+
+        if (userRole === 'admin' || userRole === 'superadmin') redirect('/admin')
         if (userRole === 'teacher') redirect('/teacher')
         if (userRole === 'parent') redirect('/parent')
         redirect('/student')
@@ -121,7 +142,7 @@ export async function signup(formData: FormData) {
     }
   }
 
-  const role = email.includes('admin')
+  const role = (email.includes('superadmin') || email.includes('admin'))
     ? 'admin'
     : email.includes('teacher')
     ? 'teacher'
@@ -131,6 +152,10 @@ export async function signup(formData: FormData) {
 
   cookieStore.set('demo_role', role, { path: '/' })
   cookieStore.set('demo_user', email, { path: '/' })
+
+  if (safeRedirect) {
+    redirect(safeRedirect)
+  }
 
   if (role === 'admin') {
     redirect('/admin')
@@ -143,8 +168,12 @@ export async function signup(formData: FormData) {
   }
 }
 
-export async function loginWithGoogle() {
+export async function loginWithGoogle(formData?: FormData) {
   const supabase = await createClient()
+  const cookieStore = await cookies()
+  const redirectParam = (formData?.get('redirect') as string || '').trim()
+  const safeRedirect = await getSafeRedirectPath(redirectParam)
+
   const headerList = await headers()
   const host = headerList.get('x-forwarded-host') || headerList.get('host') || 'localhost:3000'
   const proto = headerList.get('x-forwarded-proto') || (host.includes('localhost') ? 'http' : 'https')
@@ -153,10 +182,21 @@ export async function loginWithGoogle() {
     : (process.env.NEXT_PUBLIC_APP_URL || `${proto}://${host}`)
   const origin = rawOrigin.replace(/\/+$/, '')
 
+  let callbackUrl = `${origin}/auth/callback`
+  if (safeRedirect) {
+    cookieStore.set('auth_redirect', safeRedirect, {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'lax',
+      maxAge: 300,
+    })
+    callbackUrl = `${origin}/auth/callback?next=${encodeURIComponent(safeRedirect)}`
+  }
+
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${origin}/auth/callback`,
+      redirectTo: callbackUrl,
       queryParams: {
         access_type: 'offline',
         prompt: 'consent',
