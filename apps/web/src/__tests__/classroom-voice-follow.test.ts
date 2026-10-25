@@ -88,4 +88,48 @@ describe("Classroom AI Voice Following & Recitation Alignment Suite", () => {
     sendHighlight(3);
     expect(highlightedIndex).toBe(3);
   });
+
+  it("activates laser pointer at center on toggle and synchronizes coordinates", () => {
+    let isLaserModeActive = false;
+    let laserPointer = { x: 0, y: 0, active: false };
+    const broadcastMock = vi.fn();
+    const classId = "demo";
+    const role = "observer";
+
+    function sendLaserPointer(laser: { x: number; y: number; active: boolean }) {
+      laserPointer = laser;
+      if (role !== "observer" || classId === "demo") {
+        broadcastMock({ type: "laser", ...laser });
+      }
+    }
+
+    function toggleLaser() {
+      const next = !isLaserModeActive;
+      isLaserModeActive = next;
+      if (next) {
+        sendLaserPointer({ x: 50, y: 50, active: true });
+      } else {
+        sendLaserPointer({ x: 0, y: 0, active: false });
+      }
+    }
+
+    // 1. Turning on laser initializes immediately at center (50%, 50%)
+    toggleLaser();
+    expect(isLaserModeActive).toBe(true);
+    expect(laserPointer.active).toBe(true);
+    expect(laserPointer.x).toBe(50);
+    expect(laserPointer.y).toBe(50);
+    expect(broadcastMock).toHaveBeenCalledWith({ type: "laser", x: 50, y: 50, active: true });
+
+    // 2. Pointer movement updates coordinates
+    sendLaserPointer({ x: 35.5, y: 72.1, active: true });
+    expect(laserPointer.x).toBe(35.5);
+    expect(laserPointer.y).toBe(72.1);
+    expect(laserPointer.active).toBe(true);
+
+    // 3. Turning off laser deactivates cleanly
+    toggleLaser();
+    expect(isLaserModeActive).toBe(false);
+    expect(laserPointer.active).toBe(false);
+  });
 });

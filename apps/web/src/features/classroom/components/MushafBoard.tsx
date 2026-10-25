@@ -40,25 +40,33 @@ export default function MushafBoard({
   const containerRef = useRef<HTMLDivElement>(null);
   const words = wordsList || SCRIPT_DATA[script];
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  const updateLaserPosition = (clientX: number, clientY: number) => {
     if (!isLaserModeActive || !onLaserMove || !containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
-    const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
-    const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+    const x = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
+    const y = Math.max(0, Math.min(100, ((clientY - rect.top) / rect.height) * 100));
     onLaserMove({ x, y, active: true });
   };
 
-  const handleMouseLeave = () => {
-    if (isLaserModeActive && onLaserMove) {
-      onLaserMove({ x: 0, y: 0, active: false });
-    }
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    updateLaserPosition(e.clientX, e.clientY);
+  };
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    updateLaserPosition(e.clientX, e.clientY);
+  };
+
+  const handlePointerLeave = () => {
+    // Keep laser visible at last position during active laser mode, or mark inactive if turned off
   };
 
   return (
     <div
       ref={containerRef}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
+      onPointerMove={handlePointerMove}
+      onPointerDown={handlePointerDown}
+      onPointerLeave={handlePointerLeave}
+      style={{ touchAction: isLaserModeActive ? "none" : "auto" }}
       className={`relative w-full max-w-2xl mx-auto pt-8 sm:pt-9 pb-6 px-4 sm:px-6 md:px-8 rounded-2xl sm:rounded-3xl bg-[#FCFAF5] border-2 border-amber-300/40 shadow-xl select-none min-h-[140px] flex items-center justify-center transition-all ${
         isLaserModeActive ? "cursor-crosshair" : ""
       }`}
@@ -109,13 +117,22 @@ export default function MushafBoard({
           return (
             <React.Fragment key={i}>
               <span
-                onClick={() => {
+                onClick={(e) => {
+                  if (isLaserModeActive) {
+                    e.stopPropagation();
+                    updateLaserPosition(e.clientX, e.clientY);
+                    return;
+                  }
                   if (interactive && onWordClick) {
                     onWordClick(i);
                   }
                 }}
                 className={`transition-all duration-150 px-2.5 py-1 rounded-2xl relative ${
-                  interactive ? "cursor-pointer hover:bg-amber-100/60" : ""
+                  isLaserModeActive
+                    ? "cursor-crosshair"
+                    : interactive
+                    ? "cursor-pointer hover:bg-amber-100/60"
+                    : ""
                 } ${
                   isHighlighted
                     ? "bg-amber-200/80 ring-2 ring-amber-400/80 scale-105 shadow-md"
@@ -186,17 +203,17 @@ export default function MushafBoard({
       {/* Real-Time Laser Pointer Dot & Pulsing Ring */}
       {laserPointer?.active && (
         <div
-          className="absolute pointer-events-none z-30 transform -translate-x-1/2 -translate-y-1/2 transition-transform duration-75 ease-out"
+          className="absolute pointer-events-none z-40 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-75 ease-out"
           style={{
             left: `${laserPointer.x}%`,
             top: `${laserPointer.y}%`
           }}
         >
           {/* Outer Pulsing Aura */}
-          <div className="w-8 h-8 rounded-full bg-red-500/30 animate-ping absolute inset-0 -m-1" />
+          <div className="w-10 h-10 rounded-full bg-red-500/35 animate-ping absolute -top-2.5 -left-2.5" />
           {/* Core Glowing Laser Point */}
-          <div className="w-5 h-5 rounded-full bg-red-600 border-2 border-white shadow-[0_0_12px_#ff0000] relative flex items-center justify-center">
-            <div className="w-1.5 h-1.5 rounded-full bg-amber-200" />
+          <div className="w-5 h-5 rounded-full bg-red-600 border-2 border-white shadow-[0_0_16px_4px_rgba(239,68,68,0.95)] relative flex items-center justify-center">
+            <div className="w-1.5 h-1.5 rounded-full bg-amber-200 shadow-xs" />
           </div>
         </div>
       )}

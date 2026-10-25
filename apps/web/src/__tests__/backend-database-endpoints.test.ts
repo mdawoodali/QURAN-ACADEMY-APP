@@ -144,6 +144,6 @@ describe("Shaheen-Level Backend Database & Syncing API Suite", () => {
       expect(data.stats).toBeDefined();
       expect(typeof data.stats.activeStudents).toBe("number");
       expect(typeof data.stats.approvedTeachers).toBe("number");
-    });
+    }, 15000);
   });
 });

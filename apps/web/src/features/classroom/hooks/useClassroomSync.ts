@@ -162,8 +162,8 @@ export function useClassroomSync({
   // Bulletproof Broadcast helper with role checks & versioning
   const broadcast = useCallback(
     (payload: Record<string, unknown>) => {
-      // Observers (parents in silent monitoring mode) are strictly blocked from broadcasting mutations
-      if (role === "observer") {
+      // Observers (parents in silent monitoring mode) are strictly blocked from broadcasting mutations outside demo mode
+      if (role === "observer" && classId !== "demo") {
         return;
       }
 
@@ -181,7 +181,7 @@ export function useClassroomSync({
       }
       broadcastChannel.current?.postMessage(versionedPayload);
     },
-    [role]
+    [role, classId]
   );
 
   // Centralized message processor verifying packet freshness and role authority

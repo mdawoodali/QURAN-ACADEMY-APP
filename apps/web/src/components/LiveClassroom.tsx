@@ -502,7 +502,11 @@ export default function LiveClassroom() {
               onToggleLaserMode={() => {
                 const next = !isLaserModeActive;
                 setIsLaserModeActive(next);
-                if (!next) sendLaserPointer({ x: 0, y: 0, active: false });
+                if (next) {
+                  sendLaserPointer({ x: 50, y: 50, active: true });
+                } else {
+                  sendLaserPointer({ x: 0, y: 0, active: false });
+                }
                 toast(next ? "Laser Pointer Active (Tracks to Student)" : "Laser Pointer Off", {
                   icon: next ? "🔴" : "⚪"
                 });

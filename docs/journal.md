@@ -2366,3 +2366,37 @@ During live testing in /classroom/demo, the user reported: "the voice follow fea
    - Added dedicated test suite apps/web/src/__tests__/classroom-voice-follow.test.ts covering Arabic normalization, multi-token matching, phonetic fallback, and unblocked observer local highlights.
    - All 513 unit/integration tests passed across 30 test files (100% green).
    - Clean production build (next build) with all 83 static & dynamic routes compiled without errors.
+
+
+---
+
+## 9.99 Classroom Real-Time Laser Pointer & Crosshair Touch Tracking Fix
+
+### Context & Root Cause Analysis
+The user reported that the classroom laser pointer *"aint working"*. An exhaustive inspection of the whiteboard component and sync hooks revealed three distinct failure modes:
+1. **No Immediate Dot on Activation**:
+   In `LiveClassroom.tsx`, toggling laser mode set `isLaserModeActive` to true, but only called `sendLaserPointer({ x: 0, y: 0, active: false })` when deactivating. When turning ON, `laserPointer.active` remained `false`. The user saw no red dot appear on the board and naturally concluded the tool was broken.
+2. **Missing Touch / Pointer Events on Mobile & Stylus**:
+   In `MushafBoard.tsx`, cursor movements were attached strictly to `onMouseMove`. On touch screens (smartphones, tablets, touch laptops), touch dragging does not fire continuous mousemove events. Furthermore, lack of `touch-action: none` caused touch dragging to scroll the page instead of guiding the laser.
+3. **Word Click Hijacking & Disappearing on Boundary Crossings**:
+   When hovering over words, child `<span>` elements had `cursor-pointer`, which caused the crosshair cursor to flicker and revert. Clicking while in laser mode triggered word focus selection rather than pointing at the clicked syllable. Additionally, brief mouse excursions triggered `handleMouseLeave` which immediately marked the laser inactive.
+4. **Broadcast Dropping for Demo Observers**:
+   In `useClassroomSync.ts`, `broadcast` had an unqualified `if (role === "observer") return;` which dropped laser coordinate broadcasts when testing across tabs in demo mode.
+
+### Key Changes Implemented
+1. **Immediate Center Initialization**:
+   - In `LiveClassroom.tsx`, toggling Laser mode ON immediately invokes `sendLaserPointer({ x: 50, y: 50, active: true })`. A glowing neon-red laser dot is instantly displayed in the center of the Mushaf board upon activation.
+2. **Unified Pointer Events & Touch-Action**:
+   - In `MushafBoard.tsx`, migrated from mouse events to standard Pointer Events (`onPointerMove`, `onPointerDown`, `onPointerLeave`), supporting mouse, trackpad, finger touch, and stylus input.
+   - Added dynamic style `touchAction: isLaserModeActive ? "none" : "auto"` to prevent mobile scroll interference while pointing.
+3. **Dedicated Laser Word Pointing**:
+   - Word spans now check `isLaserModeActive`; clicking while laser mode is active repositions the laser dot at the exact click coordinates without changing the active study word highlight.
+   - Preserved consistent `cursor-crosshair` styling across both empty board space and Quranic words.
+4. **Enhanced Visual Fidelity**:
+   - Upgraded laser dot with a centered `w-10 h-10` pulsing aura (`-top-2.5 -left-2.5`) and glowing neon red shadow (`shadow-[0_0_16px_4px_rgba(239,68,68,0.95)]`) for unmistakable visibility.
+5. **Demo Broadcast Unlocked**:
+   - In `useClassroomSync.ts`, updated `broadcast` to `if (role === "observer" && classId !== "demo") return;` allowing full real-time crosshair synchronization across demo viewports.
+6. **Automated Verification**:
+   - Added unit test covering laser activation at (50%, 50%), coordinate streaming, and clean deactivation to `apps/web/src/__tests__/classroom-voice-follow.test.ts`.
+   - All 514 tests passing across 30 test suites.
+   - Turbopack production build verified (83/83 routes).
