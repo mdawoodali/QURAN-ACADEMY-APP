@@ -2606,3 +2606,15 @@ Provide teachers with a modal workflow to request adding students via Administra
 ### Changes
 - Implemented Add Student by ID modal dialog in pps/web/src/app/(portal)/teacher/students/page.tsx.
 - Integrated safeguarding verification details informing teachers of admin Student ID issuance and parental confirmation requirements before student activation.
+
+---
+
+## 9.110 Cleanse Earnings Tab & Remove Mock Bank / Payout Data (Task 6)
+
+### Context & Task
+Remove hardcoded placeholder banking identities (e.g., 'Meezan Bank Ltd', mock IBAN) and fabricated financial amounts from the teacher compensation view.
+
+### Changes
+- Updated pps/web/src/app/(portal)/teacher/earnings/page.tsx to dynamically query genuine teacher bank details from 	eacher_details.bank_account.
+- Renders an informative zero-state if no account is registered, prompting tutor registration with the accounts desk.
+- Eliminated mock settlement figures, defaulting to PKR 0 authentic ledger when no settlements exist.
