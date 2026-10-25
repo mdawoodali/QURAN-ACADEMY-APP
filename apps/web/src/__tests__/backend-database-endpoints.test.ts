@@ -113,8 +113,7 @@ describe("Shaheen-Level Backend Database & Syncing API Suite", () => {
       const res = await getClassroomState(req);
       expect(res.status).toBe(200);
       const data = await res.json();
-      expect(data.state.roomId).toBe(uniqueNewRoom);
-      expect(data.state.currentPage).toBe(1);
+      expect(data.state.roomId).toBe(uniqueNewRoom);      expect(data.state.currentPage).toBe(1);
     });
 
     it("persists room state changes cleanly", async () => {

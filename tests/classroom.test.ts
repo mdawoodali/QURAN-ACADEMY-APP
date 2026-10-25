@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { splitArabicWord, normalizeArabic, SCRIPT_DATA, CURRICULUM_LESSONS } from "@/features/classroom/constants";
+import { splitArabicWord, normalizeArabic, SCRIPT_DATA, CURRICULUM_LESSONS, toArabicNumerals } from "@/features/classroom/constants";
 
 describe("Classroom Arabic Parsing & Normalization Engine", () => {
   it("correctly decomposes Arabic words with harakat into distinct letter graphemes", () => {
@@ -47,5 +47,25 @@ describe("Classroom Arabic Parsing & Normalization Engine", () => {
     expect(splitArabicWord("")).toEqual([]);
     expect(normalizeArabic("   ")).toBe("");
     expect(normalizeArabic("123 الحمد 456")).toContain("الحمد");
+  });
+
+  it("accurately converts numerals to authentic Uthmani and IndoPak Arabic digits", () => {
+    expect(toArabicNumerals(1, "uthmani")).toBe("١");
+    expect(toArabicNumerals(7, "uthmani")).toBe("٧");
+    expect(toArabicNumerals(1, "indopak")).toBe("۱");
+    expect(toArabicNumerals(7, "indopak")).toBe("۷");
+  });
+
+  it("verifies authentic Ayah stoppers and enders in complete Surah Al-Fatihah", () => {
+    const fatihah = CURRICULUM_LESSONS.find((l) => l.id === "fatihah-all");
+    expect(fatihah).toBeDefined();
+
+    const ayahEndersUthmani = fatihah?.wordsUthmani.filter((w) => w.isAyahEnd);
+    expect(ayahEndersUthmani?.length).toBe(7);
+    expect(ayahEndersUthmani?.map((w) => w.ayahNumber)).toEqual([1, 2, 3, 4, 5, 6, 7]);
+
+    const ayahEndersIndoPak = fatihah?.wordsIndoPak.filter((w) => w.isAyahEnd);
+    expect(ayahEndersIndoPak?.length).toBe(7);
+    expect(ayahEndersIndoPak?.map((w) => w.ayahNumber)).toEqual([1, 2, 3, 4, 5, 6, 7]);
   });
 });

@@ -1650,6 +1650,7 @@ eceipt_uploaded, and payment_verified.
   - `pnpm build`: 0 errors.
   - `pnpm typecheck`: 0 errors.
 
+
 ---
 
 ## 9.71 Production Database Deployment & Seed Data Hex UUID Correction (2026-10-24)
@@ -1796,3 +1797,42 @@ eceipt_uploaded, and payment_verified.
   - Vitest test suite: 170/170 tests passing across all 23 suites.
   - ESLint: 0 errors across workspace.
   - Next.js Turbopack production build: 73/73 routes compiled cleanly (`Exit code 0`).
+
+---
+
+
+
+---
+
+## 9.80 Authentic Quranic Ayah Stoppers, Waqf Indicators & Verse Separation in Live Classroom
+
+- **Objective**:
+  - Eliminate clumped, unseparated verse rendering in the live virtual classroom Mushaf board.
+  - Implement authentic Islamic Ayah stoppers / enders with script-specific Eastern Arabic & IndoPak numerals.
+  - Provide interactive Waqf (pause rule) guidance and visual breathing space between consecutive Quranic verses.
+
+- **Implementation Details**:
+  1. **Domain & Classroom Typing (`apps/web/src/features/classroom/types.ts`)**:
+     - Extended `TajweedWord` interface with `isAyahEnd?: boolean;`, `ayahNumber?: number;`, and `waqfSign?: string;` properties.
+  2. **Arabic Numerals & Lesson Scripture Dataset (`apps/web/src/features/classroom/constants.ts`)**:
+     - Created `toArabicNumerals(num: number, script?: ScriptType): string` supporting:
+       - Uthmani / Madani script numerals: `٠`, `١`, `٢`, `٣`, `٤`, `٥`, `٦`, `٧`, `٨`, `٩`.
+       - Indo-Pak script numerals: `۰`, `۱`, `۲`, `۳`, `۴`, `۵`, `۶`, `۷`, `۸`, `۹`.
+     - Tagged all closing words with `isAyahEnd: true` and their corresponding verse numbers across:
+       - `SCRIPT_DATA` (Surah Al-Fatihah, Ayat 1–7) in both `uthmani` and `indopak` scripts.
+       - Full lesson Surahs: `fatihah-all` (Ayat 1–7), `fatihah-1` (Ayat 1), `fatihah-2` (Ayat 2), `ikhlas-all` (Ayat 1–4), `falaq-all` (Ayat 1–5), and `nas-all` (Ayat 1–6).
+  3. **Mushaf Board Rendering (`apps/web/src/features/classroom/components/MushafBoard.tsx`)**:
+     - Wrapped word tokens in `<React.Fragment key={i}>`.
+     - Rendered an authentic Quranic Ayah rosette / ender medallion immediately following terminal words:
+       - Ornate circular medallion styled with amber gradient borders (`border-amber-500/80 bg-gradient-to-br from-amber-100 via-amber-50 to-amber-200/90 text-amber-950 font-quran`).
+       - Centered Eastern Arabic numeral indicator corresponding to the script selected by the student/teacher.
+       - Educational Waqf tooltip on hover/click: `"Ayah [N] • Waqf-e-Taam (وقف تام) — Complete Pause"`.
+       - Inline separation spacer (`<span className="inline-block w-2 sm:w-4" aria-hidden="true" />`) ensuring clear visual distinction between consecutive verses.
+  4. **Test Suite Isolation & Coverage (`tests/classroom.test.ts`, `backend-database-endpoints.test.ts`)**:
+     - Added comprehensive unit tests for `toArabicNumerals` verifying both single- and multi-digit conversions for Uthmani and IndoPak scripts.
+     - Verified all 7 Ayah enders in Surah Al-Fatihah for both scripts.
+     - Isolated room ID in `backend-database-endpoints.test.ts` to ensure clean initial room state tests are completely independent of mutation tests.
+
+- **Validation & Quality Gate**:
+  - `vitest run`: 23/23 test suites passed, 172/172 tests passed (100% green).
+  - TypeScript: `pnpm typecheck` (`tsc --noEmit`) completed with 0 errors across all monorepo packages.

@@ -9,6 +9,9 @@ export interface TajweedWord {
   rule?: TajweedRuleType;
   phonetics?: string[];
   makhrajHint?: string;
+  isAyahEnd?: boolean;
+  ayahNumber?: number;
+  waqfSign?: string;
 }
 
 export interface LiveKitStatus {

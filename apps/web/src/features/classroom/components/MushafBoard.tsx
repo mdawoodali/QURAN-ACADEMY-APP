@@ -2,7 +2,7 @@
 
 import React, { useRef } from "react";
 import { ScriptType, TajweedWord, TajweedRuleType, LaserPointerState } from "../types";
-import { SCRIPT_DATA } from "../constants";
+import { SCRIPT_DATA, toArabicNumerals } from "../constants";
 
 interface MushafBoardProps {
   script: ScriptType;
@@ -107,44 +107,78 @@ export default function MushafBoard({
           }
 
           return (
-            <span
-              key={i}
-              onClick={() => {
-                if (interactive && onWordClick) {
-                  onWordClick(i);
+            <React.Fragment key={i}>
+              <span
+                onClick={() => {
+                  if (interactive && onWordClick) {
+                    onWordClick(i);
+                  }
+                }}
+                className={`transition-all duration-150 px-2.5 py-1 rounded-2xl relative ${
+                  interactive ? "cursor-pointer hover:bg-amber-100/60" : ""
+                } ${
+                  isHighlighted
+                    ? "bg-amber-200/80 ring-2 ring-amber-400/80 scale-105 shadow-md"
+                    : ""
+                } ${
+                  hasUnderline ? "underline decoration-4 underline-offset-[14px] decoration-amber-500" : ""
+                } ${
+                  hasCircle
+                    ? "border-[3px] border-red-500 rounded-full px-4"
+                    : "border-[3px] border-transparent"
+                } ${ruleClass}`}
+                title={
+                  tajweedMode
+                    ? item.tajweed || (effectiveRule && effectiveRule !== "none" ? `Rule: ${effectiveRule.toUpperCase()}` : undefined)
+                    : undefined
                 }
-              }}
-              className={`transition-all duration-150 px-2.5 py-1 rounded-2xl relative ${
-                interactive ? "cursor-pointer hover:bg-amber-100/60" : ""
-              } ${
-                isHighlighted
-                  ? "bg-amber-200/80 ring-2 ring-amber-400/80 scale-105 shadow-md"
-                  : ""
-              } ${
-                hasUnderline ? "underline decoration-4 underline-offset-[14px] decoration-amber-500" : ""
-              } ${
-                hasCircle
-                  ? "border-[3px] border-red-500 rounded-full px-4"
-                  : "border-[3px] border-transparent"
-              } ${ruleClass}`}
-              title={
-                tajweedMode
-                  ? item.tajweed || (effectiveRule && effectiveRule !== "none" ? `Rule: ${effectiveRule.toUpperCase()}` : undefined)
-                  : undefined
-              }
-            >
-              {item.word}
+              >
+                {item.word}
 
-              {/* Tajweed rule micro-badge on hover or click */}
-              {isHighlighted && tajweedMode && (item.tajweed || (effectiveRule && effectiveRule !== "none")) && (
+                {/* Tajweed rule micro-badge on hover or click */}
+                {isHighlighted && tajweedMode && (item.tajweed || (effectiveRule && effectiveRule !== "none")) && (
+                  <span
+                    dir="ltr"
+                    className="absolute -top-7 left-1/2 -translate-x-1/2 bg-emerald-950 text-amber-300 text-[10px] font-sans font-bold px-2 py-0.5 rounded-full shadow-lg border border-amber-400/30 whitespace-nowrap z-20 pointer-events-none animate-in fade-in zoom-in-95"
+                  >
+                    {item.tajweed || `Tajweed: ${effectiveRule?.toUpperCase()}`}
+                  </span>
+                )}
+              </span>
+
+              {/* Authentic Quranic Ayah Stopper / Ender Symbol */}
+              {item.isAyahEnd && (
                 <span
-                  dir="ltr"
-                  className="absolute -top-7 left-1/2 -translate-x-1/2 bg-emerald-950 text-amber-300 text-[10px] font-sans font-bold px-2 py-0.5 rounded-full shadow-lg border border-amber-400/30 whitespace-nowrap z-20 pointer-events-none animate-in fade-in zoom-in-95"
+                  className="inline-flex items-center justify-center mx-2.5 my-1 align-middle select-none group/ayah cursor-pointer transition-all hover:scale-110 relative"
+                  title={`Ayah ${item.ayahNumber || ""} • Waqf-e-Taam (Complete Stop / End of Ayah)`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (interactive && onWordClick) {
+                      onWordClick(i);
+                    }
+                  }}
                 >
-                  {item.tajweed || `Tajweed: ${effectiveRule?.toUpperCase()}`}
+                  <span className="relative flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-amber-500/80 bg-gradient-to-br from-amber-100 via-amber-50 to-amber-200/90 text-amber-950 shadow-sm font-quran font-bold text-xs sm:text-sm hover:border-amber-600 transition-all">
+                    {/* Eight-Pointed Star / Rosette Accents */}
+                    <span className="absolute inset-0.5 rounded-full border border-amber-600/30 rotate-45 pointer-events-none" />
+                    <span className="relative z-10 font-bold leading-none">
+                      {toArabicNumerals(item.ayahNumber || 1, script)}
+                    </span>
+                  </span>
+
+                  {/* Stopper Waqf rule tooltip on hover */}
+                  <span
+                    dir="ltr"
+                    className="hidden group-hover/ayah:block absolute -top-8 left-1/2 -translate-x-1/2 bg-emerald-950 text-amber-300 text-[10px] font-sans font-bold px-2.5 py-0.5 rounded-full shadow-lg border border-amber-400/40 whitespace-nowrap z-30 pointer-events-none"
+                  >
+                    Ayah {item.ayahNumber} • Waqf-e-Taam (وقف تام)
+                  </span>
                 </span>
               )}
-            </span>
+
+              {/* Natural spacing divider after Ayah stopper for multi-ayah clarity */}
+              {item.isAyahEnd && <span className="inline-block w-2 sm:w-4" aria-hidden="true" />}
+            </React.Fragment>
           );
         })}
       </div>
