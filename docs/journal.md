@@ -2572,3 +2572,15 @@ Remove redundant horizontal dashboard navigation from teacher views to eliminate
   - apps/web/src/app/(portal)/teacher/students/page.tsx
   - apps/web/src/app/(portal)/teacher/earnings/page.tsx
 - Cleaned view layouts to rely solely on the primary vertical dashboard navigation.
+
+---
+
+## 9.107 Teacher Slot Booking Capability (Task 3)
+
+### Context & Task
+Provide teachers with an interactive mechanism to book recurring lesson slots for students directly within the Weekly Schedule interface.
+
+### Changes
+- Implemented BookSlotModal and "+ Book / Schedule Slot" in pps/web/src/app/(portal)/teacher/schedule/page.tsx.
+- Connected slot creation to POST /api/scheduling supporting day, time, student name, course, and duration parameters.
+- Enabled one-click slot booking directly from open availability cells on the schedule grid.
