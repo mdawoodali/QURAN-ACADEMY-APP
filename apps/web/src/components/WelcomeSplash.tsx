@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import React, { useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -155,12 +157,15 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
         >
           <div className="flex flex-row items-center justify-center gap-3 sm:gap-6 w-full max-w-md px-4">
             {/* Sunni Option */}
-            <button
-              onClick={() => handleSelect("sunni")}
-              disabled={isExiting}
+            <Link
+              href="/sunni"
+              onClick={(e) => {
+                e.preventDefault();
+                handleSelect("sunni");
+              }}
               className={`welcome-cta-btn group relative pop-hover overflow-hidden w-40 sm:w-52 py-2.5 sm:py-3.5 px-5 rounded-full font-bold text-xs sm:text-base flex flex-col items-center justify-center transition-all cursor-pointer ${
                 selectedSect === "sunni" ? "is-active" : ""
-              }`}
+              } ${isExiting ? "pointer-events-none opacity-80" : ""}`}
             >
               <div className="flex items-center justify-center z-10">
                 <span className={language === "ur" ? "font-urdu text-sm sm:text-lg" : "tracking-wide"}>
@@ -178,15 +183,18 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
                 </span>
                 <span className="h-[2px] bg-gradient-to-r from-amber-400 to-transparent w-0 group-hover:w-1/2 transition-all duration-300 ease-out origin-left rounded-full" />
               </span>
-            </button>
+            </Link>
 
             {/* Shia Option */}
-            <button
-              onClick={() => handleSelect("shia")}
-              disabled={isExiting}
+            <Link
+              href="/shia"
+              onClick={(e) => {
+                e.preventDefault();
+                handleSelect("shia");
+              }}
               className={`welcome-cta-btn group relative pop-hover overflow-hidden w-40 sm:w-52 py-2.5 sm:py-3.5 px-5 rounded-full font-bold text-xs sm:text-base flex flex-col items-center justify-center transition-all cursor-pointer ${
                 selectedSect === "shia" ? "is-active" : ""
-              }`}
+              } ${isExiting ? "pointer-events-none opacity-80" : ""}`}
             >
               <div className="flex items-center justify-center z-10">
                 <span className={language === "ur" ? "font-urdu text-sm sm:text-lg" : "tracking-wide"}>
@@ -204,16 +212,20 @@ export default function WelcomeSplash({ onGetStarted }: WelcomeSplashProps) {
                 </span>
                 <span className="h-[2px] bg-gradient-to-r from-amber-400 to-transparent w-0 group-hover:w-1/2 transition-all duration-300 ease-out origin-left rounded-full" />
               </span>
-            </button>
+            </Link>
           </div>
 
           {/* Direct Enter / Skip Option */}
-          <button
-            onClick={() => handleSelect("sunni")}
+          <Link
+            href="/sunni"
+            onClick={(e) => {
+              e.preventDefault();
+              handleSelect("sunni");
+            }}
             className="mt-2 text-[11px] sm:text-xs text-emerald-200/60 hover:text-amber-300 underline underline-offset-4 transition-colors cursor-pointer"
           >
             {language === "ur" ? "براہِ راست ویب سائٹ پر جائیں →" : "Continue to website directly →"}
-          </button>
+          </Link>
         </motion.div>
       </main>
 

@@ -29,7 +29,7 @@ export default function PublicNavbar() {
     closeMenu();
     if (typeof window !== "undefined") {
       try {
-        sessionStorage.setItem("welcome_dismissed", "true");
+        sessionStorage.removeItem("welcome_dismissed");
       } catch {}
     }
   };
@@ -142,7 +142,7 @@ export default function PublicNavbar() {
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 h-20 sm:h-22 flex items-center justify-between gap-4">
           
           {/* Brand Official Logo: Elegantly proportioned and aligned within navbar */}
-          <Link href={homeHref} onClick={handleGoHome} 
+          <Link href="/welcome" onClick={handleGoHome} 
             className="flex items-center shrink-0 group py-1"
             title="Quran Learn Academy"
           >

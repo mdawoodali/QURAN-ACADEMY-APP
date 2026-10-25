@@ -1918,3 +1918,27 @@ eceipt_uploaded, and payment_verified.
   - `pnpm lint` (`eslint`): 0 errors across frontend monorepo package.
   - `pnpm test` (`vitest run`): 23/23 test suites passed, 172/172 tests passed (100% green).
   - Next.js Turbopack Production Build (`next build`): 78/78 routes compiled and generated successfully in 6.4s with 0 errors.
+
+
+---
+
+## 9.84 Brand Logo Welcome Navigation & Dedicated Sunni / Shia Anchor Links
+
+- **Objective**:
+  - Direct the official top-left logo to the opening page (`/welcome`) across all public pages.
+  - Convert Sunni and Shia selection controls on the opening screen into explicit Next.js `<Link>` elements pointing directly to `/sunni` and `/shia` (e.g. `https://quranacademyapp.vercel.app/sunni` and `https://quranacademyapp.vercel.app/shia`).
+
+- **Implementation Details**:
+  1. **Logo Welcome Binding (`PublicNavbar.tsx`)**:
+     - Updated brand official logo `<Link>` to point directly to `href="/welcome"`.
+     - Clicking the logo triggers `handleGoHome`, which clears `sessionStorage.welcome_dismissed` so the opening screen displays reliably.
+  2. **Direct Tradition URLs on Welcome Screen (`WelcomeSplash.tsx`)**:
+     - Transformed Sunni and Shia interactive buttons into semantic `<Link>` components (`href="/sunni"` and `href="/shia"`).
+     - Allows direct bookmarking, URL previewing on hover, search engine crawling, and full keyboard/accessibility navigation.
+     - Preserved smooth exit micro-animations before route transitions.
+     - Updated direct skip option to link explicitly to `href="/sunni"`.
+
+- **Validation & Quality Gate**:
+  - `pnpm typecheck`: 0 errors.
+  - `pnpm test`: 23/23 test suites passed, 172/172 tests passed (100% green).
+  - Next.js Turbopack Production Build (`next build`): 78/78 routes compiled cleanly in 6.4s with 0 errors.
