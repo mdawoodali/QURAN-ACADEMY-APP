@@ -1,25 +1,16 @@
-import { Suspense } from 'react'
 import { login, loginWithGoogle } from './actions'
 import { BookOpen } from 'lucide-react'
 import Link from 'next/link'
 
-async function ErrorBanner({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
-  const params = await searchParams;
-  if (!params?.error) return null;
-  return (
-    <div className="bg-red-950/60 text-red-200 p-4 rounded-xl text-sm font-bold mb-6 border border-red-500/30">
-      {params.error}
-    </div>
-  );
-}
+export const dynamic = 'force-dynamic'
 
-async function RedirectHiddenInput({ searchParams }: { searchParams: Promise<{ redirect?: string }> }) {
-  const params = await searchParams;
-  if (!params?.redirect) return null;
-  return <input type="hidden" name="redirect" value={params.redirect} />;
-}
+export default async function LoginPage(props: {
+  searchParams: Promise<{ error?: string; redirect?: string }>
+}) {
+  const searchParams = await props.searchParams
+  const error = searchParams?.error
+  const redirectPath = searchParams?.redirect
 
-export default function LoginPage(props: { searchParams: Promise<{ error?: string; redirect?: string }> }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-transparent px-4 py-12">
       <div className="max-w-md w-full glass-container rounded-3xl p-8 border border-white/15 shadow-2xl">
@@ -38,15 +29,15 @@ export default function LoginPage(props: { searchParams: Promise<{ error?: strin
         <h2 className="text-2xl sm:text-3xl font-serif text-white text-center mb-1">Welcome Back</h2>
         <p className="text-emerald-100/80 text-center text-sm mb-6">Sign in to access your classroom and portal.</p>
 
-        <Suspense fallback={null}>
-          <ErrorBanner searchParams={props.searchParams} />
-        </Suspense>
+        {error && (
+          <div className="bg-red-950/60 text-red-200 p-4 rounded-xl text-sm font-bold mb-6 border border-red-500/30">
+            {error}
+          </div>
+        )}
 
         {/* 1. Google OAuth 1-Tap Sign In */}
         <form action={loginWithGoogle} className="mb-5">
-          <Suspense fallback={null}>
-            <RedirectHiddenInput searchParams={props.searchParams} />
-          </Suspense>
+          {redirectPath && <input type="hidden" name="redirect" value={redirectPath} />}
           <button
             type="submit"
             className="w-full flex items-center justify-center gap-3 bg-white hover:bg-stone-100 text-stone-900 py-3.5 rounded-xl font-bold transition shadow-md cursor-pointer border border-stone-200 text-sm"
@@ -83,9 +74,7 @@ export default function LoginPage(props: { searchParams: Promise<{ error?: strin
 
         {/* 2. Email & Password Sign In */}
         <form className="space-y-4">
-          <Suspense fallback={null}>
-            <RedirectHiddenInput searchParams={props.searchParams} />
-          </Suspense>
+          {redirectPath && <input type="hidden" name="redirect" value={redirectPath} />}
           <div>
             <label className="block text-sm font-semibold text-emerald-100 mb-2" htmlFor="email">Email Address</label>
             <input 
@@ -109,84 +98,23 @@ export default function LoginPage(props: { searchParams: Promise<{ error?: strin
             />
           </div>
           
-          <div className="pt-2 flex flex-col gap-3">
-            <button formAction={login} className="w-full bg-amber-400 hover:bg-amber-300 text-emerald-950 py-3.5 rounded-xl font-bold transition shadow-md cursor-pointer">
+          <div className="pt-2">
+            <button formAction={login} className="w-full bg-amber-400 hover:bg-amber-300 text-emerald-950 py-3.5 rounded-xl font-bold transition shadow-md cursor-pointer text-sm">
               Sign In
             </button>
-
-            <div className="relative flex py-2 items-center">
-              <div className="flex-grow border-t border-white/10"></div>
-              <span className="flex-shrink mx-3 text-[11px] font-semibold text-emerald-100/60 uppercase tracking-wider">
-                New to Quran Learn Academy?
-              </span>
-              <div className="flex-grow border-t border-white/10"></div>
-            </div>
-
-            <Link
-              href="/register"
-              className="w-full text-center bg-white/15 hover:bg-white/25 text-white border border-white/20 py-3 rounded-xl font-bold transition text-sm flex items-center justify-center gap-2"
-            >
-              <span>Create Account — Choose Your Role</span>
-            </Link>
-
-            <div className="grid grid-cols-3 gap-2 text-center text-xs">
-              <Link
-                href="/register/student"
-                className="py-2 px-1 bg-white/10 hover:bg-white/20 text-emerald-100 border border-white/15 rounded-lg transition"
-              >
-                🎓 Student
-              </Link>
-              <Link
-                href="/register/parent"
-                className="py-2 px-1 bg-amber-400/20 hover:bg-amber-400 text-amber-300 hover:text-emerald-950 border border-amber-400/30 rounded-lg font-bold transition"
-              >
-                👨‍👩‍👧 Parent
-              </Link>
-              <Link
-                href="/register/teacher"
-                className="py-2 px-1 bg-white/10 hover:bg-white/20 text-emerald-100 border border-white/15 rounded-lg transition"
-              >
-                📖 Teacher
-              </Link>
-            </div>
           </div>
         </form>
 
-        {/* Quick Portal Switcher for Testing / Local Evaluation */}
-        <div className="mt-8 pt-6 border-t border-white/10 text-center">
-          <span className="text-[11px] text-amber-300 font-bold uppercase tracking-wider block mb-3">
-            Quick Portal Access (Demo & Evaluation)
-          </span>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-bold">
-            <Link
-              href="/api/demo-access?role=admin"
-              className="py-2.5 px-1 bg-amber-400/20 hover:bg-amber-400 text-amber-300 hover:text-emerald-950 border border-amber-400/40 rounded-xl transition-all shadow-sm text-center"
-            >
-              Admin
-            </Link>
-            <Link
-              href="/api/demo-access?role=teacher"
-              className="py-2.5 px-1 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl transition-all shadow-sm text-center"
-            >
-              Teacher
-            </Link>
-            <Link
-              href="/api/demo-access?role=student"
-              className="py-2.5 px-1 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl transition-all shadow-sm text-center"
-            >
-              Student
-            </Link>
-            <Link
-              href="/api/demo-access?role=parent"
-              className="py-2.5 px-1 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl transition-all shadow-sm text-center"
-            >
-              Parent
-            </Link>
-          </div>
+        {/* 3. Clean Account Registration Link */}
+        <div className="mt-6 pt-6 border-t border-white/10 text-center text-sm text-emerald-100/70">
+          Don&apos;t have an account?{" "}
+          <Link href="/register" className="text-amber-300 hover:text-amber-200 font-bold underline transition">
+            Create an account
+          </Link>
         </div>
 
-        <div className="mt-6 text-center text-sm text-emerald-100/70">
-          <Link href="/" className="hover:text-amber-300 font-bold transition">← Back to homepage</Link>
+        <div className="mt-4 text-center text-xs text-emerald-100/50">
+          <Link href="/" className="hover:text-amber-300 transition">← Back to homepage</Link>
         </div>
       </div>
     </div>

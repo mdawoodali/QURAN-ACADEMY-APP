@@ -2988,4 +2988,38 @@ The user reported that voice follow was not working in the live classroom (`/cla
 - **Vitest Suite**: **31 / 31 test files and 525 / 525 tests passing (100% green)**.
 - **TypeScript Analysis**: `tsc --noEmit` verified with 0 errors across all workspaces.
 
+---
+
+## 9.113. Login Screen Stabilization & Clutter Purge (Eliminating Dev Toolbar & Sync SearchParams Crash)
+
+### Problem & UX Gap Analysis
+1. **Confusing Legacy Clutter on `/login`**:
+   - The login page contained a secondary role registration block (`Student`, `Parent`, `Teacher`) and a developer toolbar titled `Quick Portal Access (Demo & Evaluation)` (`Admin`, `Teacher`, `Student`, `Parent`).
+   - This dev backdoor was jarring to users and created visual confusion when registering or signing in.
+2. **SSR Boundary Interruption (`Something interrupted this page`) on Vercel**:
+   - `LoginPage` was declared as a synchronous React component (`export default function LoginPage`) that received `searchParams: Promise<{ error?, redirect? }>`.
+   - It passed this unawaited Promise into multiple async child components (`ErrorBanner`, `RedirectHiddenInput`) inside separate Suspense wrappers within `<form>` tags.
+   - On Next.js 15+ in production on Vercel with Partial Prerendering (PPR) enabled, attempting to resolve dynamic `searchParams` across disparate async children triggered unhandled runtime streaming interruptions, triggering `error.tsx` (`"Something interrupted this page"`).
+
+### Engineering Decisions & Fix Implementation
+1. **Clean Professional Login Architecture (`apps/web/src/app/(public)/login/page.tsx`)**:
+   - Re-architected `LoginPage` to be an `async` Server Component:
+     `export default async function LoginPage(props: { searchParams: Promise<{ error?: string; redirect?: string }> })`
+   - Top-level `await props.searchParams` extraction of `error` and `redirectPath`.
+   - Added `export const dynamic = 'force-dynamic'` to prevent static optimization bailouts.
+   - Rendered inline error alerts and redirect hidden inputs cleanly without fragile nested Suspense trees.
+2. **Purged Developer Clutter & Redundant Role Links**:
+   - Completely removed the confusing `Quick Portal Access (Demo & Evaluation)` button grid.
+   - Removed the duplicate `Create Account — Choose Your Role` role pills.
+   - Replaced with standard, elegant authentication UX:
+     - Prominent white Google Sign-In button (`Sign in with Google`).
+     - Email & password input fields with high-contrast Sign In button.
+     - Single, standard footer link: *"Don't have an account? Create an account"* routing directly to `/register`.
+
+### Verification & Quality Assurance
+- **Production Build**: `pnpm build` verified with full Turbopack optimization across all 83 static & dynamic routes.
+- **TypeScript Analysis**: `tsc --noEmit` passes cleanly with 0 errors.
+- **Vitest Suite**: **31 / 31 test files and 525 / 525 tests passing (100% green)**.
+
+
 
