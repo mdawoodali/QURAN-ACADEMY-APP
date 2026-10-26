@@ -10,11 +10,15 @@ import {
   ClassroomVideoBubble,
   LetterPracticeTray,
   MushafBoard,
-  ClassroomToolbar,
   DeviceCheckModal,
+  GoogleMeetBottomDock,
+  GoogleMeetSideDrawer,
+  GoogleMeetVideoGrid,
+  FloatingReactions,
   useClassroomSync,
   useVoiceFollow,
-  CURRICULUM_LESSONS
+  CURRICULUM_LESSONS,
+  ClassroomViewMode,
 } from "@/features/classroom";
 
 export default function LiveClassroom() {
@@ -38,7 +42,6 @@ export default function LiveClassroom() {
       if (matchRole?.[1]) {
         const r = matchRole[1];
         if (isDemo) {
-          // In interactive demo mode, give users full interactive teacher privileges
           setSessionRole("teacher");
         } else if (r === "student") {
           setSessionRole("student");
@@ -53,19 +56,33 @@ export default function LiveClassroom() {
         setSessionUser(decodeURIComponent(matchUser[1]));
       }
     }
-  }, [classId]);
+  }, [classId, isDemo]);
 
   const roleParam: "teacher" | "student" | "observer" = queryRole || sessionRole;
   const childParam =
     searchParams?.get("child") ||
     sessionUser ||
-    (roleParam === "student" ? "Yusuf Khan" : "Ustadha Maryam");
+    (roleParam === "student" ? "Yusuf Khan" : roleParam === "observer" ? "Parent of Yusuf" : "Ustadha Maryam");
 
   // Pre-call Hardware Diagnostic Modal State
   const [showDeviceCheck, setShowDeviceCheck] = useState<boolean>(true);
 
+  // Classroom Google Meet View Mode & Drawer state
+  const [viewMode, setViewMode] = useState<ClassroomViewMode>("whiteboard");
+  const [activeDrawerTab, setActiveDrawerTab] = useState<"info" | "people" | "chat" | "host" | null>(null);
+  const [unreadChatCount, setUnreadChatCount] = useState<number>(0);
+
+  // Normalized Class Code (e.g. qra-yus-101 or qra-demo)
+  const classCode = useMemo(() => {
+    if (isDemo) return "qra-demo-101";
+    if (classId.startsWith("qra-")) return classId;
+    return `qra-${classId.slice(0, 3)}-101`;
+  }, [classId, isDemo]);
+
   // Synchronization hook (WebSocket, BroadcastChannel, LiveKit Cloud pairing)
   const {
+    localUserId,
+    currentUserName,
     script,
     setScript,
     tajweedMode,
@@ -84,17 +101,44 @@ export default function LiveClassroom() {
     livekitStatus,
     connectionStatus,
     remoteMuted,
+    setRemoteMuted,
+    chatMessages,
+    reactions,
+    handRaises,
+    isHandRaised,
+    hostPermissions,
+    participants,
+    sendChatMessage,
+    sendReaction,
+    toggleHandRaise,
+    lowerHand,
+    lowerAllHands,
+    updateHostPermissions,
+    muteAllParticipants,
+    updateParticipantMedia,
     sendHighlight,
     sendSplit,
     sendLessonChange,
     sendLaserPointer,
     sendToolSync,
-    sendModeration
+    sendModeration,
   } = useClassroomSync({
     classId,
     initialLessonId: "fatihah-2",
-    role: roleParam
+    role: roleParam,
+    participantName: childParam,
   });
+
+  // Track unread chat messages
+  const lastSeenChatCountRef = useRef(chatMessages.length);
+  useEffect(() => {
+    if (activeDrawerTab === "chat") {
+      setUnreadChatCount(0);
+      lastSeenChatCountRef.current = chatMessages.length;
+    } else if (chatMessages.length > lastSeenChatCountRef.current) {
+      setUnreadChatCount(chatMessages.length - lastSeenChatCountRef.current);
+    }
+  }, [chatMessages.length, activeDrawerTab]);
 
   // Current Lesson Data
   const currentLesson = useMemo(() => {
@@ -107,15 +151,19 @@ export default function LiveClassroom() {
   const currentWordsList = script === "indopak" ? currentLesson.wordsIndoPak : currentLesson.wordsUthmani;
   const currentWordStrings = currentWordsList.map((item) => item.word);
 
-  // Local media & tool states
-  const [isMicOn, setIsMicOn] = useState(true);
-  const [isCameraOn, setIsCameraOn] = useState(true);
+  // Local media & tool states (Observers default to MUTED)
+  const [isMicOn, setIsMicOn] = useState(roleParam !== "observer");
+  const [isCameraOn, setIsCameraOn] = useState(roleParam !== "observer");
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const [isLaserModeActive, setIsLaserModeActive] = useState(false);
   const [isStudentUnlocked, setIsStudentUnlocked] = useState(false);
   const [showEndModal, setShowEndModal] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const animFrameRef = useRef<number | null>(null);
 
   // Ultra-low latency voice follow hook
   const {
@@ -123,17 +171,67 @@ export default function LiveClassroom() {
     activeSpeechEngine,
     lastSpokenText,
     voiceError,
-    toggleVoiceFollow
+    toggleVoiceFollow,
   } = useVoiceFollow({
     currentWords: currentWordStrings,
     onMatchWord: sendHighlight,
-    audioStream: streamRef.current
+    audioStream: streamRef.current,
   });
 
-  // Derived effective mic state (muted if user turned it off or remote-muted by teacher)
+  // Derived effective mic state (muted if user turned it off, remote-muted, or observer)
   const isEffectiveMicOn = isMicOn && !remoteMuted;
 
-  // Handle remote mute track disabling without triggering cascading re-renders
+  // Real-time microphone audio visualizer
+  useEffect(() => {
+    if (streamRef.current && isEffectiveMicOn) {
+      try {
+        const AudioCtx =
+          window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext })
+            .webkitAudioContext;
+        if (AudioCtx) {
+          const audioCtx = new AudioCtx();
+          audioContextRef.current = audioCtx;
+          const analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 64;
+          analyserRef.current = analyser;
+          const source = audioCtx.createMediaStreamSource(streamRef.current);
+          source.connect(analyser);
+          const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+          const checkSpeaking = () => {
+            if (!isEffectiveMicOn) {
+              setIsSpeaking(false);
+              return;
+            }
+            analyser.getByteFrequencyData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) {
+              sum += dataArray[i] ?? 0;
+            }
+            const avg = sum / dataArray.length;
+            setIsSpeaking(avg > 18);
+            animFrameRef.current = requestAnimationFrame(checkSpeaking);
+          };
+          checkSpeaking();
+        }
+      } catch {}
+    } else {
+      setIsSpeaking(false);
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    }
+
+    return () => {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    };
+  }, [isEffectiveMicOn]);
+
+  // Keep participant presence media updated
+  useEffect(() => {
+    updateParticipantMedia(isEffectiveMicOn, isCameraOn, isSpeaking);
+  }, [isEffectiveMicOn, isCameraOn, isSpeaking, updateParticipantMedia]);
+
+  // Handle remote mute track disabling
   useEffect(() => {
     if (remoteMuted && streamRef.current) {
       streamRef.current.getAudioTracks().forEach((track) => {
@@ -203,7 +301,11 @@ export default function LiveClassroom() {
       if (videoRef.current && settings.isCameraOn) {
         videoRef.current.srcObject = stream;
       }
-      toast.success(`Joined classroom as ${childParam}`);
+      toast.success(
+        roleParam === "observer"
+          ? `Joined as Parent Observer (Muted) for ${childParam}`
+          : `Joined classroom as ${childParam}`
+      );
     } catch {
       toast("Joined room in web audio preview mode");
     }
@@ -251,21 +353,41 @@ export default function LiveClassroom() {
 
   // Microphone toggle
   const toggleMic = () => {
+    if (roleParam === "observer") {
+      toast("Parent observers remain muted to prevent recitation interference", {
+        icon: "🔇",
+      });
+      return;
+    }
+
+    if (!hostPermissions.micAllowed && roleParam !== "teacher") {
+      toast.error("Microphones are currently muted by the teacher");
+      return;
+    }
+
     if (streamRef.current) {
       streamRef.current.getAudioTracks().forEach((track) => {
         track.enabled = !isMicOn;
       });
     }
     setIsMicOn(!isMicOn);
-    toast(isMicOn ? "Microphone Muted" : "Microphone Active", { icon: isMicOn ? "🔇" : "🎙️" });
+    if (remoteMuted) setRemoteMuted(false);
+    toast(isMicOn ? "Microphone Muted" : "Microphone Active", {
+      icon: isMicOn ? "🔇" : "🎙️",
+    });
   };
 
-  // Word click handler (highlights word for focus practice)
+  // Drawer tab toggle
+  const handleToggleDrawerTab = (tab: "info" | "people" | "chat" | "host") => {
+    setActiveDrawerTab((prev) => (prev === tab ? null : tab));
+  };
+
+  // Word click handler
   const handleWordClick = (index: number) => {
     sendHighlight(index);
   };
 
-  // Split word into component phonemes
+  // Split word
   const handleSplitWord = () => {
     if (highlightedIndex === null) return;
     const nextIndex = splitIndex === highlightedIndex ? null : highlightedIndex;
@@ -295,7 +417,10 @@ export default function LiveClassroom() {
   };
 
   return (
-    <div className="flex flex-col h-screen w-full bg-[#031d16] text-white overflow-hidden relative select-none">
+    <div className="flex flex-col h-screen w-full bg-[#111215] text-white overflow-hidden relative select-none">
+      {/* 1. Google Meet Floating Reactions Animation Layer */}
+      <FloatingReactions reactions={reactions} />
+
       {/* Network Drop / Reconnection Banner */}
       {connectionStatus === "reconnecting" && (
         <div className="absolute top-16 left-1/2 -translate-x-1/2 z-50 bg-amber-500 text-emerald-950 px-4 py-1.5 rounded-full font-bold text-xs sm:text-sm flex items-center gap-2 shadow-2xl border border-amber-300 animate-pulse">
@@ -304,7 +429,7 @@ export default function LiveClassroom() {
         </div>
       )}
 
-      {/* 1. Pre-Call Hardware Diagnostic Modal */}
+      {/* 2. Pre-Call Hardware Diagnostic Modal */}
       <DeviceCheckModal
         isOpen={showDeviceCheck}
         role={roleParam}
@@ -313,23 +438,25 @@ export default function LiveClassroom() {
         onCancel={handleCancelDeviceCheck}
       />
 
-      {/* 2. Floating Video Bubble (PiP) */}
-      <ClassroomVideoBubble
-        isCameraOn={isCameraOn}
-        videoRef={videoRef}
-        label={childParam}
-        isMuted={!isEffectiveMicOn}
-        isAudioOnly={bandwidthMode === "audio_only"}
-        role={roleParam}
-        position="bottom-right"
-      />
+      {/* 3. Floating Video Bubble (PiP) when in Whiteboard Mode */}
+      {viewMode === "whiteboard" && (
+        <ClassroomVideoBubble
+          isCameraOn={isCameraOn}
+          videoRef={videoRef}
+          label={childParam}
+          isMuted={!isEffectiveMicOn}
+          isAudioOnly={bandwidthMode === "audio_only"}
+          role={roleParam}
+          position="bottom-right"
+        />
+      )}
 
-      {/* 3. Classroom Header */}
+      {/* 4. Classroom Header */}
       <ClassroomHeader
         surahName={currentLesson.title}
         script={script}
         tajweedMode={tajweedMode}
-        classId={classId}
+        classId={classCode}
         activeLessonId={activeLessonId}
         lessons={CURRICULUM_LESSONS}
         livekitStatus={livekitStatus}
@@ -351,304 +478,391 @@ export default function LiveClassroom() {
         onEndClass={() => setShowEndModal(true)}
       />
 
-      {/* 4. Main Dual-Viewport Classroom Stage */}
-      <main className="flex-1 flex flex-col lg:flex-row p-2 md:p-6 gap-4 md:gap-6 min-h-0 overflow-y-auto lg:overflow-hidden bg-gradient-to-b from-[#031d16] to-[#01140e]">
-        {/* End Class Confirmation Dialog */}
-        {showEndModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4 animate-in zoom-in-95">
-            <div className="bg-[#052b20] border border-white/20 rounded-3xl w-full max-w-sm p-6 shadow-2xl text-white">
-              <h2 className="text-xl font-bold font-serif text-white mb-2">
-                {isDemo ? "Exit Demo Classroom?" : "Leave Classroom?"}
-              </h2>
-              <p className="text-emerald-100/75 mb-6 text-xs leading-relaxed">
-                {isDemo
-                  ? "Are you sure you want to exit the interactive demo? You will be returned to the academy home page."
-                  : roleParam === "teacher"
-                  ? "Ending this session will conclude live video for all participants and log lesson records in the academy ledger."
-                  : "Are you sure you want to exit the classroom? You can re-join anytime while the lesson is active."}
-              </p>
-              <div className="flex flex-col gap-2.5">
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setShowEndModal(false)}
-                    className="flex-1 bg-white/10 hover:bg-white/20 text-white py-2.5 rounded-xl font-bold text-xs transition cursor-pointer"
-                  >
-                    Stay in Class
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (streamRef.current) {
-                        streamRef.current.getTracks().forEach((t) => t.stop());
-                        streamRef.current = null;
-                      }
-                      if (isDemo) {
-                        router.push("/");
-                      } else if (roleParam === "teacher") {
-                        sendModeration("end_class_all");
-                        router.push("/teacher");
-                      } else if (roleParam === "observer") {
-                        router.push("/parent");
-                      } else {
-                        router.push("/student");
-                      }
-                    }}
-                    className="flex-1 bg-red-600 hover:bg-red-500 text-white py-2.5 rounded-xl font-bold text-xs transition shadow-md cursor-pointer"
-                  >
-                    {isDemo ? "Exit to Home" : "Confirm Exit"}
-                  </button>
+      {/* 5. Main Viewport Stage (Adaptive Grid / Whiteboard / Dual View) */}
+      <div className="flex-1 flex overflow-hidden relative">
+        <main
+          className={`flex-1 flex p-2 md:p-5 gap-4 min-h-0 overflow-y-auto lg:overflow-hidden bg-gradient-to-b from-[#031d16] to-[#01140e] ${
+            activeDrawerTab ? "mr-0 sm:mr-96 transition-all duration-200" : ""
+          }`}
+        >
+          {/* End Class Confirmation Dialog */}
+          {showEndModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4 animate-in zoom-in-95">
+              <div className="bg-[#202124] border border-white/20 rounded-3xl w-full max-w-sm p-6 shadow-2xl text-white">
+                <h2 className="text-xl font-bold font-serif text-white mb-2">
+                  {isDemo ? "Exit Demo Classroom?" : "Leave Classroom?"}
+                </h2>
+                <p className="text-white/70 mb-6 text-xs leading-relaxed">
+                  {isDemo
+                    ? "Are you sure you want to exit the interactive demo? You will be returned to the academy home page."
+                    : roleParam === "teacher"
+                    ? "Ending this session will conclude live video for all participants and log lesson records in the academy ledger."
+                    : "Are you sure you want to exit the classroom? You can re-join anytime while the lesson is active."}
+                </p>
+                <div className="flex flex-col gap-2.5">
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowEndModal(false)}
+                      className="flex-1 bg-white/10 hover:bg-white/20 text-white py-2.5 rounded-xl font-bold text-xs transition cursor-pointer"
+                    >
+                      Stay in Class
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (streamRef.current) {
+                          streamRef.current.getTracks().forEach((t) => t.stop());
+                          streamRef.current = null;
+                        }
+                        if (isDemo) {
+                          router.push("/");
+                        } else if (roleParam === "teacher") {
+                          sendModeration("end_class_all");
+                          router.push("/teacher");
+                        } else if (roleParam === "observer") {
+                          router.push("/parent");
+                        } else {
+                          router.push("/student");
+                        }
+                      }}
+                      className="flex-1 bg-[#ea4335] hover:bg-[#d93025] text-white py-2.5 rounded-xl font-bold text-xs transition shadow-md cursor-pointer"
+                    >
+                      {isDemo ? "Exit to Home" : "Confirm Exit"}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* LEFT PANE: TEACHER CONTROL VIEW */}
-        <div className="w-full lg:w-1/2 flex flex-col h-[520px] lg:h-full shrink-0 lg:shrink">
-          <div className="flex items-center justify-between mb-2 shrink-0 px-2">
-            <span className="text-xs font-bold text-amber-300 tracking-widest uppercase flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse" />
-              Teacher Interactive Whiteboard
-            </span>
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs text-emerald-100/70 font-mono hidden sm:inline">Ayah:</span>
-              <div className="relative flex items-center">
-                <select
-                  value={activeLessonId}
-                  onChange={(e) => sendLessonChange(e.target.value)}
-                  className="appearance-none bg-black/60 hover:bg-black/80 border border-amber-400/40 hover:border-amber-400 text-amber-300 text-[11px] font-bold rounded-lg pl-2 pr-6 py-1 focus:outline-none focus:ring-1 focus:ring-amber-400 max-w-[220px] sm:max-w-[280px] truncate cursor-pointer [&>option]:bg-[#052b20] [&>option]:text-white shadow-xs"
-                  aria-label="Whiteboard Ayah Selector"
-                >
-                  {CURRICULUM_LESSONS.map((les) => (
-                    <option key={les.id} value={les.id}>
-                      {les.title}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown size={12} className="absolute right-1.5 text-amber-400/80 pointer-events-none" />
+          {/* VIEW MODE A: GOOGLE MEET FULL VIDEO GRID */}
+          {viewMode === "grid" && (
+            <div className="w-full h-full flex flex-col min-h-0">
+              <GoogleMeetVideoGrid
+                participants={participants}
+                localStream={streamRef.current}
+                localUserId={localUserId}
+                isLocalMicOn={isEffectiveMicOn}
+                isLocalCameraOn={isCameraOn}
+                isLocalSpeaking={isSpeaking}
+                onSwitchToWhiteboard={() => setViewMode("whiteboard")}
+              />
+            </div>
+          )}
+
+          {/* VIEW MODE B: DUAL VIEW (Mushaf Whiteboard on left, Video Grid on right) */}
+          {viewMode === "dual" && (
+            <div className="w-full h-full flex flex-col lg:flex-row gap-4 min-h-0">
+              {/* Whiteboard Side */}
+              <div className="w-full lg:w-3/5 flex flex-col h-full min-h-0 glass-container rounded-3xl p-4 border border-white/15 overflow-hidden">
+                <div className="flex items-center justify-between mb-2 shrink-0">
+                  <span className="text-xs font-bold text-amber-300 tracking-wider uppercase">
+                    Interactive Whiteboard
+                  </span>
+                  <button
+                    onClick={() => setViewMode("whiteboard")}
+                    className="text-[11px] text-emerald-200 hover:text-white underline"
+                  >
+                    Maximize Whiteboard
+                  </button>
+                </div>
+                <div className="flex-1 min-h-0 overflow-y-auto flex flex-col items-center justify-center">
+                  <MushafBoard
+                    script={script}
+                    tajweedMode={tajweedMode}
+                    fontSize={fontSize}
+                    fontColor={fontColor}
+                    highlightedIndex={highlightedIndex}
+                    underlines={underlines}
+                    circles={circles}
+                    colorHighlights={colorHighlights}
+                    wordsList={currentWordsList}
+                    laserPointer={laserPointer}
+                    interactive={roleParam === "teacher" || isStudentUnlocked}
+                    onWordClick={handleWordClick}
+                  />
+                  <LetterPracticeTray wordIndex={splitIndex} words={currentWordStrings} />
+                </div>
               </div>
-            </div>
-          </div>
 
-          <div className="flex-1 glass-container rounded-3xl border border-white/15 shadow-2xl flex flex-col p-4 md:p-6 overflow-hidden relative">
-            <div className="text-xs text-emerald-100/80 mb-3 shrink-0 flex items-center justify-between border-b border-white/10 pb-2">
-              <span className="font-serif italic text-amber-200/90 truncate max-w-[80%]">
-                &ldquo;{currentLesson.translation}&rdquo;
-              </span>
-              {tajweedMode && (
-                <span className="text-[10px] bg-emerald-900/80 text-emerald-300 border border-emerald-500/30 font-bold px-2.5 py-0.5 rounded-full uppercase">
-                  Tajweed ON
-                </span>
-              )}
-            </div>
-
-            {/* Central Mushaf Board */}
-            <div className="flex-1 min-h-0 w-full overflow-y-auto flex flex-col items-center justify-start py-2">
-              <div className="my-auto w-full flex flex-col items-center">
-                <MushafBoard
-                  script={script}
-                  tajweedMode={tajweedMode}
-                  fontSize={fontSize}
-                  fontColor={fontColor}
-                  highlightedIndex={highlightedIndex}
-                  underlines={underlines}
-                  circles={circles}
-                  colorHighlights={colorHighlights}
-                  wordsList={currentWordsList}
-                  laserPointer={laserPointer}
-                  isLaserModeActive={isLaserModeActive}
-                  interactive={true}
-                  onWordClick={handleWordClick}
-                  onLaserMove={sendLaserPointer}
+              {/* Meet Video Grid Side */}
+              <div className="w-full lg:w-2/5 flex flex-col h-full min-h-0">
+                <GoogleMeetVideoGrid
+                  participants={participants}
+                  localStream={streamRef.current}
+                  localUserId={localUserId}
+                  isLocalMicOn={isEffectiveMicOn}
+                  isLocalCameraOn={isCameraOn}
+                  isLocalSpeaking={isSpeaking}
+                  onSwitchToWhiteboard={() => setViewMode("whiteboard")}
+                  compact={true}
                 />
-
-                {/* Letter Splitting Tray */}
-                <LetterPracticeTray wordIndex={splitIndex} words={currentWordStrings} />
               </div>
             </div>
+          )}
 
-            {/* Real-Time AI Recitation & Voice Follow Telemetry (Docked Above Toolbar) */}
-            <div className="w-full shrink-0 my-1.5 hidden md:block z-10">
-              <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl bg-black/60 border border-white/10 backdrop-blur-md">
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className={`flex items-end h-3.5 gap-0.5 ${isVoiceFollowOn ? "opacity-100" : "opacity-30"}`}>
-                    {[3, 6, 4, 8, 12, 10, 7, 4, 8, 12, 6, 3].map((h, i) => (
-                      <div
-                        key={i}
-                        className={`w-1 rounded-full ${
-                          isVoiceFollowOn ? "bg-amber-400 animate-pulse" : "bg-white/30"
-                        }`}
-                        style={{ height: `${h * 0.8}px`, animationDelay: `${i * 0.07}s` }}
+          {/* VIEW MODE C: INTERACTIVE QURAN WHITEBOARD (Teacher & Student Panes) */}
+          {viewMode === "whiteboard" && (
+            <div className="w-full h-full flex flex-col lg:flex-row gap-4 md:gap-6 min-h-0">
+              {/* LEFT PANE: TEACHER CONTROL VIEW */}
+              <div className="w-full lg:w-1/2 flex flex-col h-[500px] lg:h-full shrink-0 lg:shrink">
+                <div className="flex items-center justify-between mb-2 shrink-0 px-2">
+                  <span className="text-xs font-bold text-amber-300 tracking-widest uppercase flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse" />
+                    Teacher Interactive Whiteboard
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-emerald-100/70 font-mono hidden sm:inline">Ayah:</span>
+                    <div className="relative flex items-center">
+                      <select
+                        value={activeLessonId}
+                        onChange={(e) => sendLessonChange(e.target.value)}
+                        className="appearance-none bg-black/60 hover:bg-black/80 border border-amber-400/40 hover:border-amber-400 text-amber-300 text-[11px] font-bold rounded-lg pl-2 pr-6 py-1 focus:outline-none focus:ring-1 focus:ring-amber-400 max-w-[220px] sm:max-w-[280px] truncate cursor-pointer [&>option]:bg-[#052b20] [&>option]:text-white shadow-xs"
+                        aria-label="Whiteboard Ayah Selector"
+                      >
+                        {CURRICULUM_LESSONS.map((les) => (
+                          <option key={les.id} value={les.id}>
+                            {les.title}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown size={12} className="absolute right-1.5 text-amber-400/80 pointer-events-none" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex-1 glass-container rounded-3xl border border-white/15 shadow-2xl flex flex-col p-4 md:p-6 overflow-hidden relative">
+                  <div className="text-xs text-emerald-100/80 mb-3 shrink-0 flex items-center justify-between border-b border-white/10 pb-2">
+                    <span className="font-serif italic text-amber-200/90 truncate max-w-[80%]">
+                      &ldquo;{currentLesson.translation}&rdquo;
+                    </span>
+                    {tajweedMode && (
+                      <span className="text-[10px] bg-emerald-900/80 text-emerald-300 border border-emerald-500/30 font-bold px-2.5 py-0.5 rounded-full uppercase">
+                        Tajweed ON
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Central Mushaf Board */}
+                  <div className="flex-1 min-h-0 w-full overflow-y-auto flex flex-col items-center justify-start py-2">
+                    <div className="my-auto w-full flex flex-col items-center">
+                      <MushafBoard
+                        script={script}
+                        tajweedMode={tajweedMode}
+                        fontSize={fontSize}
+                        fontColor={fontColor}
+                        highlightedIndex={highlightedIndex}
+                        underlines={underlines}
+                        circles={circles}
+                        colorHighlights={colorHighlights}
+                        wordsList={currentWordsList}
+                        laserPointer={laserPointer}
+                        isLaserModeActive={isLaserModeActive}
+                        interactive={true}
+                        onWordClick={handleWordClick}
+                        onLaserMove={sendLaserPointer}
                       />
-                    ))}
+
+                      <LetterPracticeTray wordIndex={splitIndex} words={currentWordStrings} />
+                    </div>
                   </div>
-                  <span className="text-amber-300 font-bold text-xs truncate">
-                    {isVoiceFollowOn ? "AI Listening (Arabic Only)" : "AI Voice Follow Paused"}
+
+                  {/* Real-Time AI Recitation & Voice Follow Telemetry */}
+                  <div className="w-full shrink-0 my-1.5 hidden md:block z-10">
+                    <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl bg-black/60 border border-white/10 backdrop-blur-md">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className={`flex items-end h-3.5 gap-0.5 ${isVoiceFollowOn ? "opacity-100" : "opacity-30"}`}>
+                          {[3, 6, 4, 8, 12, 10, 7, 4, 8, 12, 6, 3].map((h, i) => (
+                            <div
+                              key={i}
+                              className={`w-1 rounded-full ${
+                                isVoiceFollowOn ? "bg-amber-400 animate-pulse" : "bg-white/30"
+                              }`}
+                              style={{ height: `${h * 0.8}px`, animationDelay: `${i * 0.07}s` }}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-amber-300 font-bold text-xs truncate">
+                          {isVoiceFollowOn ? "AI Listening (Arabic Only)" : "AI Voice Follow Paused"}
+                        </span>
+                      </div>
+
+                      {lastSpokenText && (
+                        <div
+                          className="text-xs text-white font-medium bg-emerald-950/90 border border-emerald-500/30 px-2.5 py-0.5 rounded-full truncate max-w-[160px]"
+                          dir="rtl"
+                        >
+                          &quot;{lastSpokenText}&quot;
+                        </div>
+                      )}
+
+                      {/* Manual Prev / Next Word Shortcuts */}
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          onClick={handlePrevWord}
+                          className="text-[10px] font-bold bg-white/10 hover:bg-white/20 text-emerald-100 px-2 py-0.5 rounded-md transition cursor-pointer"
+                        >
+                          ← Prev
+                        </button>
+                        <span className="text-[10px] text-amber-300 font-mono">
+                          {(highlightedIndex ?? 0) + 1}/{currentWordStrings.length}
+                        </span>
+                        <button
+                          onClick={handleNextWord}
+                          className="text-[10px] font-bold bg-amber-400 hover:bg-amber-300 text-emerald-950 px-2 py-0.5 rounded-md transition cursor-pointer font-bold"
+                        >
+                          Next →
+                        </button>
+                      </div>
+                    </div>
+
+                    {voiceError && (
+                      <div className="mt-1 text-[10px] text-red-300 font-medium bg-red-950/80 border border-red-500/40 px-2 py-0.5 rounded-lg text-center">
+                        ⚠️ {voiceError}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* RIGHT PANE: STUDENT FOLLOWER VIEW */}
+              <div className="w-full lg:w-1/2 flex flex-col h-[420px] lg:h-full shrink-0 lg:shrink">
+                <div className="flex items-center justify-between mb-2 shrink-0 px-2">
+                  <span className="text-xs font-bold text-emerald-200/80 tracking-widest uppercase flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />
+                    Student Synced Viewport
+                  </span>
+                  <span className="text-xs text-emerald-100/60 font-mono">
+                    Script: <strong className="text-amber-300 uppercase">{script}</strong>
                   </span>
                 </div>
 
-                {lastSpokenText && (
+                <div className="flex-1 glass-container rounded-3xl border border-white/15 shadow-2xl flex flex-col p-4 md:p-6 overflow-hidden relative">
+                  <div className="text-xs text-emerald-100/80 mb-3 shrink-0 flex justify-between items-center border-b border-white/10 pb-2">
+                    <span className="text-xs font-semibold text-emerald-300">
+                      {isStudentUnlocked ? "Student Mode: Autonomous" : "Following Teacher Live"}
+                    </span>
+                    <span className="text-[10px] font-mono text-amber-300 bg-black/40 px-2 py-0.5 rounded-full border border-white/10">
+                      Live Class
+                    </span>
+                  </div>
+
+                  {/* Student Mushaf Board */}
                   <div
-                    className="text-xs text-white font-medium bg-emerald-950/90 border border-emerald-500/30 px-2.5 py-0.5 rounded-full truncate max-w-[160px]"
-                    dir="rtl"
+                    className={`flex-1 min-h-0 w-full overflow-y-auto flex flex-col items-center justify-start py-2 ${
+                      !isStudentUnlocked ? "pointer-events-none" : ""
+                    }`}
                   >
-                    &quot;{lastSpokenText}&quot;
+                    <div className="my-auto w-full flex flex-col items-center">
+                      <MushafBoard
+                        script={script}
+                        tajweedMode={tajweedMode}
+                        fontSize={fontSize}
+                        fontColor={fontColor}
+                        highlightedIndex={highlightedIndex}
+                        underlines={underlines}
+                        circles={circles}
+                        colorHighlights={colorHighlights}
+                        wordsList={currentWordsList}
+                        laserPointer={laserPointer}
+                        interactive={isStudentUnlocked}
+                        onWordClick={sendHighlight}
+                      />
+
+                      <LetterPracticeTray wordIndex={splitIndex} words={currentWordStrings} />
+                    </div>
                   </div>
-                )}
 
-                {/* Manual Prev / Next Word Shortcuts */}
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <button
-                    onClick={handlePrevWord}
-                    className="text-[10px] font-bold bg-white/10 hover:bg-white/20 text-emerald-100 px-2 py-0.5 rounded-md transition cursor-pointer"
-                  >
-                    ← Prev
-                  </button>
-                  <span className="text-[10px] text-amber-300 font-mono">
-                    {(highlightedIndex ?? 0) + 1}/{currentWordStrings.length}
-                  </span>
-                  <button
-                    onClick={handleNextWord}
-                    className="text-[10px] font-bold bg-amber-400 hover:bg-amber-300 text-emerald-950 px-2 py-0.5 rounded-md transition cursor-pointer font-bold"
-                  >
-                    Next →
-                  </button>
+                  {/* Student Bottom Navigation Controls */}
+                  <div className="mt-auto pt-3 border-t border-white/10 shrink-0 flex items-center justify-between text-xs">
+                    <span className="text-emerald-100/70 hidden sm:inline">
+                      Synchronous word highlights • Laser cursor • Tajweed markup
+                    </span>
+
+                    <div className="flex items-center gap-3 font-bold">
+                      <button
+                        onClick={() => {
+                          setIsStudentUnlocked(false);
+                          toast.success("Following teacher sync restored");
+                        }}
+                        className={`hover:text-amber-300 transition ${
+                          !isStudentUnlocked ? "text-amber-300 underline font-bold" : "text-emerald-100/60"
+                        }`}
+                      >
+                        Follow Teacher
+                      </button>
+                      <span className="text-white/20">|</span>
+                      <button
+                        onClick={() => {
+                          setIsStudentUnlocked(true);
+                          toast("Student Viewport Unlocked for Autonomous Practice", { icon: "🔓" });
+                        }}
+                        className={`hover:text-amber-300 transition ${
+                          isStudentUnlocked ? "text-amber-300 underline font-bold" : "text-emerald-100/60"
+                        }`}
+                      >
+                        Unlock Practice
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
-
-              {voiceError && (
-                <div className="mt-1 text-[10px] text-red-300 font-medium bg-red-950/80 border border-red-500/40 px-2 py-0.5 rounded-lg text-center">
-                  ⚠️ {voiceError}
-                </div>
-              )}
             </div>
+          )}
+        </main>
 
-            {/* Comprehensive Toolbar */}
-            <ClassroomToolbar
-              isMicOn={isEffectiveMicOn}
-              onToggleMic={toggleMic}
-              isCameraOn={isCameraOn}
-              onToggleCamera={toggleCamera}
-              fontSize={fontSize}
-              fontColor={fontColor}
-              onFontSizeChange={(size) => sendToolSync({ fontSize: size })}
-              onFontColorChange={(color) => sendToolSync({ fontColor: color })}
-              onToggleUnderline={() => {
-                if (highlightedIndex === null) return;
-                const nextUnderlines = { ...underlines, [highlightedIndex]: !underlines[highlightedIndex] };
-                sendToolSync({ underlines: nextUnderlines });
-              }}
-              onToggleCircle={() => {
-                if (highlightedIndex === null) return;
-                const nextCircles = { ...circles, [highlightedIndex]: !circles[highlightedIndex] };
-                sendToolSync({ circles: nextCircles });
-              }}
-              isSplitActive={splitIndex !== null}
-              onSplitWord={handleSplitWord}
-              onClearAll={clearAll}
-              isLaserModeActive={isLaserModeActive}
-              onToggleLaserMode={() => {
-                const next = !isLaserModeActive;
-                setIsLaserModeActive(next);
-                if (next) {
-                  sendLaserPointer({ x: 50, y: 50, active: true });
-                } else {
-                  sendLaserPointer({ x: 0, y: 0, active: false });
-                }
-                toast(next ? "Laser Pointer Active (Tracks to Student)" : "Laser Pointer Off", {
-                  icon: next ? "🔴" : "⚪"
-                });
-              }}
-              isTeacher={roleParam === "teacher"}
-              onRemoteMuteStudent={() => sendModeration("mute_student")}
-              bandwidthMode={bandwidthMode}
-              onToggleBandwidthMode={toggleBandwidthMode}
-            />
-          </div>
-        </div>
+        {/* 6. Google Meet Side Drawer (Chat, People, Details, Host Management) */}
+        <GoogleMeetSideDrawer
+          activeTab={activeDrawerTab}
+          onClose={() => setActiveDrawerTab(null)}
+          role={roleParam}
+          currentUserName={childParam}
+          classCode={classCode}
+          chatMessages={chatMessages}
+          participants={participants}
+          hostPermissions={hostPermissions}
+          handRaises={handRaises}
+          onSendChatMessage={sendChatMessage}
+          onUpdateHostPermissions={updateHostPermissions}
+          onMuteAll={muteAllParticipants}
+          onLowerHand={lowerHand}
+          onLowerAllHands={lowerAllHands}
+          onEndCallAll={() => setShowEndModal(true)}
+        />
+      </div>
 
-        {/* RIGHT PANE: STUDENT FOLLOWER VIEW */}
-        <div className="w-full lg:w-1/2 flex flex-col h-[420px] lg:h-full shrink-0 lg:shrink">
-          <div className="flex items-center justify-between mb-2 shrink-0 px-2">
-            <span className="text-xs font-bold text-emerald-200/80 tracking-widest uppercase flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />
-              Student Synced Viewport
-            </span>
-            <span className="text-xs text-emerald-100/60 font-mono">
-              Script: <strong className="text-amber-300 uppercase">{script}</strong>
-            </span>
-          </div>
-
-          <div className="flex-1 glass-container rounded-3xl border border-white/15 shadow-2xl flex flex-col p-4 md:p-6 overflow-hidden relative">
-            <div className="text-xs text-emerald-100/80 mb-3 shrink-0 flex justify-between items-center border-b border-white/10 pb-2">
-              <span className="text-xs font-semibold text-emerald-300">
-                {isStudentUnlocked ? "Student Mode: Autonomous" : "Following Teacher Live"}
-              </span>
-              <span className="text-[10px] font-mono text-amber-300 bg-black/40 px-2 py-0.5 rounded-full border border-white/10">
-                Live Class
-              </span>
-            </div>
-
-            {/* Student Mushaf Board */}
-            <div
-              className={`flex-1 min-h-0 w-full overflow-y-auto flex flex-col items-center justify-start py-2 ${
-                !isStudentUnlocked ? "pointer-events-none" : ""
-              }`}
-            >
-              <div className="my-auto w-full flex flex-col items-center">
-                <MushafBoard
-                  script={script}
-                  tajweedMode={tajweedMode}
-                  fontSize={fontSize}
-                  fontColor={fontColor}
-                  highlightedIndex={highlightedIndex}
-                  underlines={underlines}
-                  circles={circles}
-                  colorHighlights={colorHighlights}
-                  wordsList={currentWordsList}
-                  laserPointer={laserPointer}
-                  interactive={isStudentUnlocked}
-                  onWordClick={sendHighlight}
-                />
-
-                <LetterPracticeTray wordIndex={splitIndex} words={currentWordStrings} />
-              </div>
-            </div>
-
-            {/* Student Bottom Navigation Controls */}
-            <div className="mt-auto pt-3 border-t border-white/10 shrink-0 flex items-center justify-between text-xs">
-              <span className="text-emerald-100/70 hidden sm:inline">
-                Synchronous word highlights • Laser cursor • Tajweed markup
-              </span>
-
-              <div className="flex items-center gap-3 font-bold">
-                <button
-                  onClick={() => {
-                    setIsStudentUnlocked(false);
-                    toast.success("Following teacher sync restored");
-                  }}
-                  className={`hover:text-amber-300 transition ${
-                    !isStudentUnlocked ? "text-amber-300 underline font-bold" : "text-emerald-100/60"
-                  }`}
-                >
-                  Follow Teacher
-                </button>
-                <span className="text-white/20">|</span>
-                <button
-                  onClick={() => {
-                    setIsStudentUnlocked(true);
-                    toast("Student Viewport Unlocked for Autonomous Practice", { icon: "🔓" });
-                  }}
-                  className={`hover:text-amber-300 transition ${
-                    isStudentUnlocked ? "text-amber-300 underline font-bold" : "text-emerald-100/60"
-                  }`}
-                >
-                  Unlock Practice
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
+      {/* 7. Google Meet Signature Bottom Control Dock */}
+      <GoogleMeetBottomDock
+        classCode={classCode}
+        role={roleParam}
+        isMicOn={isEffectiveMicOn}
+        isCameraOn={isCameraOn}
+        isHandRaised={isHandRaised}
+        isSpeaking={isSpeaking}
+        viewMode={viewMode}
+        participantCount={participants.length}
+        unreadChatCount={unreadChatCount}
+        activeDrawerTab={activeDrawerTab}
+        bandwidthMode={bandwidthMode}
+        isLaserActive={isLaserModeActive}
+        onToggleMic={toggleMic}
+        onToggleCamera={toggleCamera}
+        onToggleHandRaise={toggleHandRaise}
+        onSendReaction={sendReaction}
+        onChangeViewMode={setViewMode}
+        onToggleDrawerTab={handleToggleDrawerTab}
+        onToggleBandwidth={toggleBandwidthMode}
+        onToggleLaser={() => {
+          const next = !isLaserModeActive;
+          setIsLaserModeActive(next);
+          if (next) {
+            sendLaserPointer({ x: 50, y: 50, active: true });
+          } else {
+            sendLaserPointer({ x: 0, y: 0, active: false });
+          }
+        }}
+        onClearAnnotations={clearAll}
+        onEndCall={() => setShowEndModal(true)}
+      />
     </div>
   );
 }

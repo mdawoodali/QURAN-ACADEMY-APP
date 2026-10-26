@@ -19,8 +19,8 @@ export default function DeviceCheckModal({
   onJoin,
   onCancel,
 }: DeviceCheckModalProps) {
-  const [isMicOn, setIsMicOn] = useState(true);
-  const [isCameraOn, setIsCameraOn] = useState(true);
+  const [isMicOn, setIsMicOn] = useState(role !== "observer");
+  const [isCameraOn, setIsCameraOn] = useState(role !== "observer");
   const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedAudioInput, setSelectedAudioInput] = useState<string>("");

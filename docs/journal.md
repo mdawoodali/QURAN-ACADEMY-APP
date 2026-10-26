@@ -2760,4 +2760,65 @@ The previous design forced prospective users across 3 separate marketing cards w
 7. **Automated Verification**:
    - TypeScript compilation verified with 0 errors (`tsc --noEmit`).
    - Vitest test suite verified: **514 / 514 tests passing** across 30 suites.
+---
 
+## 9.108 Google Meet-Style Live Classroom Suite with Reactions, Chat, Host Controls & Parent Observer Mode
+
+### Context & User Requirement
+The user requested a full Google Meet experience for the live academy classrooms (/goal):
+> *"for the classes, i need something like google meet where there are sharable links, class codes, reactions, chat box, and zero connectivity issues, same permission options as on google meet. the parent of the ward also receives a notification and a link to join as a parent in their ward's class, by default they are muted. i need the same workflow and permissions and even frontend like google meet, so go on github, google, search fot it and make it. and make sure the teacher, student and parent can talk properly and can meet"*
+
+### Engineering Decisions & Implementation Details
+1. **Google Meet Frontend & Signature Bottom Dock (`GoogleMeetBottomDock.tsx`)**:
+   - Engineered the signature floating dark bottom control bar (`#202124`) matching Google Meet:
+     - **Left section**: Meeting clock time display, meeting code pill (`qra-demo-101`, `qra-yus-101`) with active indicator and one-click info trigger.
+     - **Center control cluster**:
+       - Circular microphone button with active-speaker green wave audio visualizer pulse.
+       - Circular camera toggle button.
+       - Floating emoji reactions trigger button opening animated reaction picker dock (`💖, 👍, 👏, 🎉, 🤲, ⭐, 🔥, ✋`).
+       - Raise Hand button with active-state amber glow.
+       - View Mode Switcher: 3-way toggle between **Whiteboard View**, **Google Meet Video Grid View**, and **Dual Split View**.
+       - More options menu (`⋮`): HD video vs. data-saver audio-only mode, full screen toggle, and teacher laser pointer.
+       - Google Meet signature red rounded pill **End Call** button.
+     - **Right section**:
+       - Meeting details trigger (`ⓘ`).
+       - People trigger (`👥`) with active participant count badge.
+       - In-call chat trigger (`💬`) with unread message ping badge.
+       - Host management controls trigger (`🛡️`) highlighted for teachers.
+
+2. **Google Meet Slide-Out Side Panel (`GoogleMeetSideDrawer.tsx`)**:
+   - Slides smoothly from the right with Google Meet dark styling and 4 unified tabs:
+     - **In-Call Messages (Chat)**: Real-time chat messages with role-colored badges (`Teacher` in emerald, `Student` in blue, `Parent` in purple), timestamp, and host toggle to allow/disable student messaging.
+     - **People (Participants)**: Participant roster with mic/cam status indicators, hand-raise queue, and a "Mute All Participants" host action.
+     - **Meeting Details (`ⓘ`)**: Normalized class code (`qra-xxx-xxx`), shareable URL, one-click "Copy joining info" button, and direct "Share via WhatsApp" link. Includes dedicated **Parent Observer Invitation Link** generation.
+     - **Host Management Controls (`🛡️`)**: Master host controls matching Google Meet (let participants share screen/whiteboard, send chat messages, turn on microphone, turn on video, mute all participants, and end class for all).
+
+3. **Google Meet Responsive Video Grid & Spotlight (`GoogleMeetVideoGrid.tsx`)**:
+   - Fluid grid adapting dynamically across 1, 2, 3, or more video tiles with dark rounded card styling (`#3c4043`).
+   - Web Audio API real-time decibel analysis: glowing emerald border and ripple ring automatically light up around any participant who is speaking.
+   - Pinned/Spotlight tile layout: click pin to spotlight teacher recitation or student reading.
+   - Fallback avatar circles displaying user initials when camera is disabled.
+   - "Open Interactive Mushaf Whiteboard" floating pill for instant 1-click return to Quran practice.
+
+4. **Floating Emoji Reactions Engine (`FloatingReactions.tsx`)**:
+   - Physics-inspired floating particle engine that animates emoji bursts upwards with smooth swaying, scale dynamics, and fade-outs.
+   - Subtle bottom-left toast indicating the reactor (e.g., "👤 Yusuf Khan reacted 👍").
+
+5. **Parent Observer Mode & Live Class Notification**:
+   - When parents join via `/classroom/[slug]?role=observer&child=[WardName]`:
+     - **By default, parents are MUTED** (`isMicOn: false`, camera off) with microphone disabled by policy to prevent accidental noise during recitation.
+     - Displayed with a distinct purple "Parent Observer (Muted)" badge.
+   - In Parent Portal (`/parent`):
+     - Prominent live notification alert banner rendered at the top of the hub:
+       *"🔴 Live Classroom In Progress: Yusuf Khan's Live Quran Class is Active Now! [Join Live as Parent Observer (Muted)]"*.
+
+6. **Full-Spectrum Verification**:
+   - Automated Headless Chrome test via Chrome DevTools Protocol (`test_google_meet_cdp.js`):
+     - Verified all 14 Google Meet control dock buttons rendered.
+     - Verified in-call chat opened, sent message, and rendered into message list.
+     - Verified emoji reaction picker and reaction event delivery.
+     - Verified meeting details drawer with class code and shareable links.
+     - Verified dual view and video grid switching.
+     - Verified parent observer joined strictly muted with disabled mic.
+   - TypeScript compilation: 0 errors (`tsc --noEmit`).
+   - Vitest test suite: **30 / 30 suites passed, 517 / 517 tests passing (100% green)**.

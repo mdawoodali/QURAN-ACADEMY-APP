@@ -8,6 +8,11 @@ import {
   ClassroomToolState,
   TajweedRuleType,
   LaserPointerState,
+  ChatMessage,
+  FloatingReaction,
+  HandRaise,
+  HostPermissions,
+  ClassroomParticipant,
 } from "../types";
 
 export type ConnectionStatus = "connected" | "reconnecting" | "offline";
@@ -17,6 +22,7 @@ interface UseClassroomSyncOptions {
   initialScript?: ScriptType;
   initialLessonId?: string;
   role?: "teacher" | "student" | "observer";
+  participantName?: string;
 }
 
 function resolveWebSocketUrl(classId: string): string {
@@ -26,7 +32,6 @@ function resolveWebSocketUrl(classId: string): string {
   if (typeof window !== "undefined") {
     const isSecure = window.location.protocol === "https:";
     const hostname = window.location.hostname;
-    // On local development, if frontend is on port 3000, WS backend is on 8000
     const port =
       window.location.port === "3000"
         ? "8000"
@@ -40,6 +45,7 @@ function resolveWebSocketUrl(classId: string): string {
 interface ClassroomSyncMessage {
   type: string;
   senderRole?: string;
+  senderName?: string;
   timestamp?: number;
   version?: number;
   index?: number | null;
@@ -47,8 +53,15 @@ interface ClassroomSyncMessage {
   x?: number;
   y?: number;
   active?: boolean;
-  action?: "mute_student" | "end_class_all";
+  action?: "mute_student" | "mute_all" | "end_class_all";
   state?: Partial<ClassroomToolState>;
+  chatMessage?: ChatMessage;
+  reaction?: FloatingReaction;
+  participantId?: string;
+  participantName?: string;
+  raised?: boolean;
+  permissions?: HostPermissions;
+  participant?: ClassroomParticipant;
 }
 
 export function useClassroomSync({
@@ -56,7 +69,20 @@ export function useClassroomSync({
   initialScript = "uthmani",
   initialLessonId = "fatihah-2",
   role = "teacher",
+  participantName = "",
 }: UseClassroomSyncOptions) {
+  const currentUserName =
+    participantName ||
+    (role === "teacher"
+      ? "Ustadha Maryam"
+      : role === "observer"
+      ? "Mr. Khan (Parent)"
+      : "Yusuf Khan");
+
+  const localUserId = useRef(
+    `user-${role}-${Math.random().toString(36).slice(2, 7)}`
+  ).current;
+
   const [script, setScript] = useState<ScriptType>(initialScript);
   const [tajweedMode, setTajweedMode] = useState<boolean>(true);
   const [highlightedIndex, setHighlightedIndex] = useState<number | null>(0);
@@ -75,6 +101,65 @@ export function useClassroomSync({
   const [livekitStatus, setLivekitStatus] = useState<LiveKitStatus | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>("offline");
   const [remoteMuted, setRemoteMuted] = useState(false);
+
+  // Google Meet Features State
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
+    {
+      id: "msg-init-1",
+      senderName: "Ustadha Maryam",
+      senderRole: "teacher",
+      text: "Assalamu Alaikum! Welcome to our Quran & Tajweed recitation class. Let's begin with Surah Al-Fatihah.",
+      timestamp: Date.now() - 1000 * 60 * 3,
+    },
+  ]);
+
+  const [reactions, setReactions] = useState<FloatingReaction[]>([]);
+  const [handRaises, setHandRaises] = useState<HandRaise[]>([]);
+  const [isHandRaised, setIsHandRaised] = useState<boolean>(false);
+
+  const [hostPermissions, setHostPermissions] = useState<HostPermissions>({
+    chatEnabled: true,
+    whiteboardAllowed: true,
+    micAllowed: true,
+    videoAllowed: true,
+  });
+
+  const [participants, setParticipants] = useState<ClassroomParticipant[]>([
+    {
+      id: "user-teacher-host",
+      name: "Ustadha Maryam",
+      role: "teacher",
+      isMicOn: true,
+      isCameraOn: true,
+      isHandRaised: false,
+      isSpeaking: false,
+      joinedAt: Date.now() - 600000,
+    },
+    {
+      id: "user-student-lead",
+      name: role === "student" ? currentUserName : "Yusuf Khan",
+      role: "student",
+      isMicOn: true,
+      isCameraOn: true,
+      isHandRaised: false,
+      isSpeaking: false,
+      joinedAt: Date.now() - 300000,
+    },
+    ...(role === "observer"
+      ? [
+          {
+            id: localUserId,
+            name: currentUserName,
+            role: "observer" as const,
+            isMicOn: false,
+            isCameraOn: false,
+            isHandRaised: false,
+            isSpeaking: false,
+            joinedAt: Date.now(),
+          },
+        ]
+      : []),
+  ]);
 
   // Synchronization refs for bulletproof concurrency
   const broadcastChannel = useRef<BroadcastChannel | null>(null);
@@ -103,6 +188,7 @@ export function useClassroomSync({
     circles,
     colorHighlights,
     bandwidthMode,
+    hostPermissions,
   });
 
   useEffect(() => {
@@ -118,6 +204,7 @@ export function useClassroomSync({
       circles,
       colorHighlights,
       bandwidthMode,
+      hostPermissions,
     };
   }, [
     script,
@@ -131,6 +218,7 @@ export function useClassroomSync({
     circles,
     colorHighlights,
     bandwidthMode,
+    hostPermissions,
   ]);
 
   // Apply full snapshot from teacher on connection or reconnection catch-up
@@ -157,19 +245,28 @@ export function useClassroomSync({
       highlightedIndexRef.current = state.highlightedIndex;
     }
     if (state.splitIndex !== undefined) setSplitIndex(state.splitIndex);
+    if (state.hostPermissions !== undefined) setHostPermissions(state.hostPermissions);
   }, []);
 
   // Bulletproof Broadcast helper with role checks & versioning
   const broadcast = useCallback(
     (payload: Record<string, unknown>) => {
-      // Observers (parents in silent monitoring mode) are strictly blocked from broadcasting mutations outside demo mode
-      if (role === "observer" && classId !== "demo") {
+      // Observers are strictly blocked from broadcasting whiteboard / lesson mutations
+      if (
+        role === "observer" &&
+        classId !== "demo" &&
+        ["highlight", "split", "close_split", "change_lesson", "laser", "tool_sync", "moderation"].includes(
+          payload.type as string
+        )
+      ) {
         return;
       }
 
       const versionedPayload = {
         ...payload,
         senderRole: role,
+        senderName: currentUserName,
+        senderId: localUserId,
         timestamp: Date.now(),
         version: ++localVersionRef.current,
       };
@@ -181,7 +278,7 @@ export function useClassroomSync({
       }
       broadcastChannel.current?.postMessage(versionedPayload);
     },
-    [role, classId]
+    [role, classId, currentUserName, localUserId]
   );
 
   // Centralized message processor verifying packet freshness and role authority
@@ -192,7 +289,6 @@ export function useClassroomSync({
       // 1. Packet freshness check: discard stale out-of-order packets
       if (typeof data.timestamp === "number") {
         if (data.timestamp < lastProcessedTimestampRef.current) {
-          // Packet arrived out of order (network jitter) — discard
           return;
         }
         lastProcessedTimestampRef.current = data.timestamp;
@@ -201,7 +297,6 @@ export function useClassroomSync({
       // 2. Peer State Catch-up Request (new participant joined or reconnected)
       if (data.type === "sync_request") {
         if (role === "teacher") {
-          // The teacher is the authoritative source of truth. Send full current snapshot.
           const snapshot = stateSnapshotRef.current;
           broadcast({
             type: "sync_response",
@@ -217,6 +312,7 @@ export function useClassroomSync({
               fontSize: snapshot.fontSize,
               fontColor: snapshot.fontColor,
               bandwidthMode: snapshot.bandwidthMode,
+              hostPermissions: snapshot.hostPermissions,
             },
           });
         }
@@ -229,18 +325,96 @@ export function useClassroomSync({
         return;
       }
 
-      // 4. Word Highlighting
+      // 4. In-Call Chat Message
+      if (data.type === "chat_message" && data.chatMessage) {
+        setChatMessages((prev) => {
+          if (prev.some((m) => m.id === data.chatMessage!.id)) return prev;
+          return [...prev, data.chatMessage!];
+        });
+        return;
+      }
+
+      // 5. Floating Emoji Reaction
+      if (data.type === "reaction" && data.reaction) {
+        setReactions((prev) => [...prev.slice(-30), data.reaction!]);
+        return;
+      }
+
+      // 6. Raise Hand / Lower Hand
+      if (data.type === "hand_raise" && data.participantId) {
+        if (data.raised) {
+          setHandRaises((prev) => {
+            if (prev.some((h) => h.participantId === data.participantId)) return prev;
+            return [
+              ...prev,
+              {
+                participantId: data.participantId!,
+                participantName: data.participantName || "Student",
+                role: (data.senderRole as any) || "student",
+                timestamp: Date.now(),
+              },
+            ];
+          });
+          setParticipants((prev) =>
+            prev.map((p) =>
+              p.id === data.participantId ? { ...p, isHandRaised: true } : p
+            )
+          );
+          if (data.participantId !== localUserId) {
+            toast(`${data.participantName || "Participant"} raised their hand`, { icon: "✋" });
+          }
+        } else {
+          setHandRaises((prev) => prev.filter((h) => h.participantId !== data.participantId));
+          setParticipants((prev) =>
+            prev.map((p) =>
+              p.id === data.participantId ? { ...p, isHandRaised: false } : p
+            )
+          );
+        }
+        return;
+      }
+
+      // 7. Lower All Hands (Teacher Command)
+      if (data.type === "lower_all_hands") {
+        setHandRaises([]);
+        setIsHandRaised(false);
+        setParticipants((prev) => prev.map((p) => ({ ...p, isHandRaised: false })));
+        return;
+      }
+
+      // 8. Host Permissions Update
+      if (data.type === "host_permissions" && data.permissions) {
+        setHostPermissions(data.permissions);
+        toast("Host permissions updated", { icon: "🛡️" });
+        return;
+      }
+
+      // 9. Participant Presence & Media State
+      if (data.type === "presence" && data.participant) {
+        setParticipants((prev) => {
+          const idx = prev.findIndex((p) => p.id === data.participant!.id);
+          if (idx > -1) {
+            const updated = [...prev];
+            updated[idx] = { ...updated[idx], ...data.participant! };
+            return updated;
+          }
+          return [...prev, data.participant!];
+        });
+        return;
+      }
+
+      // 10. Word Highlighting
       if (data.type === "highlight" && data.index !== undefined) {
         setHighlightedIndex(data.index);
         highlightedIndexRef.current = data.index;
       }
-      // 5. Letter / Phoneme Split
+      // 11. Letter / Phoneme Split
       else if (data.type === "split" && data.index !== undefined) {
         setSplitIndex(data.index);
       } else if (data.type === "close_split") {
         setSplitIndex(null);
       }
-      // 6. Lesson Change (strictly restricted to teacher authority)
+      // 12. Lesson Change (restricted to teacher authority)
       else if (data.type === "change_lesson" && data.lessonId) {
         if (data.senderRole && data.senderRole !== "teacher") {
           console.warn("[Sync Shield] Ignored unauthorized change_lesson from non-teacher role");
@@ -254,22 +428,22 @@ export function useClassroomSync({
         setCircles({});
         setColorHighlights({});
       }
-      // 7. Laser Pointer
+      // 13. Laser Pointer
       else if (data.type === "laser" && typeof data.x === "number" && typeof data.y === "number") {
         setLaserPointer({ x: data.x, y: data.y, active: Boolean(data.active) });
       }
-      // 8. Moderation Actions (strictly restricted to teacher authority)
+      // 14. Moderation Actions
       else if (data.type === "moderation") {
         if (data.senderRole && data.senderRole !== "teacher") {
           console.warn("[Sync Shield] Ignored unauthorized moderation command from non-teacher");
           return;
         }
-        if (data.action === "mute_student" && role === "student") {
+        if ((data.action === "mute_student" || data.action === "mute_all") && role !== "teacher") {
           setRemoteMuted(true);
           toast.error("Your microphone was muted by the teacher");
         }
       }
-      // 9. Tool State Sync (pen, font size, script, tajweed mode)
+      // 15. Tool State Sync (pen, font size, script, tajweed mode)
       else if (data.type === "tool_sync" && data.state) {
         if (data.state.fontSize) setFontSize(data.state.fontSize);
         if (data.state.fontColor) setFontColor(data.state.fontColor);
@@ -282,46 +456,185 @@ export function useClassroomSync({
         if (data.state.bandwidthMode) setBandwidthMode(data.state.bandwidthMode);
       }
     },
-    [role, broadcast, applyFullSnapshot]
+    [role, broadcast, applyFullSnapshot, localUserId]
   );
 
   const persistStateDebounceRef = useRef<NodeJS.Timeout | null>(null);
-  const persistRoomState = useCallback((stateToPersist: any) => {
-    if (role !== 'teacher') return;
-    if (persistStateDebounceRef.current) clearTimeout(persistStateDebounceRef.current);
-    persistStateDebounceRef.current = setTimeout(() => {
-      fetch('/api/classroom/state', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache',
-        },
-        body: JSON.stringify({
-          roomId: classId,
-          classId,
-          state: stateToPersist,
-          currentPage: stateToPersist?.currentPage || 1,
-          currentSurah: stateToPersist?.currentSurah || 1,
-          currentAyah: stateToPersist?.currentAyah || 1,
-          tajweedMode: stateToPersist?.tajweedMode ? "color" : "plain",
-          scriptMode: stateToPersist?.script || "uthmani",
-          script: stateToPersist?.script || "uthmani",
-          teacherNotes: stateToPersist?.teacherNotes || "",
-          lastUpdatedBy: role || "teacher",
-        }),
-      }).catch((err) => console.warn('Failed to persist classroom state:', err));
-    }, 600);
-  }, [classId, role]);
+  const persistRoomState = useCallback(
+    (stateToPersist: any) => {
+      if (role !== "teacher") return;
+      if (persistStateDebounceRef.current) clearTimeout(persistStateDebounceRef.current);
+      persistStateDebounceRef.current = setTimeout(() => {
+        fetch("/api/classroom/state", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+          },
+          body: JSON.stringify({
+            roomId: classId,
+            classId,
+            state: stateToPersist,
+            currentPage: stateToPersist?.currentPage || 1,
+            currentSurah: stateToPersist?.currentSurah || 1,
+            currentAyah: stateToPersist?.currentAyah || 1,
+            tajweedMode: stateToPersist?.tajweedMode ? "color" : "plain",
+            scriptMode: stateToPersist?.script || "uthmani",
+            script: stateToPersist?.script || "uthmani",
+            teacherNotes: stateToPersist?.teacherNotes || "",
+            lastUpdatedBy: role || "teacher",
+          }),
+        }).catch((err) => console.warn("Failed to persist classroom state:", err));
+      }, 600);
+    },
+    [classId, role]
+  );
 
-  // Emitters with anti-spam deduplication & throttling
+  // Emitters
+  const sendChatMessage = useCallback(
+    (text: string) => {
+      const newMsg: ChatMessage = {
+        id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        senderName: currentUserName,
+        senderRole: role,
+        text,
+        timestamp: Date.now(),
+      };
+      setChatMessages((prev) => [...prev, newMsg]);
+      broadcast({ type: "chat_message", chatMessage: newMsg });
+    },
+    [broadcast, currentUserName, role]
+  );
+
+  const sendReaction = useCallback(
+    (emoji: string) => {
+      const newReaction: FloatingReaction = {
+        id: `rx-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        emoji,
+        senderName: currentUserName,
+        senderRole: role,
+        x: Math.floor(Math.random() * 60) + 20, // 20% to 80% screen width
+      };
+      setReactions((prev) => [...prev.slice(-30), newReaction]);
+      broadcast({ type: "reaction", reaction: newReaction });
+    },
+    [broadcast, currentUserName, role]
+  );
+
+  const toggleHandRaise = useCallback(() => {
+    const nextState = !isHandRaised;
+    setIsHandRaised(nextState);
+    if (nextState) {
+      setHandRaises((prev) => {
+        if (prev.some((h) => h.participantId === localUserId)) return prev;
+        return [
+          ...prev,
+          {
+            participantId: localUserId,
+            participantName: currentUserName,
+            role,
+            timestamp: Date.now(),
+          },
+        ];
+      });
+      toast.success("Hand raised");
+    } else {
+      setHandRaises((prev) => prev.filter((h) => h.participantId !== localUserId));
+      toast("Hand lowered");
+    }
+
+    setParticipants((prev) =>
+      prev.map((p) =>
+        p.id === localUserId ? { ...p, isHandRaised: nextState } : p
+      )
+    );
+
+    broadcast({
+      type: "hand_raise",
+      participantId: localUserId,
+      participantName: currentUserName,
+      raised: nextState,
+    });
+  }, [isHandRaised, localUserId, currentUserName, role, broadcast]);
+
+  const lowerHand = useCallback(
+    (participantId: string) => {
+      if (role !== "teacher") return;
+      setHandRaises((prev) => prev.filter((h) => h.participantId !== participantId));
+      setParticipants((prev) =>
+        prev.map((p) =>
+          p.id === participantId ? { ...p, isHandRaised: false } : p
+        )
+      );
+      broadcast({
+        type: "hand_raise",
+        participantId,
+        raised: false,
+      });
+    },
+    [role, broadcast]
+  );
+
+  const lowerAllHands = useCallback(() => {
+    if (role !== "teacher") return;
+    setHandRaises([]);
+    setIsHandRaised(false);
+    setParticipants((prev) => prev.map((p) => ({ ...p, isHandRaised: false })));
+    broadcast({ type: "lower_all_hands" });
+    toast("All hands lowered", { icon: "✋" });
+  }, [role, broadcast]);
+
+  const updateHostPermissions = useCallback(
+    (newPerms: Partial<HostPermissions>) => {
+      if (role !== "teacher") {
+        toast.error("Only teachers can modify host controls");
+        return;
+      }
+      const updated: HostPermissions = { ...hostPermissions, ...newPerms };
+      setHostPermissions(updated);
+      broadcast({ type: "host_permissions", permissions: updated });
+    },
+    [role, hostPermissions, broadcast]
+  );
+
+  const muteAllParticipants = useCallback(() => {
+    if (role !== "teacher") return;
+    broadcast({ type: "moderation", action: "mute_all" });
+    toast("Muted all participants", { icon: "🔇" });
+  }, [role, broadcast]);
+
+  const updateParticipantMedia = useCallback(
+    (mic: boolean, cam: boolean, speaking?: boolean) => {
+      setParticipants((prev) =>
+        prev.map((p) =>
+          p.id === localUserId
+            ? { ...p, isMicOn: mic, isCameraOn: cam, isSpeaking: Boolean(speaking) }
+            : p
+        )
+      );
+      broadcast({
+        type: "presence",
+        participant: {
+          id: localUserId,
+          name: currentUserName,
+          role,
+          isMicOn: mic,
+          isCameraOn: cam,
+          isHandRaised,
+          isSpeaking: Boolean(speaking),
+          joinedAt: Date.now(),
+        },
+      });
+    },
+    [localUserId, currentUserName, role, isHandRaised, broadcast]
+  );
+
   const sendHighlight = useCallback(
     (index: number | null) => {
-      // Thwart button mashing / duplicate highlight spam
       if (highlightedIndexRef.current === index) return;
       highlightedIndexRef.current = index;
       setHighlightedIndex(index);
 
-      // In demo mode or for active participants, broadcast and persist
       if (role !== "observer" || classId === "demo") {
         broadcast({ type: "highlight", index });
         persistRoomState({ ...stateSnapshotRef.current, highlightedIndex: index });
@@ -346,7 +659,6 @@ export function useClassroomSync({
 
   const sendLessonChange = useCallback(
     (lessonId: string) => {
-      // Only teachers can change the curriculum lesson (or anyone in interactive demo mode)
       if (role !== "teacher" && classId !== "demo") {
         console.warn("[Sync Shield] Student/Observer cannot change classroom lesson");
         return;
@@ -370,7 +682,6 @@ export function useClassroomSync({
       setLaserPointer(laser);
       if (role !== "observer" || classId === "demo") {
         const now = Date.now();
-        // Throttle mouse / touch drag stream to 30fps (33ms) to avoid mobile network saturation
         if (now - lastLaserTimeRef.current > 33 || !laser.active) {
           lastLaserTimeRef.current = now;
           broadcast({ type: "laser", ...laser });
@@ -382,7 +693,6 @@ export function useClassroomSync({
 
   const sendToolSync = useCallback(
     (partialState: Partial<ClassroomToolState>) => {
-
       if (partialState.fontSize !== undefined) setFontSize(partialState.fontSize);
       if (partialState.fontColor !== undefined) setFontColor(partialState.fontColor);
       if (partialState.underlines !== undefined) setUnderlines(partialState.underlines);
@@ -430,20 +740,20 @@ export function useClassroomSync({
   );
 
   const sendModeration = useCallback(
-    (action: "mute_student" | "end_class_all") => {
+    (action: "mute_student" | "mute_all" | "end_class_all") => {
       if (role !== "teacher") {
         console.warn("[Sync Shield] Non-teacher cannot execute moderation commands");
         return;
       }
       broadcast({ type: "moderation", action });
-      if (action === "mute_student") {
-        toast("Teacher muted student microphone", { icon: "🔇" });
+      if (action === "mute_student" || action === "mute_all") {
+        toast("Teacher muted participant microphones", { icon: "🔇" });
       }
     },
     [broadcast, role]
   );
 
-  // Connect WebSocket with resilient backoff and automatic state re-hydration
+  // Connect WebSocket
   const connectWebSocket = useCallback(() => {
     if (isUnmountedRef.current) return;
 
@@ -460,11 +770,12 @@ export function useClassroomSync({
         reconnectAttemptsRef.current = 0;
         setConnectionStatus("connected");
 
-        // Immediately request authoritative state sync upon connecting/reconnecting
         socket.send(
           JSON.stringify({
             type: "sync_request",
             senderRole: role,
+            senderName: currentUserName,
+            senderId: localUserId,
             timestamp: Date.now(),
           })
         );
@@ -494,9 +805,7 @@ export function useClassroomSync({
         }, delay);
       };
 
-      socket.onerror = () => {
-        // Handled in onclose
-      };
+      socket.onerror = () => {};
     } catch {
       const delay = Math.min(1000 * Math.pow(1.5, reconnectAttemptsRef.current), 10000);
       reconnectAttemptsRef.current += 1;
@@ -510,7 +819,7 @@ export function useClassroomSync({
         connectWebSocketRef.current();
       }, delay);
     }
-  }, [classId, role, processIncomingMessage]);
+  }, [classId, role, currentUserName, localUserId, processIncomingMessage]);
 
   useEffect(() => {
     connectWebSocketRef.current = connectWebSocket;
@@ -519,7 +828,7 @@ export function useClassroomSync({
   useEffect(() => {
     isUnmountedRef.current = false;
 
-    // 0. Restore persistent classroom state from Supabase
+    // Restore persistent classroom state
     const stateParams = new URLSearchParams({
       roomId: classId,
       classId,
@@ -538,13 +847,13 @@ export function useClassroomSync({
           applyFullSnapshot(data.state);
         }
       })
-      .catch((err) => console.warn('Classroom state restore fallback:', err));
+      .catch((err) => console.warn("Classroom state restore fallback:", err));
 
-    // 1. Fetch LiveKit Token from server
+    // LiveKit Token
     fetch(
-      `/api/livekit/token?room=${encodeURIComponent(classId)}&username=${
-        role === "teacher" ? "Teacher" : role === "observer" ? "Parent" : "Student"
-      }&role=${role}`
+      `/api/livekit/token?room=${encodeURIComponent(classId)}&username=${encodeURIComponent(
+        currentUserName
+      )}&role=${role}`
     )
       .then((res) => res.json())
       .then((data) => {
@@ -557,11 +866,10 @@ export function useClassroomSync({
           username: data.username,
           role: data.role,
         });
-        // LiveKit connected silently without technical toast
       })
       .catch((err) => console.warn("LiveKit token initialization fallback:", err));
 
-    // 2. Set up cross-tab / cross-window broadcast channel (local machine fallback)
+    // Local broadcast channel
     if (typeof window !== "undefined" && "BroadcastChannel" in window) {
       const channel = new BroadcastChannel(`livekit_room_${classId}`);
       broadcastChannel.current = channel;
@@ -571,7 +879,6 @@ export function useClassroomSync({
       };
     }
 
-    // 3. Start resilient WebSocket connection
     connectWebSocket();
 
     return () => {
@@ -582,9 +889,11 @@ export function useClassroomSync({
       ws.current?.close();
       broadcastChannel.current?.close();
     };
-  }, [classId, connectWebSocket, role, processIncomingMessage]);
+  }, [classId, connectWebSocket, role, currentUserName, applyFullSnapshot, processIncomingMessage]);
 
   return {
+    localUserId,
+    currentUserName,
     script,
     setScript,
     tajweedMode,
@@ -610,6 +919,21 @@ export function useClassroomSync({
     livekitStatus,
     connectionStatus,
     remoteMuted,
+    setRemoteMuted,
+    chatMessages,
+    reactions,
+    handRaises,
+    isHandRaised,
+    hostPermissions,
+    participants,
+    sendChatMessage,
+    sendReaction,
+    toggleHandRaise,
+    lowerHand,
+    lowerAllHands,
+    updateHostPermissions,
+    muteAllParticipants,
+    updateParticipantMedia,
     sendHighlight,
     sendSplit,
     sendLessonChange,

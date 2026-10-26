@@ -15,9 +15,52 @@ interface ChildSummary {
   classroomSlug: string;
 }
 
+const DEFAULT_CHILDREN: ChildSummary[] = [
+  {
+    name: "Yusuf Khan",
+    initials: "YK",
+    age: 9,
+    course: "Quran Reading for Kids (Noorani Qaida)",
+    nextLessonDay: "Wednesday",
+    nextLessonTime: "17:00 – 17:30",
+    progressPercent: 75,
+    classroomSlug: "yusuf"
+  },
+  {
+    name: "Hana Khan",
+    initials: "HK",
+    age: 12,
+    course: "Hifz & Tajweed Memorisation",
+    nextLessonDay: "Thursday",
+    nextLessonTime: "18:00 – 18:45",
+    progressPercent: 88,
+    classroomSlug: "hana"
+  },
+  {
+    name: "Amina Khan",
+    initials: "AK",
+    age: 10,
+    course: "Tajweed Fluency & Recitation",
+    nextLessonDay: "Wednesday",
+    nextLessonTime: "17:00 – 17:30",
+    progressPercent: 82,
+    classroomSlug: "amina"
+  },
+  {
+    name: "Omar Ali",
+    initials: "OA",
+    age: 11,
+    course: "Quran Memorisation (Juz Amma)",
+    nextLessonDay: "Tuesday",
+    nextLessonTime: "16:30 – 17:00",
+    progressPercent: 70,
+    classroomSlug: "omar"
+  }
+];
+
 export default function ParentPortal() {
-  const [children, setChildren] = useState<ChildSummary[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [children, setChildren] = useState<ChildSummary[]>(DEFAULT_CHILDREN);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -53,48 +96,7 @@ export default function ParentPortal() {
             };
           });
         } else {
-          list = [
-            {
-              name: "Yusuf Khan",
-              initials: "YK",
-              age: 9,
-              course: "Quran Reading for Kids (Noorani Qaida)",
-              nextLessonDay: "Wednesday",
-              nextLessonTime: "17:00 – 17:30",
-              progressPercent: 75,
-              classroomSlug: "yusuf"
-            },
-            {
-              name: "Hana Khan",
-              initials: "HK",
-              age: 12,
-              course: "Hifz & Tajweed Memorisation",
-              nextLessonDay: "Thursday",
-              nextLessonTime: "18:00 – 18:45",
-              progressPercent: 88,
-              classroomSlug: "hana"
-            },
-            {
-              name: "Amina Khan",
-              initials: "AK",
-              age: 10,
-              course: "Tajweed Fluency & Recitation",
-              nextLessonDay: "Wednesday",
-              nextLessonTime: "17:00 – 17:30",
-              progressPercent: 82,
-              classroomSlug: "amina"
-            },
-            {
-              name: "Omar Ali",
-              initials: "OA",
-              age: 11,
-              course: "Quran Memorisation (Juz Amma)",
-              nextLessonDay: "Tuesday",
-              nextLessonTime: "16:30 – 17:00",
-              progressPercent: 70,
-              classroomSlug: "omar"
-            }
-          ];
+          list = [...DEFAULT_CHILDREN];
         }
 
         // Prioritize parent-selected ward from registration
@@ -146,6 +148,44 @@ export default function ParentPortal() {
           <span>Enrol Another Child</span>
         </Link>
       </header>
+
+      {/* Live Classroom Alert Banner for Parent */}
+      {!loading && children.length > 0 && (
+        <div className="mb-8 p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-emerald-950 via-[#063327] to-purple-950 border border-emerald-400/40 shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-in fade-in slide-in-from-top-3">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-red-600/20 border border-red-500/40 flex items-center justify-center shrink-0 relative">
+              <span className="w-3.5 h-3.5 rounded-full bg-red-500 animate-ping absolute" />
+              <span className="w-3 h-3 rounded-full bg-red-500 relative" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-red-500 text-white px-2 py-0.5 rounded-full">
+                  Live Classroom In Progress
+                </span>
+                <span className="text-xs text-emerald-200/80 font-mono">
+                  Room: qra-{children[0].classroomSlug.slice(0, 3)}-101
+                </span>
+              </div>
+              <h2 className="text-base sm:text-lg font-bold text-white">
+                {children[0].name}&apos;s Live Quran Class is Active Now!
+              </h2>
+              <p className="text-xs text-emerald-100/75">
+                Join your ward&apos;s Google Meet classroom in silent observer mode (microphone muted by default) to monitor recitation quality.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 w-full md:w-auto shrink-0">
+            <Link
+              href={`/classroom/${children[0].classroomSlug}?role=observer&child=${encodeURIComponent(children[0].name)}`}
+              className="w-full md:w-auto bg-amber-400 hover:bg-amber-300 text-emerald-950 font-bold px-5 py-3 rounded-2xl text-xs sm:text-sm transition shadow-lg flex items-center justify-center gap-2 cursor-pointer font-serif"
+            >
+              <Eye size={16} />
+              <span>Join Live as Parent Observer (Muted)</span>
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Children Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">

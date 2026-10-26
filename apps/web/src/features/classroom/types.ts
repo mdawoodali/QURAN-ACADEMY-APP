@@ -64,3 +64,46 @@ export interface DeviceSettings {
   isMicOn: boolean;
   isCameraOn: boolean;
 }
+
+export interface ChatMessage {
+  id: string;
+  senderName: string;
+  senderRole: "teacher" | "student" | "observer";
+  text: string;
+  timestamp: number;
+}
+
+export interface FloatingReaction {
+  id: string;
+  emoji: string;
+  senderName: string;
+  senderRole: "teacher" | "student" | "observer";
+  x: number; // Percentage horizontal offset 10-90%
+}
+
+export interface HandRaise {
+  participantId: string;
+  participantName: string;
+  role: "teacher" | "student" | "observer";
+  timestamp: number;
+}
+
+export interface HostPermissions {
+  chatEnabled: boolean;
+  whiteboardAllowed: boolean;
+  micAllowed: boolean;
+  videoAllowed: boolean;
+}
+
+export interface ClassroomParticipant {
+  id: string;
+  name: string;
+  role: "teacher" | "student" | "observer";
+  isMicOn: boolean;
+  isCameraOn: boolean;
+  isHandRaised: boolean;
+  isSpeaking?: boolean;
+  joinedAt: number;
+}
+
+export type ClassroomViewMode = "whiteboard" | "grid" | "dual";
