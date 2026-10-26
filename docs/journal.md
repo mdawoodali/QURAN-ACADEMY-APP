@@ -2868,3 +2868,50 @@ The user requested full end-to-end relational consistency across all three acade
 ### Verification & Quality Assurance
 - **TypeScript Static Analysis**: `tsc --noEmit` executed with 0 errors.
 - **Vitest Unit & Integration Suites**: **30 / 30 test files passed, 517 / 517 tests passing (100% green)**.
+
+
+## 9.110 Classroom AI Voice Follow Root Cause Analysis & Engine Overhaul
+
+### Context & User Requirement
+The user reported that voice follow was not working in the live classroom (`/classroom/demo`), providing a screenshot showing word 0 ("Alhamdu") highlighted while the telemetry bar displayed *"AI Voice Follow Paused"* with a status toast *"AI Arabic Voice Follow paused"*.
+
+### Root Cause Analysis
+1. **Cumulative Transliteration Lockup on Word 0**:
+   - The transliteration fallback previously performed a forward loop from `i = 0` to `currentWords.length`, checking `lowerClean.includes(p.toLowerCase())`.
+   - When users recited continuously (e.g. *"alhamdu lillahi rabbi alameen"*), the incoming transcript was cumulative and always contained *"alhamdu"*.
+   - Because `i = 0` always matched first, the matcher locked on index 0 and was mathematically prevented from ever advancing to words 1, 2, or 3.
+2. **Deepgram Disconnect without Web Speech Fallback**:
+   - In `useVoiceFollow.ts`, Deepgram's `onclose` handler previously checked:
+     `if (isVoiceFollowOnRef.current && event.code !== 1000 && event.code !== 1005)`
+   - Deepgram server terminates idle streaming WebSockets with code `1005`. Because `1005` was explicitly excluded, `triggerFallback()` was never called when Deepgram disconnected. The socket closed, Web Speech fallback was never initialized, and voice follow entered an unresponsive zombie state.
+3. **`isStartingSpeechRef.current` Re-entrance Deadlock**:
+   - When a browser speech recognition error occurred (such as no-speech or stream timeout), `isStartingSpeechRef.current` was never reset to `false`.
+   - Subsequent user clicks on the AI Voice Follow toggle hit `if (isStartingSpeechRef.current) return;`, permanently deadlocking the speech loop until page reload.
+4. **Indo-Pak Character Normalization Divergence**:
+   - `normalizeArabic` did not normalize the Indo-Pak/Persian Yeh (`\u06CC` / `ی`) to Arabic Yeh (`\u064A` / `ي`).
+   - In Surah Al-Fatihah Ayah 2, Uthmani `ٱلْعَـٰلَمِينَ` normalized to `العالمين` while Indo-Pak `الْعٰلَمِیْنَ` normalized to `العالمین`, causing strict equality matching to fail.
+5. **Component Re-Render Callback Invalidation**:
+   - `useVoiceFollow` previously closed over `currentWords` and `onMatchWord`. Whenever `LiveClassroom` re-rendered, fresh closures were created and torn down, interrupting active speech recognition instances.
+
+### Engineering Decisions & Fix Implementation
+1. **Token-Aware Backward Recitation Matching (`useVoiceFollow.ts`)**:
+   - Re-architected both Arabic and transliteration matchers to parse incoming speech into discrete tokens and evaluate from the **latest spoken token backwards**:
+     - **Pass 1 (Phrases & Exact Tokens)**: Evaluates compound pairs (e.g. *"ar-rahman"*, *"al-alameen"*) and exact single tokens against current words and phonetic fallbacks.
+     - **Pass 2 (Prefix / Substring Stem Matching)**: Evaluates tokens with length >= 4 against word stems.
+   - Accurately advances sequentially: `"alhamdu"` -> 0, `"alhamdu lillahi"` -> 1, `"alhamdu lillahi rabbi"` -> 2, `"alhamdu lillahi rabbi alameen"` -> 3.
+2. **Resilient Web Speech & Deepgram Fallback**:
+   - Replaced fragile close guards: if Deepgram closes for *any* reason (including code `1005` or network drops) while voice follow is active, `triggerFallback()` activates immediately and transitions to Chrome's native Web Speech engine (`webkitSpeechRecognition`, `ar-SA`).
+   - In `recognition.onend`, the engine immediately relaunches the speech loop while `isVoiceFollowOnRef.current` remains true.
+   - Cleared `isStartingSpeechRef.current = false` across `onerror`, `onend`, `onstart`, and `stopVoiceFollow`.
+3. **Enhanced Arabic & Indo-Pak Ligature Normalization (`constants.ts`)**:
+   - Enhanced `normalizeArabic` to normalize Urdu/Persian Yeh (`\u06CC`), Kaf variants (`\u06A9`), Alif Wasla (`\u0671`), Tatweel, and Maddah (`\u0653`).
+   - Verified that Uthmani and Indo-Pak forms of all verses normalize to identical string roots.
+   - Expanded `PHONETIC_MAP` and `QURAN_PHONETIC_FALLBACK` coverage for all 7 Ayahs of Surah Al-Fatihah.
+4. **Stable Ref-Based Hook Architecture & Test Recitation Trigger**:
+   - Embedded `currentWordsRef` and `onMatchWordRef` inside `useVoiceFollow` so speech recognition listeners never restart or drop audio packets across parent re-renders.
+   - Added interactive `Auto Follow Test` button and clickable telemetry toggle directly in `LiveClassroom.tsx` so users and teachers can test recitation following instantly.
+
+### Verification & Quality Assurance
+- **Unit & Integration Tests**: Added 3 new tests in `classroom-voice-follow.test.ts` verifying cumulative transliteration progression, cumulative Arabic token progression, and Indo-Pak Yeh normalization.
+- **Vitest Suite**: **30 / 30 test files and 520 / 520 tests passing (100% green)**.
+- **TypeScript Analysis**: `tsc --noEmit` verified with 0 errors.

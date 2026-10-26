@@ -20,26 +20,71 @@ export function normalizeArabic(text: string): string {
   return text
     .replace(/\u0670/g, "ا")
     .replace(/\u0640/g, "")
-    .replace(/[\u06D6-\u06ED\u065F\u06E2\u06E3\u06E4\u0600-\u0605]/g, "")
-    .replace(/[\u0610-\u061A\u064B-\u065E]/g, "")
+    .replace(/[\u06D6-\u06ED\u065F\u06E2\u06E3\u06E4\u0600-\u0605\u06DD]/g, "")
+    .replace(/[\u0610-\u061A\u064B-\u065E\u0653\u0654]/g, "")
     .replace(/[إأآٱ]/g, "ا")
-    .replace(/[ىي]/g, "ي")
+    .replace(/[ىيیئ]/g, "ي")
+    .replace(/[كک]/g, "ك")
+    .replace(/[ؤ]/g, "و")
     .replace(/ة/g, "ه")
+    .replace(/[.,\/#!$%\^&\*;:{}=\-_~`()]/g, "")
     .trim();
 }
 
 export const PHONETIC_MAP: Record<number, string[]> = {
-  0: ["الحمد", "حمد", "الحمْدُ", "أَلْحَمْدُ"],
+  0: ["الحمد", "حمد", "الحمْدُ", "أَلْحَمْدُ", "بسم", "بِسْمِ"],
   1: ["لله", "الله", "لِلَّهِ", "لِلّٰهِ"],
-  2: ["رب", "رَبِّ", "رَبِّ"],
-  3: ["العالمين", "عالمين", "الْعَالَمِينَ", "الْعٰلَمِیْنَ"]
+  2: ["رب", "رَبِّ", "رَبِّ", "الرحمن", "الرَّحْمٰنِ"],
+  3: ["العالمين", "عالمين", "الْعَالَمِينَ", "الْعٰلَمِیْنَ", "الرحيم", "الرَّحِیْمِ"],
+  4: ["الرحمن", "الرَّحْمٰنِ", "مالك", "مَـٰلِكِ"],
+  5: ["الرحيم", "الرَّحِیْمِ", "يوم", "يَوْمِ"],
+  6: ["مالك", "مَـٰلِكِ", "الدين", "ٱلدِّينِ"],
+  7: ["يوم", "يَوْمِ", "اياك", "إِيَّاكَ"],
+  8: ["الدين", "ٱلدِّينِ", "نعبد", "نَعْبُدُ"],
+  9: ["اياك", "إِيَّاكَ", "واياك", "وَإِيَّاكَ"],
+  10: ["نعبد", "نَعْبُدُ", "نستعين", "نَسْتَعِينُ"],
+  11: ["واياك", "وَإِيَّاكَ", "اهدنا", "ٱهْدِنَا"],
+  12: ["نستعين", "نَسْتَعِينُ", "الصراط", "ٱلصِّرَٰطَ"],
+  13: ["اهدنا", "ٱهْدِنَا", "المستقيم", "ٱلْمُسْتَقِيمَ"],
+  14: ["الصراط", "ٱلصِّرَٰطَ", "صراط", "صِرَٰطَ"],
+  15: ["المستقيم", "ٱلْمُسْتَقِيمَ", "الذين", "ٱلَّذِينَ"],
+  16: ["صراط", "صِرَٰطَ", "انعمت", "أَنْعَمْتَ"],
+  17: ["الذين", "ٱلَّذِينَ", "عليهم", "عَلَيْهِمْ"],
+  18: ["انعمت", "أَنْعَمْتَ", "غير", "غَيْرِ"],
+  19: ["عليهم", "عَلَيْهِمْ", "المغضوب", "ٱلْمَغْضُوبِ"],
+  20: ["غير", "غَيْرِ", "عليهم", "عَلَيْهِمْ"],
+  21: ["المغضوب", "ٱلْمَغْضُوبِ", "ولا", "وَلَا"],
+  22: ["عليهم", "عَلَيْهِمْ", "الضالين", "ٱلضَّآلِّينَ"],
+  23: ["ولا", "وَلَا"],
+  24: ["الضالين", "ٱلضَّآلِّينَ"]
 };
 
 export const QURAN_PHONETIC_FALLBACK: Record<number, string[]> = {
   0: ["alhamdu", "alhamd", "alhamdulillah", "elhamd", "hamd", "al-hamdu", "الحمد", "حمد", "bismi", "bismillah"],
   1: ["lillahi", "lillah", "allah", "lellah", "lillāhi", "لله", "الله"],
   2: ["rabbi", "rabb", "rab", "rub", "rab-bi", "رب", "ar-rahman", "rahman"],
-  3: ["alameen", "alalamin", "al-alameen", "aalamin", "alamin", "al-ʿālamīn", "العالمين", "عالمين", "ar-rahim", "rahim"]
+  3: ["alameen", "alalamin", "al-alameen", "aalamin", "alamin", "al-ʿālamīn", "العالمين", "عالمين", "ar-rahim", "rahim"],
+  4: ["ar-rahman", "rahman", "al-rahman", "maliki", "maalik"],
+  5: ["ar-rahim", "rahim", "al-rahim", "yawm", "yawmi"],
+  6: ["maliki", "maalik", "ad-deen", "deen", "ad-din"],
+  7: ["yawm", "yawmi", "iyyaka", "eyyaka"],
+  8: ["ad-deen", "deen", "na'budu", "nabudu"],
+  9: ["iyyaka", "eyyaka", "wa-iyyaka", "waiyyaka"],
+  10: ["na'budu", "nabudu", "nasta'een", "nastaeen"],
+  11: ["wa-iyyaka", "waiyyaka", "ihdina"],
+  12: ["nasta'een", "nastaeen", "as-sirat", "sirat"],
+  13: ["ihdina", "al-mustaqeem", "mustaqeem"],
+  14: ["as-sirat", "sirat", "sirata"],
+  15: ["al-mustaqeem", "mustaqeem", "alladheena", "allazina"],
+  16: ["sirat", "sirata", "an'amta", "anamta"],
+  17: ["alladheena", "allazina", "alayhim"],
+  18: ["an'amta", "anamta", "ghayr", "ghair"],
+  19: ["alayhim", "al-maghdubi", "maghdub"],
+  20: ["ghayr", "ghair", "alayhim"],
+  21: ["al-maghdubi", "maghdub", "wa-la", "wala"],
+  22: ["alayhim", "ad-dallin", "dallin", "zaalleen"],
+  23: ["wa-la", "wala"],
+  24: ["ad-dallin", "dallin", "zaalleen", "dhaalleen"]
 };
 
 // Default single-ayah baseline kept for backward compatibility and existing tests

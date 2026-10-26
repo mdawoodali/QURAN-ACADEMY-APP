@@ -223,4 +223,96 @@ describe("Classroom AI Voice Following & Recitation Alignment Suite", () => {
     expect(resolveExitDestination("room-session-42", "observer")).toBe("/parent");
     expect(resolveExitDestination("room-session-42", "student")).toBe("/student");
   });
+  it("advances cumulative transliteration speech tokens sequentially without locking on word 0", () => {
+    function resolveCumulativeTranslit(spokenText: string): number {
+      const lower = spokenText.toLowerCase().replace(/[^a-z0-9\s'-]/g, " ").trim();
+      const tokens = lower.split(/\s+/).filter(Boolean);
+      if (tokens.length === 0) return -1;
+
+      for (let tIdx = tokens.length - 1; tIdx >= 0; tIdx--) {
+        const token = tokens[tIdx];
+        const pair = tIdx > 0 ? `${tokens[tIdx - 1]} ${token}` : "";
+        const pairHyphen = tIdx > 0 ? `${tokens[tIdx - 1]}-${token}` : "";
+
+        if (pair || pairHyphen) {
+          for (let wIdx = 0; wIdx < currentWords.length; wIdx++) {
+            const fallbacks = (QURAN_PHONETIC_FALLBACK[wIdx] || []).map((f) => f.toLowerCase());
+            if (fallbacks.some((f) => f === pair || f === pairHyphen)) {
+              return wIdx;
+            }
+          }
+        }
+
+        for (let wIdx = 0; wIdx < currentWords.length; wIdx++) {
+          const fallbacks = (QURAN_PHONETIC_FALLBACK[wIdx] || []).map((f) => f.toLowerCase());
+          if (fallbacks.some((f) => f === token)) {
+            return wIdx;
+          }
+        }
+      }
+
+      for (let tIdx = tokens.length - 1; tIdx >= 0; tIdx--) {
+        const token = tokens[tIdx];
+        if (token.length < 4) continue;
+        for (let wIdx = 0; wIdx < currentWords.length; wIdx++) {
+          const fallbacks = (QURAN_PHONETIC_FALLBACK[wIdx] || []).map((f) => f.toLowerCase());
+          if (fallbacks.some((f) => f.startsWith(token) || token.startsWith(f))) {
+            return wIdx;
+          }
+        }
+      }
+      return -1;
+    }
+
+    expect(resolveCumulativeTranslit("alhamdu")).toBe(0);
+    expect(resolveCumulativeTranslit("alhamdu lillahi")).toBe(1);
+    expect(resolveCumulativeTranslit("alhamdu lillahi rabbi")).toBe(2);
+    expect(resolveCumulativeTranslit("alhamdu lillahi rabbi alameen")).toBe(3);
+  });
+
+  it("advances cumulative Arabic tokens sequentially across all 4 words", () => {
+    const normWords = currentWords.map(normalizeArabic);
+
+    function resolveCumulativeArabic(spokenText: string): number {
+      const ARABIC_SCRIPT_REGEX = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/;
+      const tokens = spokenText
+        .split(/\s+/)
+        .filter((w) => ARABIC_SCRIPT_REGEX.test(w))
+        .map(normalizeArabic)
+        .filter(Boolean);
+
+      if (tokens.length === 0) return -1;
+
+      for (let sIdx = tokens.length - 1; sIdx >= 0; sIdx--) {
+        const token = tokens[sIdx];
+        for (let i = 0; i < normWords.length; i++) {
+          if (normWords[i] === token) return i;
+          const phonetics = (PHONETIC_MAP[i] || []).map(normalizeArabic);
+          if (phonetics.includes(token)) return i;
+        }
+      }
+
+      for (let sIdx = tokens.length - 1; sIdx >= 0; sIdx--) {
+        const token = tokens[sIdx];
+        if (token.length < 3) continue;
+        for (let i = 0; i < normWords.length; i++) {
+          const normWord = normWords[i];
+          if (normWord.length >= 3 && (normWord.includes(token) || token.includes(normWord))) {
+            return i;
+          }
+        }
+      }
+
+      return -1;
+    }
+
+    expect(resolveCumulativeArabic("الحمد")).toBe(0);
+    expect(resolveCumulativeArabic("الحمد لله")).toBe(1);
+    expect(resolveCumulativeArabic("الحمد لله رب")).toBe(2);
+    expect(resolveCumulativeArabic("الحمد لله رب العالمين")).toBe(3);
+  });
+
+  it("normalizes IndoPak Yeh and Uthmani Alif Khanjareeyah to identical Arabic roots", () => {
+    expect(normalizeArabic("الْعٰلَمِیْنَ")).toBe(normalizeArabic("ٱلْعَـٰلَمِينَ"));
+  });
 });

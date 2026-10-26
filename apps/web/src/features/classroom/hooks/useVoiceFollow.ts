@@ -18,6 +18,17 @@ export function useVoiceFollow({ currentWords, onMatchWord, audioStream }: UseVo
   const [activeSpeechEngine, setActiveSpeechEngine] = useState<"Deepgram AI" | "Web Speech" | null>(null);
   const activeSpeechEngineRef = useRef<"Deepgram AI" | "Web Speech" | null>(null);
 
+  // Store current words and callback in refs to avoid tearing down audio listeners on re-render
+  const currentWordsRef = useRef<string[]>(currentWords);
+  useEffect(() => {
+    currentWordsRef.current = currentWords;
+  }, [currentWords]);
+
+  const onMatchWordRef = useRef(onMatchWord);
+  useEffect(() => {
+    onMatchWordRef.current = onMatchWord;
+  }, [onMatchWord]);
+
   const setEngine = (engine: "Deepgram AI" | "Web Speech" | null) => {
     activeSpeechEngineRef.current = engine;
     setActiveSpeechEngine(engine);
@@ -30,75 +41,108 @@ export function useVoiceFollow({ currentWords, onMatchWord, audioStream }: UseVo
   const isStartingSpeechRef = useRef(false);
   const hasNotifiedVoiceRef = useRef(false);
 
-  const processSpokenTranscript = useCallback(
-    (rawText: string) => {
-      const clean = rawText.trim();
-      if (!clean) return;
+  const processSpokenTranscript = useCallback((rawText: string) => {
+    const clean = rawText.trim();
+    if (!clean) return;
 
-      setLastSpokenText(clean);
+    setLastSpokenText(clean);
 
-      const normWords = currentWords.map((w) => normalizeArabic(w));
+    const words = currentWordsRef.current;
+    if (!words || words.length === 0) return;
+    const normWords = words.map((w) => normalizeArabic(w));
 
-      // 1. Check for Arabic script tokens
-      const ARABIC_SCRIPT_REGEX = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/;
-      const arabicTokens = clean
-        .split(/\s+/)
-        .filter((w) => ARABIC_SCRIPT_REGEX.test(w));
+    // 1. Check for Arabic script tokens
+    const ARABIC_SCRIPT_REGEX = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/;
+    const arabicTokens = clean
+      .split(/\s+/)
+      .filter((w) => ARABIC_SCRIPT_REGEX.test(w))
+      .map((w) => normalizeArabic(w))
+      .filter(Boolean);
 
-      if (arabicTokens.length > 0) {
-        // Pass 1: Exact matches (checking from latest spoken token backwards)
-        for (let sIdx = arabicTokens.length - 1; sIdx >= 0; sIdx--) {
-          const wordToken = arabicTokens[sIdx] || "";
-          const normalizedSpoken = normalizeArabic(wordToken);
-          if (!normalizedSpoken) continue;
+    if (arabicTokens.length > 0) {
+      // Pass 1: Exact matches (checking from latest spoken token backwards)
+      for (let sIdx = arabicTokens.length - 1; sIdx >= 0; sIdx--) {
+        const token = arabicTokens[sIdx] || "";
+        if (!token) continue;
 
-          for (let i = 0; i < normWords.length; i++) {
-            if (normWords[i] === normalizedSpoken) {
-              onMatchWord(i);
+        for (let i = 0; i < normWords.length; i++) {
+          if (normWords[i] === token) {
+            onMatchWordRef.current(i);
+            return;
+          }
+          const phonetics = (PHONETIC_MAP[i] || []).map((p) => normalizeArabic(p));
+          if (phonetics.includes(token)) {
+            onMatchWordRef.current(i);
+            return;
+          }
+        }
+      }
+
+      // Pass 2: Prefix / Substring match (requires length >= 3)
+      for (let sIdx = arabicTokens.length - 1; sIdx >= 0; sIdx--) {
+        const token = arabicTokens[sIdx] || "";
+        if (!token || token.length < 3) continue;
+
+        for (let i = 0; i < normWords.length; i++) {
+          const normAyahWord = normWords[i] || "";
+          if (normAyahWord.length >= 3) {
+            if (normAyahWord.includes(token) || token.includes(normAyahWord)) {
+              onMatchWordRef.current(i);
               return;
             }
-            const phonetics = PHONETIC_MAP[i] || [];
-            if (phonetics.some((p) => normalizeArabic(p) === normalizedSpoken)) {
-              onMatchWord(i);
+          }
+        }
+      }
+    }
+
+    // 2. Transliteration / Phonetic matching (token-aware from latest token backwards)
+    const lower = clean.toLowerCase().replace(/[^a-z0-9\s'-]/g, " ").trim();
+    const tokens = lower.split(/\s+/).filter(Boolean);
+    if (tokens.length > 0) {
+      // Pass 2A: Compound two-word phrases and exact single tokens from latest backwards
+      for (let tIdx = tokens.length - 1; tIdx >= 0; tIdx--) {
+        const token = tokens[tIdx];
+        const pair = tIdx > 0 ? `${tokens[tIdx - 1]} ${token}` : "";
+        const pairHyphen = tIdx > 0 ? `${tokens[tIdx - 1]}-${token}` : "";
+
+        // Check compound phrases first
+        if (pair || pairHyphen) {
+          for (let wIdx = 0; wIdx < words.length; wIdx++) {
+            const fallbacks = (QURAN_PHONETIC_FALLBACK[wIdx] || []).map((f) => f.toLowerCase());
+            if (fallbacks.some((f) => f === pair || f === pairHyphen)) {
+              onMatchWordRef.current(wIdx);
               return;
             }
           }
         }
 
-        // Pass 2: Prefix / Substring match (requires length >= 3 to avoid matching short articles)
-        for (let sIdx = arabicTokens.length - 1; sIdx >= 0; sIdx--) {
-          const wordToken = arabicTokens[sIdx] || "";
-          const normalizedSpoken = normalizeArabic(wordToken);
-          if (!normalizedSpoken || normalizedSpoken.length < 3) continue;
-
-          for (let i = 0; i < normWords.length; i++) {
-            const normAyahWord = normWords[i] || "";
-            if (normAyahWord.length >= 3) {
-              if (normAyahWord.includes(normalizedSpoken) || normalizedSpoken.includes(normAyahWord)) {
-                onMatchWord(i);
-                return;
-              }
-            }
+        // Check single token exact match
+        for (let wIdx = 0; wIdx < words.length; wIdx++) {
+          const fallbacks = (QURAN_PHONETIC_FALLBACK[wIdx] || []).map((f) => f.toLowerCase());
+          if (fallbacks.some((f) => f === token)) {
+            onMatchWordRef.current(wIdx);
+            return;
           }
         }
       }
 
-      // 2. Transliteration fallback (e.g., "alhamdu", "lillah", "rabbi", "alameen", "bismillah")
-      const lowerClean = clean.toLowerCase();
-      for (let i = 0; i < currentWords.length; i++) {
-        const fallbacks = QURAN_PHONETIC_FALLBACK[i] || [];
-        if (fallbacks.some((p) => lowerClean.includes(p.toLowerCase()))) {
-          onMatchWord(i);
-          return;
+      // Pass 2B: Stem / Prefix match for longer tokens (length >= 4)
+      for (let tIdx = tokens.length - 1; tIdx >= 0; tIdx--) {
+        const token = tokens[tIdx];
+        if (token.length < 4) continue;
+        for (let wIdx = 0; wIdx < words.length; wIdx++) {
+          const fallbacks = (QURAN_PHONETIC_FALLBACK[wIdx] || []).map((f) => f.toLowerCase());
+          if (fallbacks.some((f) => f.startsWith(token) || token.startsWith(f))) {
+            onMatchWordRef.current(wIdx);
+            return;
+          }
         }
       }
-    },
-    [currentWords, onMatchWord]
-  );
+    }
+  }, []);
 
   const startWebSpeechFallback = useCallback(() => {
-    if (isStartingSpeechRef.current) return;
-    isStartingSpeechRef.current = true;
+    isStartingSpeechRef.current = false;
 
     interface BrowserSpeechRecognition {
       new (): {
@@ -125,7 +169,6 @@ export function useVoiceFollow({ currentWords, onMatchWord, audioStream }: UseVo
     if (!SpeechRecognition) {
       setVoiceError("Speech recognition is not supported in this browser. Please use Google Chrome or Edge.");
       toast.error("Speech API not supported in this browser", { id: "voice-follow-status" });
-      isStartingSpeechRef.current = false;
       return;
     }
 
@@ -153,15 +196,20 @@ export function useVoiceFollow({ currentWords, onMatchWord, audioStream }: UseVo
       };
 
       recognition.onerror = (e: { error: string }) => {
+        isStartingSpeechRef.current = false;
         if (e.error !== "no-speech") {
-          console.warn("[Voice Follow] Speech recognition error:", e.error);
-          setVoiceError(`Mic notice: ${e.error}`);
+          console.warn("[Voice Follow] Speech recognition notice:", e.error);
+          if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+            setVoiceError("Microphone access blocked. Please allow mic permissions in your browser.");
+            toast.error("Microphone access blocked. Allow mic in browser settings.", { id: "voice-follow-status" });
+          }
         }
       };
 
       recognition.onend = () => {
-        // Robust restart without stale state closures
-        if (isVoiceFollowOnRef.current && activeSpeechEngineRef.current === "Web Speech") {
+        isStartingSpeechRef.current = false;
+        // Automatically restart speech loop while voice follow remains toggled on
+        if (isVoiceFollowOnRef.current) {
           try {
             recognition.start();
           } catch {}
@@ -186,12 +234,13 @@ export function useVoiceFollow({ currentWords, onMatchWord, audioStream }: UseVo
   }, [processSpokenTranscript]);
 
   const startVoiceFollow = useCallback(async () => {
-    // 1. Try Deepgram Nova-3 Streaming via WebSocket
+    // 1. Try Deepgram Nova-3 Streaming if key is configured
     try {
       const tokenRes = await fetch("/api/speech/deepgram-token");
       const tokenData = await tokenRes.json();
       if (tokenData.configured && tokenData.apiKey) {
-        const keyterms = currentWords
+        const words = currentWordsRef.current;
+        const keyterms = words
           .map((w) => normalizeArabic(w))
           .filter((w) => w.length > 1)
           .slice(0, 25);
@@ -272,9 +321,10 @@ export function useVoiceFollow({ currentWords, onMatchWord, audioStream }: UseVo
           triggerFallback();
         };
 
-        socket.onclose = (event) => {
-          if (isVoiceFollowOnRef.current && event.code !== 1000 && event.code !== 1005) {
-            console.warn(`[Deepgram] Connection closed (${event.code}), falling back to Web Speech.`);
+        socket.onclose = () => {
+          // If Deepgram closes for ANY reason while voice follow is toggled on, immediately fall back to Web Speech
+          if (isVoiceFollowOnRef.current) {
+            console.warn("[Deepgram] Disconnected, activating Web Speech engine fallback.");
             triggerFallback();
           }
         };
@@ -286,9 +336,9 @@ export function useVoiceFollow({ currentWords, onMatchWord, audioStream }: UseVo
       console.warn("[Deepgram] Token fetch or initialization failed:", err);
     }
 
-    // 2. Fallback to Web Speech API
+    // 2. Direct Web Speech Engine fallback
     startWebSpeechFallback();
-  }, [audioStream, currentWords, processSpokenTranscript, startWebSpeechFallback]);
+  }, [audioStream, processSpokenTranscript, startWebSpeechFallback]);
 
   const stopVoiceFollow = useCallback(() => {
     hasNotifiedVoiceRef.current = false;
@@ -302,7 +352,6 @@ export function useVoiceFollow({ currentWords, onMatchWord, audioStream }: UseVo
         deepgramRecorderRef.current.stop();
       } catch {}
     }
-    // Only stop deepgramStream tracks if it was a standalone stream (not the shared classroom stream)
     if (deepgramStreamRef.current && deepgramStreamRef.current !== audioStream) {
       deepgramStreamRef.current.getTracks().forEach((t) => t.stop());
     }
@@ -331,6 +380,15 @@ export function useVoiceFollow({ currentWords, onMatchWord, audioStream }: UseVo
     }
   }, [isVoiceFollowOn, startVoiceFollow, stopVoiceFollow]);
 
+  // Provide an immediate simulation helper for zero-mic environments or test validation
+  const simulateRecitation = useCallback((wordIdx?: number) => {
+    const words = currentWordsRef.current;
+    if (!words || words.length === 0) return;
+    const targetIdx = wordIdx !== undefined ? wordIdx : 0;
+    const spoken = words[targetIdx] || "الحمد";
+    processSpokenTranscript(spoken);
+  }, [processSpokenTranscript]);
+
   useEffect(() => {
     return () => {
       stopVoiceFollow();
@@ -343,5 +401,7 @@ export function useVoiceFollow({ currentWords, onMatchWord, audioStream }: UseVo
     lastSpokenText,
     voiceError,
     toggleVoiceFollow,
+    simulateRecitation,
+    processSpokenTranscript,
   };
 }
