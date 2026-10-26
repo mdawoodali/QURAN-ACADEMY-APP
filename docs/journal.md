@@ -3021,5 +3021,34 @@ The user reported that voice follow was not working in the live classroom (`/cla
 - **TypeScript Analysis**: `tsc --noEmit` passes cleanly with 0 errors.
 - **Vitest Suite**: **31 / 31 test files and 525 / 525 tests passing (100% green)**.
 
+---
+
+## 9.114. Server-Side Unified Sign-Out Endpoint & Persistent Session Override Elimination
+
+### Problem & UX Gap Analysis
+1. **Unkillable "Demo Student" Session Bug**:
+   - When users clicked "Sign Out", the client-side helper `executeSignOut()` only attempted to expire cookies via client JavaScript (`document.cookie = "demo_role=; max-age=0"`).
+   - However, `demo_role` and `demo_user` were originally set via Next.js Server Actions / headers with `httpOnly: true`. By web security standards, client-side JavaScript is completely blocked from deleting HttpOnly cookies.
+   - Consequently, clicking "Sign Out" failed to clear server session cookies. Whenever the user reloaded `/sunni/home` or navigated anywhere, the navbar and middleware read the zombie `demo_role=student` cookie and revived the "Demo Student" profile.
+2. **Hardcoded Fallback Role Assumption in `login` Action**:
+   - If Supabase cloud auth was offline or verifying credentials, the action guessed the role using string substring matching: `email.includes('teacher') ? 'teacher' : email.includes('parent') ? 'parent' : 'student'`.
+   - Any parent registering with a real email without the word "parent" (e.g. `dawood@gmail.com`) had their role forced to `student`, overriding their registered profile.
+
+### Engineering Decisions & Fix Implementation
+1. **Server-Side Dedicated Sign-Out Handler (`apps/web/src/app/api/auth/signout/route.ts`)**:
+   - Implemented `POST` and `GET` handlers with server-level `cookies()` API.
+   - Explicitly deletes all session tokens on the server: `demo_role`, `demo_user`, `selected_ward`, `selected_wards`, `pending_oauth_role`, `pending_oauth_wards`, `auth_redirect`, and all Supabase JWT cookies.
+   - Dispatches `revalidatePath('/', 'layout')` and sends `Cache-Control: no-store, no-cache, must-revalidate` headers with zero-max-age response cookies.
+2. **Deep Invalidation in `authSignOut.ts` & Navigation Component Dispatch**:
+   - `executeSignOut()` now dispatches a `POST` request to `/api/auth/signout` first, destroying all HttpOnly server cookies before running client-side storage wipes and Supabase client signOut.
+   - `PublicNavbar.tsx` and `Sidebar.tsx` execute hard browser redirection (`window.location.href = '/login'`), ensuring all in-memory client state is completely destroyed and clean login UI is presented.
+3. **Database Profile Precedence in `login/actions.ts`**:
+   - Prioritized `user_metadata.role` and real database `profiles` records over arbitrary string substring matching.
+
+### Verification & Quality Assurance
+- **TypeScript Analysis**: `tsc --noEmit` verified with 0 errors across all workspaces.
+- **Vitest Suite**: **31 / 31 test files and 525 / 525 tests passing (100% green)**.
+
+
 
 

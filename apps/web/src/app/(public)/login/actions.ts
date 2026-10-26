@@ -36,14 +36,23 @@ export async function login(formData: FormData) {
       }
 
       if (authData?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role, first_name, last_name')
-          .eq('id', authData.user.id)
-          .single()
+        let profileRole: string | undefined = (authData.user.user_metadata?.role as string) || undefined
+        let profileName: string | undefined = (authData.user.user_metadata?.full_name as string) || undefined
 
-        const userRole = profile?.role || 'student'
-        const userName = `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || email
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role, first_name, last_name')
+            .eq('id', authData.user.id)
+            .single()
+
+          if (profile?.role) profileRole = profile.role
+          const combined = `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim()
+          if (combined) profileName = combined
+        } catch {}
+
+        const userRole = profileRole || 'student'
+        const userName = profileName || email
         cookieStore.set('demo_role', userRole, { path: '/' })
         cookieStore.set('demo_user', userName, { path: '/' })
 
@@ -67,18 +76,34 @@ export async function login(formData: FormData) {
     }
   }
 
-  // Determine user role based on email or credentials
-  const role = (email.includes('superadmin') || email.includes('admin'))
+  // Determine user role based on database profile or email pattern
+  let role = (email.includes('superadmin') || email.includes('admin'))
     ? 'admin'
     : email.includes('teacher')
     ? 'teacher'
     : email.includes('parent')
     ? 'parent'
     : 'student'
+  let userName = email.split('@')[0] || 'User'
+
+  try {
+    const supabase = await createClient()
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role, first_name, last_name')
+      .eq('email', email)
+      .maybeSingle()
+
+    if (profile?.role) {
+      role = profile.role
+      const combined = `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
+      if (combined) userName = combined
+    }
+  } catch {}
 
   // Persist demo role cookie for local development & preview modes
   cookieStore.set('demo_role', role, { path: '/' })
-  cookieStore.set('demo_user', email || 'Demo User', { path: '/' })
+  cookieStore.set('demo_user', userName, { path: '/' })
 
   try {
     revalidatePath('/', 'layout')

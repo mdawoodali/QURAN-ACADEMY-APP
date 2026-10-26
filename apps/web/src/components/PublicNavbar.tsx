@@ -200,8 +200,12 @@ export default function PublicNavbar() {
       setIsLoggedIn(false);
       setUserProfile(null);
       closeMenu();
-      router.push("/login");
-      router.refresh();
+      if (typeof window !== "undefined") {
+        window.location.href = "/login";
+      } else {
+        router.push("/login");
+        router.refresh();
+      }
     }
   };
 

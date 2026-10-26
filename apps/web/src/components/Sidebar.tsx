@@ -102,8 +102,12 @@ export default function Sidebar({ onClose, role, userName, initials }: { onClose
       console.warn("[Sidebar] Sign out error:", err);
     } finally {
       onClose?.();
-      router.push('/login');
-      router.refresh();
+      if (typeof window !== "undefined") {
+        window.location.href = '/login';
+      } else {
+        router.push('/login');
+        router.refresh();
+      }
     }
   };
 

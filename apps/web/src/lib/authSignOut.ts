@@ -10,13 +10,35 @@ import { createClient } from "@/utils/supabase/client";
  * - Supabase Auth signOut with graceful offline fallback
  */
 export async function executeSignOut(): Promise<void> {
+  // 0. Server-side cookie & session invalidation (destroys HttpOnly cookies)
+  if (typeof window !== "undefined") {
+    try {
+      await fetch("/api/auth/signout", {
+        method: "POST",
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" },
+      });
+    } catch (serverErr) {
+      console.warn("[executeSignOut] Server signout endpoint notice:", serverErr);
+    }
+  }
+
   // 1. Purge cookies (demo credentials and Supabase client tokens)
   if (typeof document !== "undefined") {
     try {
-      document.cookie = "demo_role=; path=/; max-age=0";
-      document.cookie = "demo_user=; path=/; max-age=0";
-      document.cookie = "demo_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-      document.cookie = "demo_user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+      const expiredTokens = [
+        "demo_role",
+        "demo_user",
+        "selected_ward",
+        "selected_wards",
+        "pending_oauth_role",
+        "pending_oauth_wards",
+        "auth_redirect",
+      ];
+      for (const token of expiredTokens) {
+        document.cookie = `${token}=; path=/; max-age=0`;
+        document.cookie = `${token}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+      }
 
       const cookieList = document.cookie.split(";");
       for (const cookie of cookieList) {
