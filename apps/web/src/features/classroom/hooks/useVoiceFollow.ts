@@ -2,13 +2,19 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import toast from "react-hot-toast";
-import { normalizeArabic, PHONETIC_MAP, QURAN_PHONETIC_FALLBACK } from "../constants";
+import {
+  normalizeArabic,
+  stripArabicPrefix,
+  getWordFallbacks,
+  PHONETIC_MAP,
+  QURAN_PHONETIC_FALLBACK,
+} from "../constants";
 
 interface UseVoiceFollowOptions {
   currentWords: string[];
   onMatchWord: (index: number) => void;
   audioStream?: MediaStream | null;
-  currentIndex?: number;
+  currentIndex?: number | null;
   defaultOn?: boolean;
 }
 
@@ -39,9 +45,11 @@ export function useVoiceFollow({
     onMatchWordRef.current = onMatchWord;
   }, [onMatchWord]);
 
-  const currentIndexRef = useRef(currentIndex);
+  const currentIndexRef = useRef(currentIndex ?? 0);
   useEffect(() => {
-    currentIndexRef.current = currentIndex;
+    if (currentIndex !== undefined && currentIndex !== null && currentIndex >= 0) {
+      currentIndexRef.current = currentIndex;
+    }
   }, [currentIndex]);
 
   const setEngine = (engine: string | null) => {
@@ -49,7 +57,8 @@ export function useVoiceFollow({
     setActiveSpeechEngine(engine);
   };
 
-  const recognitionRef = useRef<{ start: () => void; stop: () => void } | null>(null);
+  const recognitionRef = useRef<{ start: () => void; stop: () => void; abort?: () => void } | null>(null);
+  const webSpeechRestartTimerRef = useRef<NodeJS.Timeout | null>(null);
   const deepgramSocketRef = useRef<WebSocket | null>(null);
   const deepgramStreamRef = useRef<MediaStream | null>(null);
   const deepgramRecorderRef = useRef<MediaRecorder | null>(null);
@@ -125,59 +134,52 @@ export function useVoiceFollow({
         source.connect(analyser);
         vadSourceRef.current = source;
 
-        const freqData = new Uint8Array(analyser.frequencyBinCount);
-        lastFrameTimeRef.current = Date.now();
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        lastFrameTimeRef.current = performance.now();
+        lastAdvanceTimeRef.current = Date.now();
 
         const monitorLoop = () => {
-          if (!isVoiceFollowOnRef.current) {
-            stopVadCadenceTracker();
-            return;
-          }
+          if (!isVoiceFollowOnRef.current) return;
 
-          analyser.getByteFrequencyData(freqData);
+          analyser.getByteFrequencyData(dataArray);
           let sum = 0;
-          for (let i = 0; i < freqData.length; i++) {
-            sum += freqData[i] || 0;
+          for (let i = 0; i < dataArray.length; i++) {
+            sum += dataArray[i]!;
           }
-          const avg = sum / freqData.length;
-          const now = Date.now();
-          const deltaMs = Math.min(now - (lastFrameTimeRef.current || now), 100);
+          const avg = sum / dataArray.length;
+          const normalized = Math.min(100, Math.round((avg / 128) * 100));
+          setAudioLevel(normalized);
+
+          const now = performance.now();
+          const deltaMs = now - (lastFrameTimeRef.current || now);
           lastFrameTimeRef.current = now;
 
-          const isSpeakingNow = avg > 14;
-          setIsVoiceActive(isSpeakingNow);
-          setAudioLevel(Math.min(100, Math.round(avg * 2.2)));
-
-          if (isSpeakingNow) {
+          const VOICE_THRESHOLD = 18;
+          if (avg > VOICE_THRESHOLD) {
+            setIsVoiceActive(true);
             consecutiveSpeechMsRef.current += deltaMs;
 
-            // Recitation word progression: sustained vocal energy >= 300ms
-            // Average Quran word duration is ~650ms - 1100ms
-            if (consecutiveSpeechMsRef.current >= 300) {
-              const timeSinceAdvance = now - lastAdvanceTimeRef.current;
-              if (timeSinceAdvance >= 700) {
-                const words = currentWordsRef.current;
-                const curr = currentIndexRef.current;
-                if (words && words.length > 0) {
-                  if (curr < words.length - 1) {
-                    const next = curr + 1;
-                    currentIndexRef.current = next;
-                    lastAdvanceTimeRef.current = now;
-                    consecutiveSpeechMsRef.current = 0;
-                    onMatchWordRef.current(next);
-                  } else if (now - lastSpeechEndTimeRef.current > 2500) {
-                    // Full ayah completed, student paused and started reciting again -> loop back to word 0
-                    currentIndexRef.current = 0;
-                    lastAdvanceTimeRef.current = now;
-                    consecutiveSpeechMsRef.current = 0;
-                    onMatchWordRef.current(0);
-                  }
-                }
+            const timeSinceAdvance = Date.now() - lastAdvanceTimeRef.current;
+            if (
+              consecutiveSpeechMsRef.current >= 400 &&
+              timeSinceAdvance >= 750
+            ) {
+              const words = currentWordsRef.current;
+              const curr = currentIndexRef.current;
+              if (words && words.length > 0 && curr < words.length - 1) {
+                const nextIdx = curr + 1;
+                currentIndexRef.current = nextIdx;
+                lastAdvanceTimeRef.current = Date.now();
+                consecutiveSpeechMsRef.current = 0;
+                onMatchWordRef.current(nextIdx);
               }
             }
           } else {
-            consecutiveSpeechMsRef.current = 0;
-            lastSpeechEndTimeRef.current = now;
+            setIsVoiceActive(false);
+            if (consecutiveSpeechMsRef.current > 0) {
+              lastSpeechEndTimeRef.current = Date.now();
+            }
+            consecutiveSpeechMsRef.current = Math.max(0, consecutiveSpeechMsRef.current - deltaMs * 1.5);
           }
 
           vadAnimFrameRef.current = requestAnimationFrame(monitorLoop);
@@ -185,7 +187,7 @@ export function useVoiceFollow({
 
         vadAnimFrameRef.current = requestAnimationFrame(monitorLoop);
       } catch (err) {
-        console.warn("[Voice Follow] Failed to initialize VAD cadence tracker:", err);
+        console.warn("[VAD] Failed to initialize audio cadence monitor:", err);
       }
     },
     [stopVadCadenceTracker]
@@ -199,7 +201,53 @@ export function useVoiceFollow({
 
     const words = currentWordsRef.current;
     if (!words || words.length === 0) return;
+    const totalWords = words.length;
+
     const normWords = words.map((w) => normalizeArabic(w));
+    const prefixStrippedWords = normWords.map((w) => stripArabicPrefix(w));
+
+    // Forward-biased candidate search order based on currentIndex
+    const getCandidateIndices = (curr: number): number[] => {
+      const candidates: number[] = [];
+      const visited = new Set<number>();
+
+      const addIdx = (idx: number) => {
+        if (idx >= 0 && idx < totalWords && !visited.has(idx)) {
+          visited.add(idx);
+          candidates.push(idx);
+        }
+      };
+
+      if (curr >= 0 && curr < totalWords) {
+        // 1. Next word (highest expectation in sequential recitation)
+        addIdx(curr + 1);
+
+        // 2. Immediate forward window (2-6 words ahead)
+        for (let i = 2; i <= 6; i++) {
+          addIdx(curr + i);
+        }
+
+        // 3. Current word repeated
+        addIdx(curr);
+
+        // 4. Further ahead in the lesson
+        for (let i = curr + 7; i < totalWords; i++) {
+          addIdx(i);
+        }
+
+        // 5. Earlier in the lesson (restarting surah or jump back)
+        for (let i = 0; i < curr; i++) {
+          addIdx(i);
+        }
+      } else {
+        // Natural start: iterate from word 0 to end
+        for (let i = 0; i < totalWords; i++) {
+          addIdx(i);
+        }
+      }
+
+      return candidates;
+    };
 
     // 1. Check for Arabic script tokens
     const ARABIC_SCRIPT_REGEX = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/;
@@ -210,94 +258,126 @@ export function useVoiceFollow({
       .filter(Boolean);
 
     if (arabicTokens.length > 0) {
-      // Pass 1A: Exact matches (checking from latest spoken token backwards, matching furthest word in Ayah)
-      for (let sIdx = arabicTokens.length - 1; sIdx >= 0; sIdx--) {
-        const token = arabicTokens[sIdx] || "";
-        if (!token) continue;
+      for (const token of arabicTokens) {
+        const tokenStripped = stripArabicPrefix(token);
+        const candidates = getCandidateIndices(currentIndexRef.current);
+        let matchedIdx = -1;
 
-        for (let i = normWords.length - 1; i >= 0; i--) {
-          if (normWords[i] === token) {
-            currentIndexRef.current = i;
-            lastAdvanceTimeRef.current = Date.now();
-            onMatchWordRef.current(i);
-            return;
-          }
-          const phonetics = (PHONETIC_MAP[i] || []).map((p) => normalizeArabic(p));
-          if (phonetics.includes(token)) {
-            currentIndexRef.current = i;
-            lastAdvanceTimeRef.current = Date.now();
-            onMatchWordRef.current(i);
-            return;
+        // Tier 1: Exact normalized Arabic match
+        for (const idx of candidates) {
+          if (normWords[idx] === token) {
+            matchedIdx = idx;
+            break;
           }
         }
-      }
 
-      // Pass 1B: Prefix / Compound substring match (e.g. "الحمدلله" matches "لله", length >= 3)
-      for (let sIdx = arabicTokens.length - 1; sIdx >= 0; sIdx--) {
-        const token = arabicTokens[sIdx] || "";
-        if (!token || token.length < 3) continue;
-
-        for (let i = normWords.length - 1; i >= 0; i--) {
-          const normAyahWord = normWords[i] || "";
-          if (normAyahWord.length >= 3) {
-            if (token.includes(normAyahWord) || normAyahWord.includes(token)) {
-              currentIndexRef.current = i;
-              lastAdvanceTimeRef.current = Date.now();
-              onMatchWordRef.current(i);
-              return;
+        // Tier 2: Prefix-stripped match
+        if (matchedIdx === -1 && tokenStripped.length >= 3) {
+          for (const idx of candidates) {
+            if (prefixStrippedWords[idx] === tokenStripped) {
+              matchedIdx = idx;
+              break;
             }
           }
         }
+
+        // Tier 3: Substring / stem containment (requires length >= 3)
+        if (matchedIdx === -1 && token.length >= 3) {
+          for (const idx of candidates) {
+            const w = normWords[idx] || "";
+            if (w.length >= 3 && (w.includes(token) || token.includes(w))) {
+              matchedIdx = idx;
+              break;
+            }
+          }
+        }
+
+        // Tier 4: Phonetic map / letter name fallback
+        if (matchedIdx === -1) {
+          for (const idx of candidates) {
+            const phonetics = (PHONETIC_MAP[idx] || []).map((p) => normalizeArabic(p));
+            if (
+              phonetics.includes(token) ||
+              (tokenStripped.length >= 3 && phonetics.some((p) => stripArabicPrefix(p) === tokenStripped))
+            ) {
+              matchedIdx = idx;
+              break;
+            }
+          }
+        }
+
+        if (matchedIdx !== -1) {
+          currentIndexRef.current = matchedIdx;
+          lastAdvanceTimeRef.current = Date.now();
+          onMatchWordRef.current(matchedIdx);
+        }
       }
+      return;
     }
 
-    // 2. Transliteration / Phonetic matching (token-aware from latest token backwards)
+    // 2. Transliteration / Phonetic matching for non-Arabic transcription streams
     const lower = clean.toLowerCase().replace(/[^a-z0-9\s'-]/g, " ").trim();
     const tokens = lower.split(/\s+/).filter(Boolean);
     if (tokens.length > 0) {
-      // Pass 2A: Compound two-word phrases and exact single tokens from latest backwards
-      for (let tIdx = tokens.length - 1; tIdx >= 0; tIdx--) {
+      for (let tIdx = 0; tIdx < tokens.length; tIdx++) {
         const token = tokens[tIdx];
-        const pair = tIdx > 0 ? `${tokens[tIdx - 1]} ${token}` : "";
-        const pairHyphen = tIdx > 0 ? `${tokens[tIdx - 1]}-${token}` : "";
+        const nextToken = tokens[tIdx + 1];
+        const pair = nextToken ? `${token} ${nextToken}` : "";
+        const pairHyphen = nextToken ? `${token}-${nextToken}` : "";
 
-        // Check compound phrases first (from furthest word downwards)
+        const candidates = getCandidateIndices(currentIndexRef.current);
+        let matchedIdx = -1;
+
+        // Pass 2A: Compound two-word phrases
         if (pair || pairHyphen) {
-          for (let wIdx = words.length - 1; wIdx >= 0; wIdx--) {
-            const fallbacks = (QURAN_PHONETIC_FALLBACK[wIdx] || []).map((f) => f.toLowerCase());
+          for (const idx of candidates) {
+            const fallbacks = [
+              ...(QURAN_PHONETIC_FALLBACK[idx] || []),
+              ...getWordFallbacks(words[idx] || ""),
+            ].map((f) => f.toLowerCase());
+
             if (fallbacks.some((f) => f === pair || f === pairHyphen)) {
-              currentIndexRef.current = wIdx;
-              lastAdvanceTimeRef.current = Date.now();
-              onMatchWordRef.current(wIdx);
-              return;
+              matchedIdx = idx;
+              tIdx++; // consumed pair
+              break;
             }
           }
         }
 
-        // Check single token exact match (from furthest word downwards)
-        for (let wIdx = words.length - 1; wIdx >= 0; wIdx--) {
-          const fallbacks = (QURAN_PHONETIC_FALLBACK[wIdx] || []).map((f) => f.toLowerCase());
-          if (fallbacks.some((f) => f === token)) {
-            currentIndexRef.current = wIdx;
-            lastAdvanceTimeRef.current = Date.now();
-            onMatchWordRef.current(wIdx);
-            return;
+        // Pass 2B: Single token exact match
+        if (matchedIdx === -1) {
+          for (const idx of candidates) {
+            const fallbacks = [
+              ...(QURAN_PHONETIC_FALLBACK[idx] || []),
+              ...getWordFallbacks(words[idx] || ""),
+            ].map((f) => f.toLowerCase());
+
+            if (fallbacks.some((f) => f === token)) {
+              matchedIdx = idx;
+              break;
+            }
           }
         }
-      }
 
-      // Pass 2B: Stem / Prefix match for longer tokens (length >= 4)
-      for (let tIdx = tokens.length - 1; tIdx >= 0; tIdx--) {
-        const token = tokens[tIdx];
-        if (token.length < 4) continue;
-        for (let wIdx = words.length - 1; wIdx >= 0; wIdx--) {
-          const fallbacks = (QURAN_PHONETIC_FALLBACK[wIdx] || []).map((f) => f.toLowerCase());
-          if (fallbacks.some((f) => f.startsWith(token) || token.startsWith(f))) {
-            currentIndexRef.current = wIdx;
-            lastAdvanceTimeRef.current = Date.now();
-            onMatchWordRef.current(wIdx);
-            return;
+        // Pass 2C: Stem / Prefix match for longer tokens (length >= 4)
+        if (matchedIdx === -1 && token.length >= 4) {
+          for (const idx of candidates) {
+            const fallbacks = [
+              ...(QURAN_PHONETIC_FALLBACK[idx] || []),
+              ...getWordFallbacks(words[idx] || ""),
+            ].map((f) => f.toLowerCase());
+
+            if (fallbacks.some((f) => f.startsWith(token) || token.startsWith(f))) {
+              matchedIdx = idx;
+              break;
+            }
           }
+        }
+
+        if (matchedIdx !== -1) {
+          currentIndexRef.current = matchedIdx;
+          lastAdvanceTimeRef.current = Date.now();
+          onMatchWordRef.current(matchedIdx);
         }
       }
     }
@@ -320,6 +400,7 @@ export function useVoiceFollow({
         }) => void;
         start: () => void;
         stop: () => void;
+        abort?: () => void;
       };
     }
     const SpeechRecognition =
@@ -329,15 +410,23 @@ export function useVoiceFollow({
         .webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      setVoiceError(null);
-      setEngine("Live Voice Cadence");
+      setVoiceError("Speech recognition is not supported in this browser. Please use Google Chrome or Edge.");
+      toast.error("Speech API not supported in this browser", { id: "voice-follow-status" });
       return;
     }
 
     try {
+      if (webSpeechRestartTimerRef.current) {
+        clearTimeout(webSpeechRestartTimerRef.current);
+        webSpeechRestartTimerRef.current = null;
+      }
       if (recognitionRef.current) {
         try {
-          recognitionRef.current.stop();
+          if (recognitionRef.current.abort) {
+            recognitionRef.current.abort();
+          } else {
+            recognitionRef.current.stop();
+          }
         } catch {}
         recognitionRef.current = null;
       }
@@ -349,38 +438,36 @@ export function useVoiceFollow({
 
       recognition.onstart = () => {
         setVoiceError(null);
-        setEngine("Deepgram Nova-3 + VAD");
+        setEngine("Web Speech");
         isStartingSpeechRef.current = false;
         if (!hasNotifiedVoiceRef.current) {
           hasNotifiedVoiceRef.current = true;
-          toast.success("AI Voice Follow active (Real-Time Recitation Tracker)", {
-            id: "voice-follow-status",
-          });
+          toast.success("AI Arabic Voice Follow active (Web Speech)", { id: "voice-follow-status" });
         }
       };
 
       recognition.onerror = (e: { error: string }) => {
         isStartingSpeechRef.current = false;
-        if (e.error !== "no-speech" && e.error !== "network") {
+        if (e.error !== "no-speech") {
           console.warn("[Voice Follow] Speech recognition notice:", e.error);
           if (e.error === "not-allowed" || e.error === "service-not-allowed") {
             setVoiceError("Microphone access blocked. Please allow mic permissions in your browser.");
-            toast.error("Microphone access blocked. Allow mic in browser settings.", {
-              id: "voice-follow-status",
-            });
+            toast.error("Microphone access blocked. Allow mic in browser settings.", { id: "voice-follow-status" });
           }
         }
       };
 
       recognition.onend = () => {
         isStartingSpeechRef.current = false;
-        // Always instantiate a new recognition session upon onend rather than calling .start() on the ended instance
         if (isVoiceFollowOnRef.current) {
-          setTimeout(() => {
+          if (webSpeechRestartTimerRef.current) {
+            clearTimeout(webSpeechRestartTimerRef.current);
+          }
+          webSpeechRestartTimerRef.current = setTimeout(() => {
             if (isVoiceFollowOnRef.current) {
               startWebSpeechFallback();
             }
-          }, 300);
+          }, 250);
         }
       };
 
@@ -396,13 +483,12 @@ export function useVoiceFollow({
       recognition.start();
     } catch (err) {
       console.warn("[Voice Follow] Failed to initialize Web Speech:", err);
-      setEngine("Live Voice Cadence");
+      setVoiceError("Failed to access speech engine.");
       isStartingSpeechRef.current = false;
     }
   }, [processSpokenTranscript]);
 
   const startVoiceFollow = useCallback(async () => {
-    // 1. Guaranteed Deepgram Nova-3 Streaming with verified production fallback key
     const FALLBACK_KEY = "5d6b86e07b415db4cdd9d41b76e0d5892f0268c9";
     let apiKey = "";
     try {
@@ -419,7 +505,6 @@ export function useVoiceFollow({
       apiKey = FALLBACK_KEY;
     }
 
-    // Always start real-time VAD Cadence Tracker on active mic stream immediately
     try {
       let stream = audioStream;
       if (!stream || !stream.getAudioTracks().some((t) => t.readyState === "live")) {
@@ -443,7 +528,7 @@ export function useVoiceFollow({
         const keyterms = words
           .map((w) => normalizeArabic(w))
           .filter((w) => w.length > 1)
-          .slice(0, 25);
+          .slice(0, 50);
         const keytermParams =
           keyterms.length > 0
             ? "&" + keyterms.map((w) => `keyterm=${encodeURIComponent(w)}`).join("&")
@@ -456,10 +541,6 @@ export function useVoiceFollow({
         const triggerFallback = () => {
           if (hasFallenBack || !isVoiceFollowOnRef.current) return;
           hasFallenBack = true;
-          if (keepAliveIntervalRef.current) {
-            clearInterval(keepAliveIntervalRef.current);
-            keepAliveIntervalRef.current = null;
-          }
           try {
             if (deepgramRecorderRef.current && deepgramRecorderRef.current.state !== "inactive") {
               deepgramRecorderRef.current.stop();
@@ -502,7 +583,6 @@ export function useVoiceFollow({
             recorder.start(250);
             deepgramRecorderRef.current = recorder;
 
-            // Maintain KeepAlive heartbeat every 5 seconds to prevent WebSocket idle timeout
             if (keepAliveIntervalRef.current) clearInterval(keepAliveIntervalRef.current);
             keepAliveIntervalRef.current = setInterval(() => {
               if (socket.readyState === WebSocket.OPEN) {
@@ -563,7 +643,6 @@ export function useVoiceFollow({
       console.warn("[Deepgram] Token fetch or initialization failed:", err);
     }
 
-    // 2. Direct Web Speech Engine fallback
     startWebSpeechFallback();
   }, [audioStream, processSpokenTranscript, startVadCadenceTracker, startWebSpeechFallback]);
 
@@ -575,6 +654,11 @@ export function useVoiceFollow({
     isStartingSpeechRef.current = false;
 
     stopVadCadenceTracker();
+
+    if (webSpeechRestartTimerRef.current) {
+      clearTimeout(webSpeechRestartTimerRef.current);
+      webSpeechRestartTimerRef.current = null;
+    }
 
     if (keepAliveIntervalRef.current) {
       clearInterval(keepAliveIntervalRef.current);
@@ -614,7 +698,6 @@ export function useVoiceFollow({
     }
   }, [isVoiceFollowOn, startVoiceFollow, stopVoiceFollow]);
 
-  // Provide an immediate simulation helper for zero-mic environments or test validation
   const simulateRecitation = useCallback(
     (wordIdx?: number) => {
       const words = currentWordsRef.current;

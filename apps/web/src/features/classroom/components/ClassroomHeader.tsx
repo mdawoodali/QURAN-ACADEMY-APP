@@ -31,7 +31,7 @@ export default function ClassroomHeader({
   script,
   tajweedMode,
   classId,
-  activeLessonId = "fatihah-2",
+  activeLessonId = "fatihah-all",
   lessons = CURRICULUM_LESSONS,
   livekitStatus,
   connectionStatus = "connected",

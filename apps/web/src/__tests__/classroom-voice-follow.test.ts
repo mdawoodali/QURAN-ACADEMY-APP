@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { normalizeArabic, PHONETIC_MAP, QURAN_PHONETIC_FALLBACK } from "@/features/classroom/constants";
+import { normalizeArabic, stripArabicPrefix, getWordFallbacks, PHONETIC_MAP, QURAN_PHONETIC_FALLBACK, CURRICULUM_LESSONS } from "@/features/classroom/constants";
 
 describe("Classroom AI Voice Following & Recitation Alignment Suite", () => {
   const currentWords = ["ٱلْحَمْدُ", "لِلَّهِ", "رَبِّ", "ٱلْعَـٰلَمِينَ"];
@@ -316,7 +316,7 @@ describe("Classroom AI Voice Following & Recitation Alignment Suite", () => {
     expect(normalizeArabic("الْعٰلَمِیْنَ")).toBe(normalizeArabic("ٱلْعَـٰلَمِينَ"));
   });
 
-  it("normalizes IndoPak and Uthmani Lillah to canonical لله preventing dagger-alif corruption", () => {
+it("normalizes IndoPak and Uthmani Lillah to canonical لله preventing dagger-alif corruption", () => {
     expect(normalizeArabic("لِلّٰهِ")).toBe("لله");
     expect(normalizeArabic("لِلَّهِ")).toBe("لله");
     expect(normalizeArabic("اللّٰهِ")).toBe("الله");
@@ -337,7 +337,8 @@ describe("Classroom AI Voice Following & Recitation Alignment Suite", () => {
           if (normIndoPak[i] === token) return i;
           const phonetics = (PHONETIC_MAP[i] || []).map(normalizeArabic);
           if (phonetics.includes(token)) return i;
-        }
+
+}
       }
       return -1;
     }
@@ -363,19 +364,15 @@ describe("Classroom AI Voice Following & Recitation Alignment Suite", () => {
       }
     }
 
-    // Reciting Word 0 -> user vocalizes for 350ms with 800ms elapsed
     handleVocalPulse(350, 800);
     expect(currentIndex).toBe(1);
 
-    // Reciting Word 1 -> user vocalizes for 400ms with 750ms elapsed
     handleVocalPulse(400, 750);
     expect(currentIndex).toBe(2);
 
-    // Reciting Word 2 -> user vocalizes for 450ms with 900ms elapsed
     handleVocalPulse(450, 900);
     expect(currentIndex).toBe(3);
 
-    // Word 3 is the last word in the Ayah -> holds on last word
     handleVocalPulse(400, 800);
     expect(currentIndex).toBe(3);
   });
@@ -384,5 +381,129 @@ describe("Classroom AI Voice Following & Recitation Alignment Suite", () => {
     const keepAliveMsg = JSON.stringify({ type: "KeepAlive" });
     const parsed = JSON.parse(keepAliveMsg);
     expect(parsed.type).toBe("KeepAlive");
+  });
+
+  it("advances transliteration recitation across all 7 ayahs using dynamic fallbacks", () => {
+    const fatihahLesson = CURRICULUM_LESSONS.find((l) => l.id === "fatihah-all")!;
+    const words = fatihahLesson.wordsUthmani.map((w) => w.word);
+    let lastIndex = -1;
+
+    function matchTranslitWord(token: string): number {
+      const t = token.toLowerCase();
+      const candidates: number[] = [];
+      const visited = new Set<number>();
+      const add = (idx: number) => {
+        if (idx >= 0 && idx < words.length && !visited.has(idx)) {
+          visited.add(idx);
+          candidates.push(idx);
+        }
+      };
+
+      if (lastIndex >= 0) {
+        add(lastIndex + 1);
+        for (let i = 2; i <= 6; i++) add(lastIndex + i);
+        add(lastIndex);
+        for (let i = lastIndex + 7; i < words.length; i++) add(i);
+        for (let i = 0; i < lastIndex; i++) add(i);
+      } else {
+        for (let i = 0; i < words.length; i++) add(i);
+      }
+
+      for (const idx of candidates) {
+        const fallbacks = [
+          ...(QURAN_PHONETIC_FALLBACK[idx] || []),
+          ...getWordFallbacks(words[idx] || "")
+        ].map((f) => f.toLowerCase());
+
+        if (fallbacks.some((f) => f === t || f.startsWith(t) || t.startsWith(f))) {
+          lastIndex = idx;
+          return idx;
+        }
+      }
+      return -1;
+    }
+
+    // Line 1
+    expect(matchTranslitWord("bismi")).toBe(0);
+    expect(matchTranslitWord("allah")).toBe(1);
+    expect(matchTranslitWord("ar-rahman")).toBe(2);
+    expect(matchTranslitWord("ar-rahim")).toBe(3);
+
+    // Line 2
+    expect(matchTranslitWord("alhamdu")).toBe(4);
+    expect(matchTranslitWord("lillahi")).toBe(5);
+    expect(matchTranslitWord("rabbi")).toBe(6);
+    expect(matchTranslitWord("al-alameen")).toBe(7);
+
+    // Line 3 - MUST advance to 8 and 9!
+    expect(matchTranslitWord("ar-rahman")).toBe(8);
+    expect(matchTranslitWord("ar-rahim")).toBe(9);
+
+    // Line 4
+    expect(matchTranslitWord("maliki")).toBe(10);
+    expect(matchTranslitWord("yawm")).toBe(11);
+    expect(matchTranslitWord("ad-deen")).toBe(12);
+
+    // Line 5
+    expect(matchTranslitWord("iyyaka")).toBe(13);
+    expect(matchTranslitWord("na'budu")).toBe(14);
+    expect(matchTranslitWord("wa-iyyaka")).toBe(15);
+    expect(matchTranslitWord("nasta'een")).toBe(16);
+
+    // Line 6
+    expect(matchTranslitWord("ihdina")).toBe(17);
+    expect(matchTranslitWord("as-sirat")).toBe(18);
+    expect(matchTranslitWord("al-mustaqeem")).toBe(19);
+
+    // Line 7
+    expect(matchTranslitWord("sirat")).toBe(20);
+    expect(matchTranslitWord("alladhina")).toBe(21);
+    expect(matchTranslitWord("an'amta")).toBe(22);
+    expect(matchTranslitWord("alayhim")).toBe(23);
+    expect(matchTranslitWord("ghayr")).toBe(24);
+    expect(matchTranslitWord("al-maghdubi")).toBe(25);
+    expect(matchTranslitWord("alayhim")).toBe(26);
+    expect(matchTranslitWord("wala")).toBe(27);
+    expect(matchTranslitWord("ad-dallin")).toBe(28);
+  });
+
+  it("resets back to word 0 if user jumps backward to restart the surah", () => {
+    const fatihahLesson = CURRICULUM_LESSONS.find((l) => l.id === "fatihah-all")!;
+    const words = fatihahLesson.wordsUthmani.map((w) => w.word);
+    const normWords = words.map(normalizeArabic);
+
+    let lastIndex = 20;
+
+    function processToken(token: string) {
+      const tokenNorm = normalizeArabic(token);
+      const candidates: number[] = [];
+      const visited = new Set<number>();
+      const add = (idx: number) => {
+        if (idx >= 0 && idx < words.length && !visited.has(idx)) {
+          visited.add(idx);
+          candidates.push(idx);
+        }
+      };
+
+      add(lastIndex + 1);
+      for (let i = 2; i <= 6; i++) add(lastIndex + i);
+      add(lastIndex);
+      for (let i = lastIndex + 7; i < words.length; i++) add(i);
+      for (let i = 0; i < lastIndex; i++) add(i);
+
+      for (const idx of candidates) {
+        if (normWords[idx] === tokenNorm) {
+          lastIndex = idx;
+          return idx;
+        }
+      }
+      return -1;
+    }
+
+    expect(processToken("بسم")).toBe(0);
+    expect(lastIndex).toBe(0);
+
+    expect(processToken("الله")).toBe(1);
+    expect(lastIndex).toBe(1);
   });
 });

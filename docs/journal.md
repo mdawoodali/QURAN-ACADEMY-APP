@@ -3159,13 +3159,39 @@ The user reported that voice follow was not working in the live classroom (`/cla
 - **Production Build**: Turbopack compiled and prerendered all **84 / 84 routes** with 0 errors (`pnpm build`).
 - **Git Repository**: Clean working tree committed and pushed to `origin/main`.
 
+---
 
+## 9.118. AI Voice Follow Multi-Line Sequential Progression & Curriculum Ayah Alignment
 
+### Problem & Architectural Overview
+1. **Single-Line Restriction in Classroom Voice Follow**:
+   - In previous sessions, students and teachers observed that the AI Voice Follow was only tracking line 1: *"the voice follow is not working, its working for 1 line only but not for every line, it recognizes the voice, but it cant make the words highlight"*.
+   - Root Cause 1: `LiveClassroom.tsx`, `useClassroomSync.ts`, and `ClassroomHeader.tsx` defaulted to `initialLessonId: "fatihah-2"`. Ayah 2 has only 4 words ("ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ"), meaning only 1 single line rendered on the board upon entering the classroom.
+   - Root Cause 2: `PHONETIC_MAP` and `QURAN_PHONETIC_FALLBACK` had hardcoded static indices (0..24) where index 0 contained "الحمد" (which is word 4 in full Surah Al-Fatihah), index 2 contained "الرحمن" (line 1), etc. When reciting `fatihah-all` (all 7 ayahs, 29 words), reciting "Alhamdu" matched index 0, jumping highlights back to line 1.
+   - Root Cause 3: `processSpokenTranscript` in `useVoiceFollow.ts` used a global forward loop from index 0 (`for (let i = 0; i < normWords.length; i++)`). Quranic Surahs feature repeated words across verses (e.g. `الرحمن` and `الرحيم` appear in Ayah 1 and Ayah 3; `عليهم` appears twice in Ayah 7). Whenever a user recited Ayah 3, the search matched index 2/3 (Ayah 1), locking recitation to the first line.
+   - Root Cause 4: Orthographic variation in dagger alif normalization caused `normalizeArabic("ٱلرَّحْمَـٰنِ")` to produce `"الرحمان"` (with explicit alif), whereas speech recognition engines produce standard modern Arabic `"الرحمن"` (without alif after meem).
 
-
-
-
-
+### Engineering Decisions & Fix Implementation
+1. **Full Surah Default Alignment**:
+   - In `LiveClassroom.tsx`, `useClassroomSync.ts`, and `ClassroomHeader.tsx`, switched default lesson identifier from `"fatihah-2"` to `"fatihah-all"`.
+   - The interactive classroom now immediately renders the complete 7-ayah, 29-word Mushaf text of Surah Al-Fatihah with authentic verse enders (`۝١` through `۝٧`).
+2. **Positional Awareness & Forward-Biased Progressive Search**:
+   - Updated `UseVoiceFollowOptions` in `useVoiceFollow.ts` to accept `currentIndex?: number | null`. Connected `highlightedIndex` from `LiveClassroom.tsx`.
+   - Built `getCandidateIndices(lastMatchedIndex)`: candidate word indices are evaluated in progressive recitation order:
+     1. Immediate next word: `curr + 1` (highest expectation in sequential recitation).
+     2. Immediate forward window: `curr + 2` to `curr + 6` (handles slurred short particles or audio drops).
+     3. Current word repeated: `curr` (handles student repetition / stutter).
+     4. Rest of forward lesson: `curr + 7` to `totalWords - 1`.
+     5. Backward search: `0` to `curr - 1` (allows student to jump back or restart from Basmalah).
+   - This priority sequence eliminates snapping back to earlier lines on repeated words (`الرحمن`, `الرحيم`, `عليهم`, `اياك`).
+3. **Comprehensive Arabic Normalization & Prefix Stripping**:
+   - Enhanced `normalizeArabic` in `constants.ts` to normalize dagger alifs, tatweels, Quranic stop signs, and map orthographic forms like `رحمان` to canonical `رحمن`.
+   - Implemented `stripArabicPrefix`: strips leading `و`, `ف`, `ب`, and `ال` from tokens of length >= 4. This enables matching when speech engines transcribe words with or without definite articles or conjunctions (e.g., `الصراط` vs `صراط`, `واياك` vs `اياك`, `العالمين` vs `عالمين`).
+4. **Dynamic Transliteration Engine & Full Curriculum Fallbacks**:
+   - Implemented `ARABIC_TO_TRANSLITERATION_MAP` and `getWordFallbacks(word)` supporting all words across `fatihah-all`, `ikhlas-all`, `falaq-all`, `nas-all`, and Noorani Qaida letter names (`qaida-mufradaat`).
+   - Expanded `QURAN_PHONETIC_FALLBACK` to cover all 29 indices (0..28) of Surah Al-Fatihah, maintaining backward compatibility for legacy single-ayah tests.
+5. **Quality Assurance & Test Expansion**:
+   - In `apps/web/src/__tests__/classroom-voice-follow.test.ts`, added tests for sequential progression across all 7 ayahs of Surah Al-Fatihah, transliteration recitation across all 7 lines, and backward restart handling.
 
 ---
 
@@ -3197,3 +3223,7 @@ The user reported that voice follow was not working in the live classroom (`/cla
 - **Vitest Suite**: **31 / 31 test files and 529 / 529 tests passing (100% green)**.
 - **Production Build**: Turbopack compiled and prerendered all **84 / 84 routes** with 0 errors (`pnpm build`).
 - **Git Repository**: Clean working tree committed and pushed to `origin/main`.
+
+---
+
+

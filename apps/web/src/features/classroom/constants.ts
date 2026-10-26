@@ -24,15 +24,151 @@ export function normalizeArabic(text: string): string {
     .replace(/\u0670/g, "ا")
     .replace(/\u0640/g, "")
     .replace(/[\u06D6-\u06ED\u065F\u06E2\u06E3\u06E4\u0600-\u0605\u06DD]/g, "")
-    .replace(/[\u0610-\u061A\u064B-\u065E\u0653\u0654]/g, "")
+    .replace(/[\u0610-\u061A\u064B-\u065E\u0653\u0654\u0655]/g, "")
     .replace(/[إأآٱ]/g, "ا")
     .replace(/[ىيیئ]/g, "ي")
     .replace(/[كک]/g, "ك")
     .replace(/[ؤ]/g, "و")
     .replace(/ة/g, "ه")
     .replace(/للاه/g, "لله")
-    .replace(/[.,\/#!$%\^&\*;:{}=\-_~`()]/g, "")
+    .replace(/[\u200B-\u200F\u202A-\u202E\uFE80-\uFEFC]/g, "")
+    .replace(/[.,\/#!$%\^&\*;:{}=\-_~`()?"'۝]/g, "")
+    .replace(/رحمان/g, "رحمن")
     .trim();
+}
+
+export function stripArabicPrefix(text: string): string {
+  const norm = normalizeArabic(text);
+  if (!norm) return "";
+  let s = norm;
+  if (s.startsWith("و") && s.length >= 4) {
+    s = s.slice(1);
+  }
+  if (s.startsWith("ال") && s.length >= 4) {
+    s = s.slice(2);
+  }
+  return s;
+}
+
+export const ARABIC_TO_TRANSLITERATION_MAP: Record<string, string[]> = {
+  // Surah Al-Fatihah words
+  بسم: ["bismi", "bism", "bismillah"],
+  الله: ["allahi", "allah", "lillah", "lillahi"],
+  لله: ["lillahi", "lillah", "allah", "lellah"],
+  الرحمن: ["ar-rahmani", "ar-rahman", "rahman", "al-rahman"],
+  رحمان: ["ar-rahmani", "ar-rahman", "rahman", "al-rahman"],
+  الرحيم: ["ar-rahimi", "ar-rahim", "rahim", "al-rahim"],
+  الحمد: ["alhamdu", "alhamd", "elhamd", "hamd", "alhamdulillah"],
+  رب: ["rabbi", "rabb", "rab", "rub"],
+  العالمين: ["al-alameen", "al-alamin", "alameen", "alamin", "aalamin"],
+  مالك: ["maliki", "maalik", "malik"],
+  يوم: ["yawmi", "yawm", "yom"],
+  الدين: ["ad-deeni", "ad-deen", "deen", "ad-din", "din"],
+  اياك: ["iyyaka", "eyyaka", "iyaka"],
+  نعبد: ["na'budu", "nabudu", "naabudu"],
+  واياك: ["wa-iyyaka", "waiyyaka", "wa-eyyaka", "waeyyaka", "iyyaka"],
+  نستعين: ["nasta'een", "nastaeen", "nasta'in", "nastain"],
+  اهدنا: ["ihdina", "ehdina"],
+  الصراط: ["as-sirat", "assirat", "sirat", "as-sirata", "sirata"],
+  صراط: ["sirat", "sirata", "as-sirat"],
+  المستقيم: ["al-mustaqeem", "almustaqeem", "mustaqeem", "mustaqim", "al-mustaqim"],
+  الذين: ["alladhina", "allazina", "allatheena", "allazeena"],
+  انعمت: ["an'amta", "anamta", "an-amta"],
+  عليهم: ["alayhim", "alaihim"],
+  غير: ["ghayr", "ghair", "ghayri", "ghairi", "ghayril", "ghairil"],
+  المغضوب: ["al-maghdubi", "almaghdubi", "maghdub", "maghdubi", "al-maghdub"],
+  ولا: ["wa-la", "wala"],
+  الضالين: ["ad-dallin", "dallin", "zaalleen", "dhaalleen", "daalleen", "al-dallin"],
+
+  // Surah Al-Ikhlas words
+  قل: ["qul"],
+  هو: ["huwa"],
+  احد: ["ahad", "ahadun"],
+  الصمد: ["as-samad", "samad"],
+  لم: ["lam"],
+  يلد: ["yalid"],
+  ولم: ["wa-lam", "walam", "lam"],
+  يولد: ["yulad"],
+  يكن: ["yakun"],
+  له: ["lahu"],
+  كفوا: ["kufuwan", "kufuwa"],
+
+  // Surah Al-Falaq words
+  اعوذ: ["a'udhu", "audhu"],
+  برب: ["bi-rabbi", "birabbi", "rabbi"],
+  الفلق: ["al-falaq", "alfalaq", "falaq"],
+  من: ["min"],
+  شر: ["sharri", "sharr", "shar"],
+  ما: ["ma"],
+  خلق: ["khalaq", "khalaqa"],
+  ومن: ["wa-min", "wamin", "min"],
+  غاسق: ["ghasiqin", "ghasiq"],
+  اذا: ["idha", "iza"],
+  وقب: ["waqab", "waqaba"],
+  النفاثات: ["an-naffathat", "annaffathat", "naffathat"],
+  في: ["fee", "fi"],
+  العقد: ["al-'uqad", "al-uqad", "uqad"],
+  حاسد: ["hasidin", "hasid"],
+  حسد: ["hasad", "hasada"],
+
+  // Surah An-Nas words
+  الناس: ["an-nas", "annas", "nas"],
+  ملك: ["malik", "maliki"],
+  اله: ["ilahi", "ilah"],
+  الاه: ["ilahi", "ilah"],
+  الوسواس: ["al-waswas", "alwaswas", "waswas"],
+  الخناس: ["al-khannas", "alkhannas", "khannas"],
+  الذي: ["alladhi", "allazi"],
+  يوسوس: ["yuwaswisu", "yuwaswis"],
+  صدور: ["suduri", "sudur"],
+  الجنة: ["al-jinnati", "aljinnah", "jinnah"],
+  والناس: ["wan-nas", "wannas", "an-nas", "annas", "nas"],
+
+  // Qaida Mufradaat letter names
+  ا: ["alif", "الف"],
+  ب: ["baa", "ba", "با", "باء"],
+  ت: ["taa", "ta", "تا", "تاء"],
+  ث: ["thaa", "tha", "ثا", "ثاء"],
+  ج: ["jeem", "jim", "جيم"],
+  ح: ["haa", "ha", "حا", "حاء"],
+  خ: ["khaa", "kha", "خا", "خاء"],
+  د: ["dal", "دال"],
+  ذ: ["dhal", "zal", "ذال"],
+  ر: ["raa", "ra", "را", "راء"],
+  ز: ["zay", "za", "زا", "زاي"],
+  س: ["seen", "sin", "سين"],
+  ش: ["sheen", "shin", "شين"],
+  ص: ["saad", "sad", "صاد"],
+  ض: ["daad", "dhad", "dad", "ضاد"],
+  ط: ["taa", "taw", "طا", "طاء"],
+  ظ: ["zaa", "zzaw", "zhaa", "ظا", "ظاء"],
+  ع: ["ayn", "ain", "عين"],
+  غ: ["ghayn", "ghain", "غين"],
+  ف: ["faa", "fa", "فا", "فاء"],
+  ق: ["qaaf", "qaf", "قاف"],
+  ك: ["kaaf", "kaf", "كاف"],
+  ل: ["laam", "lam", "لام"],
+  م: ["meem", "mim", "ميم"],
+  ن: ["noon", "nun", "نون"],
+  و: ["waw", "واو"],
+  ه: ["haa", "ha", "ها", "هاء"],
+  ء: ["hamzah", "hamza", "همزة"],
+  ي: ["yaa", "ya", "يا", "ياء"],
+};
+
+export function getWordFallbacks(word: string): string[] {
+  const norm = normalizeArabic(word);
+  const stripped = stripArabicPrefix(norm);
+  const result = new Set<string>();
+
+  if (ARABIC_TO_TRANSLITERATION_MAP[norm]) {
+    ARABIC_TO_TRANSLITERATION_MAP[norm].forEach((f) => result.add(f.toLowerCase()));
+  }
+  if (ARABIC_TO_TRANSLITERATION_MAP[stripped]) {
+    ARABIC_TO_TRANSLITERATION_MAP[stripped].forEach((f) => result.add(f.toLowerCase()));
+  }
+
+  return Array.from(result);
 }
 
 export const PHONETIC_MAP: Record<number, string[]> = {
@@ -64,34 +200,37 @@ export const PHONETIC_MAP: Record<number, string[]> = {
 };
 
 export const QURAN_PHONETIC_FALLBACK: Record<number, string[]> = {
-  0: ["alhamdu", "alhamd", "alhamdulillah", "elhamd", "hamd", "al-hamdu", "الحمد", "حمد", "bismi", "bismillah"],
-  1: ["lillahi", "lillah", "allah", "lellah", "lillāhi", "لله", "الله"],
-  2: ["rabbi", "rabb", "rab", "rub", "rab-bi", "رب", "ar-rahman", "rahman"],
-  3: ["alameen", "alalamin", "al-alameen", "aalamin", "alamin", "al-ʿālamīn", "العالمين", "عالمين", "ar-rahim", "rahim"],
-  4: ["ar-rahman", "rahman", "al-rahman", "maliki", "maalik"],
-  5: ["ar-rahim", "rahim", "al-rahim", "yawm", "yawmi"],
-  6: ["maliki", "maalik", "ad-deen", "deen", "ad-din"],
-  7: ["yawm", "yawmi", "iyyaka", "eyyaka"],
-  8: ["ad-deen", "deen", "na'budu", "nabudu"],
-  9: ["iyyaka", "eyyaka", "wa-iyyaka", "waiyyaka"],
-  10: ["na'budu", "nabudu", "nasta'een", "nastaeen"],
-  11: ["wa-iyyaka", "waiyyaka", "ihdina"],
-  12: ["nasta'een", "nastaeen", "as-sirat", "sirat"],
-  13: ["ihdina", "al-mustaqeem", "mustaqeem"],
-  14: ["as-sirat", "sirat", "sirata"],
-  15: ["al-mustaqeem", "mustaqeem", "alladheena", "allazina"],
-  16: ["sirat", "sirata", "an'amta", "anamta"],
-  17: ["alladheena", "allazina", "alayhim"],
-  18: ["an'amta", "anamta", "ghayr", "ghair"],
-  19: ["alayhim", "al-maghdubi", "maghdub"],
-  20: ["ghayr", "ghair", "alayhim"],
-  21: ["al-maghdubi", "maghdub", "wa-la", "wala"],
-  22: ["alayhim", "ad-dallin", "dallin", "zaalleen"],
-  23: ["wa-la", "wala"],
-  24: ["ad-dallin", "dallin", "zaalleen", "dhaalleen"]
+  0: ["bismi", "bism", "bismillah", "alhamdu", "alhamd", "alhamdulillah"],
+  1: ["allah", "allahi", "lillah", "lillahi"],
+  2: ["ar-rahman", "rahman", "ar-rahmani", "al-rahman", "rabbi", "rabb"],
+  3: ["ar-rahim", "rahim", "ar-rahimi", "al-rahim", "alameen", "al-alameen"],
+  4: ["alhamdu", "alhamd", "alhamdulillah", "elhamd", "hamd"],
+  5: ["lillahi", "lillah", "allah", "lellah"],
+  6: ["rabbi", "rabb", "rab", "rub"],
+  7: ["alameen", "alalamin", "al-alameen", "aalamin", "alamin"],
+  8: ["ar-rahman", "rahman", "ar-rahmani", "al-rahman"],
+  9: ["ar-rahim", "rahim", "ar-rahimi", "al-rahim"],
+  10: ["maliki", "maalik", "malik"],
+  11: ["yawm", "yawmi", "yom"],
+  12: ["ad-deen", "deen", "ad-din", "din"],
+  13: ["iyyaka", "eyyaka", "iyaka"],
+  14: ["na'budu", "nabudu", "naabudu"],
+  15: ["wa-iyyaka", "waiyyaka", "wa-eyyaka", "waeyyaka", "iyyaka"],
+  16: ["nasta'een", "nastaeen", "nasta'in", "nastain"],
+  17: ["ihdina", "ehdina"],
+  18: ["as-sirat", "assirat", "sirat", "as-sirata"],
+  19: ["al-mustaqeem", "almustaqeem", "mustaqeem", "mustaqim"],
+  20: ["sirat", "sirata", "as-sirat"],
+  21: ["alladhina", "allazina", "allatheena", "allazeena"],
+  22: ["an'amta", "anamta", "an-amta"],
+  23: ["alayhim", "alaihim"],
+  24: ["ghayr", "ghair", "ghayri", "ghairi", "ghayril"],
+  25: ["al-maghdubi", "almaghdubi", "maghdub", "maghdubi"],
+  26: ["alayhim", "alaihim"],
+  27: ["wa-la", "wala"],
+  28: ["ad-dallin", "dallin", "zaalleen", "dhaalleen", "daalleen", "al-dallin"]
 };
 
-// Default single-ayah baseline kept for backward compatibility and existing tests
 export const SCRIPT_DATA: Record<ScriptType, TajweedWord[]> = {
   uthmani: [
     { word: "ٱلْحَمْدُ", tajweed: "Makhraj: Throat Haa (ح) & Izhar Qamari", type: "throat", rule: "throat" },

@@ -67,7 +67,7 @@ interface ClassroomSyncMessage {
 export function useClassroomSync({
   classId,
   initialScript = "uthmani",
-  initialLessonId = "fatihah-2",
+  initialLessonId = "fatihah-all",
   role = "teacher",
   participantName = "",
 }: UseClassroomSyncOptions) {

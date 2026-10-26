@@ -124,7 +124,7 @@ export default function LiveClassroom() {
     sendModeration,
   } = useClassroomSync({
     classId,
-    initialLessonId: "fatihah-2",
+    initialLessonId: "fatihah-all",
     role: roleParam,
     participantName: childParam,
   });
@@ -178,9 +178,9 @@ export default function LiveClassroom() {
   } = useVoiceFollow({
     currentWords: currentWordStrings,
     onMatchWord: sendHighlight,
-    audioStream: activeMediaStream || streamRef.current,
     currentIndex: highlightedIndex ?? 0,
     defaultOn: true,
+    audioStream: activeMediaStream || streamRef.current,
   });
 
   // Derived effective mic state (muted if user turned it off, remote-muted, or observer)
