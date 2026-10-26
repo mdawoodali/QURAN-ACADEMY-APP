@@ -3165,3 +3165,35 @@ The user reported that voice follow was not working in the live classroom (`/cla
 
 
 
+
+
+---
+
+## 9.118. Voice Follow Enabled-by-Default, Dynamic AudioStream Binding & Native 60fps Classroom Cadence Stepper
+
+### Problem & UX Gap Analysis
+1. **Voice Follow Paused on Classroom Entry**:
+   - In `/classroom/demo`, `isVoiceFollowOn` initialized to `false` by default. When the user entered the classroom and began reciting into their microphone, the telemetry bar displayed `"AI Voice Follow Paused • Click to Start"` and words remained static on Word 0 because the feature was paused.
+2. **Missing `audioStream` Reactive Binding in `useVoiceFollow`**:
+   - When the user joined the room through the hardware diagnostic modal (`handleDeviceCheckComplete`), `activeMediaStream` changed from `null` to a live `MediaStream`. However, `useVoiceFollow` lacked a reactive `useEffect` watching `audioStream`, leaving the VAD tracker unattached to the newly acquired microphone stream.
+3. **Decoupled Classroom Audio Context**:
+   - `LiveClassroom.tsx` was already computing `isSpeaking` at 60 FPS via `requestAnimationFrame` on `streamRef.current` for the participant visualizer, but this live audio energy was not directly connected to the recitation word-stepping engine.
+
+### Engineering Decisions & Fix Implementation
+1. **Auto-Enabled by Default (`useVoiceFollow.ts` & `LiveClassroom.tsx`)**:
+   - Set `defaultOn = true` in `useVoiceFollow` options.
+   - When entering the classroom, AI Voice Follow is **automatically active from the very first second** without requiring manual button clicks.
+   - The top header button immediately illuminates in bright emerald: `"AI Voice Following"`.
+2. **Dynamic `audioStream` Reactive Re-attachment (`useVoiceFollow.ts`)**:
+   - Added a dedicated `useEffect` monitoring `audioStream`: as soon as `activeMediaStream` becomes non-null (after device calibration or unmute), the VAD Cadence Tracker and Deepgram audio stream immediately attach to the live audio track.
+3. **Native 60fps Audio Cadence Stepper in `LiveClassroom.tsx`**:
+   - Integrated recitation stepping directly into `LiveClassroom`'s existing 60 FPS `requestAnimationFrame` loop.
+   - When `isVoiceFollowOn` is true and speech energy > 14 is detected for >= 280ms (with >= 650ms between word steps), it automatically advances `highlightedIndex` forward (`0 → 1 → 2 → 3`) via `sendHighlight`.
+   - Halts immediately when speech stops, maintaining steady highlight on the current word during pauses.
+   - Loops smoothly back to Word 0 if the student pauses > 2.2s after completing the Ayah and starts reciting again.
+   - Manual navigation (`handleNextWord`, `handlePrevWord`, keyboard arrows) smoothly resets the cadence timer to prevent accidental double-stepping.
+
+### Verification & Quality Assurance
+- **Vitest Suite**: **31 / 31 test files and 529 / 529 tests passing (100% green)**.
+- **Production Build**: Turbopack compiled and prerendered all **84 / 84 routes** with 0 errors (`pnpm build`).
+- **Git Repository**: Clean working tree committed and pushed to `origin/main`.

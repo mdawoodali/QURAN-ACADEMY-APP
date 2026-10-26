@@ -9,6 +9,7 @@ interface UseVoiceFollowOptions {
   onMatchWord: (index: number) => void;
   audioStream?: MediaStream | null;
   currentIndex?: number;
+  defaultOn?: boolean;
 }
 
 export function useVoiceFollow({
@@ -16,9 +17,10 @@ export function useVoiceFollow({
   onMatchWord,
   audioStream,
   currentIndex = 0,
+  defaultOn = true,
 }: UseVoiceFollowOptions) {
-  const [isVoiceFollowOn, setIsVoiceFollowOn] = useState(false);
-  const isVoiceFollowOnRef = useRef(false);
+  const [isVoiceFollowOn, setIsVoiceFollowOn] = useState(defaultOn);
+  const isVoiceFollowOnRef = useRef(defaultOn);
   const [lastSpokenText, setLastSpokenText] = useState("");
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const [activeSpeechEngine, setActiveSpeechEngine] = useState<string | null>(null);
@@ -623,6 +625,23 @@ export function useVoiceFollow({
     },
     [processSpokenTranscript]
   );
+
+  // Auto-start voice follow if enabled by default
+  useEffect(() => {
+    if (defaultOn && !hasNotifiedVoiceRef.current) {
+      isVoiceFollowOnRef.current = true;
+      setIsVoiceFollowOn(true);
+      startVoiceFollow();
+    }
+  }, [defaultOn, startVoiceFollow]);
+
+  // Bind audioStream dynamically whenever microphone stream initializes or updates
+  useEffect(() => {
+    if (audioStream && isVoiceFollowOnRef.current) {
+      deepgramStreamRef.current = audioStream;
+      startVadCadenceTracker(audioStream);
+    }
+  }, [audioStream, startVadCadenceTracker]);
 
   useEffect(() => {
     return () => {

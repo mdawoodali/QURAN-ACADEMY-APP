@@ -166,7 +166,7 @@ export default function LiveClassroom() {
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animFrameRef = useRef<number | null>(null);
 
-  // Ultra-low latency voice follow hook
+  // Ultra-low latency voice follow hook (enabled by default)
   const {
     isVoiceFollowOn,
     activeSpeechEngine,
@@ -180,12 +180,39 @@ export default function LiveClassroom() {
     onMatchWord: sendHighlight,
     audioStream: activeMediaStream || streamRef.current,
     currentIndex: highlightedIndex ?? 0,
+    defaultOn: true,
   });
 
   // Derived effective mic state (muted if user turned it off, remote-muted, or observer)
   const isEffectiveMicOn = isMicOn && !remoteMuted;
 
-  // Real-time microphone audio visualizer
+  // Real-time synchronization refs for 60fps audio cadence tracker
+  const highlightedIndexRef = useRef(highlightedIndex);
+  useEffect(() => {
+    highlightedIndexRef.current = highlightedIndex;
+  }, [highlightedIndex]);
+
+  const currentWordStringsRef = useRef(currentWordStrings);
+  useEffect(() => {
+    currentWordStringsRef.current = currentWordStrings;
+  }, [currentWordStrings]);
+
+  const isVoiceFollowOnRef = useRef(isVoiceFollowOn);
+  useEffect(() => {
+    isVoiceFollowOnRef.current = isVoiceFollowOn;
+  }, [isVoiceFollowOn]);
+
+  const sendHighlightRef = useRef(sendHighlight);
+  useEffect(() => {
+    sendHighlightRef.current = sendHighlight;
+  }, [sendHighlight]);
+
+  const voiceCadenceSpeakingMsRef = useRef(0);
+  const voiceCadenceLastAdvanceRef = useRef(0);
+  const voiceCadenceLastSpeechEndRef = useRef(0);
+  const voiceCadenceLastFrameTimeRef = useRef(Date.now());
+
+  // Real-time microphone audio visualizer and recitation cadence follower
   useEffect(() => {
     if (streamRef.current && isEffectiveMicOn) {
       try {
@@ -206,6 +233,7 @@ export default function LiveClassroom() {
           const checkSpeaking = () => {
             if (!isEffectiveMicOn) {
               setIsSpeaking(false);
+              voiceCadenceSpeakingMsRef.current = 0;
               return;
             }
             analyser.getByteFrequencyData(dataArray);
@@ -214,7 +242,46 @@ export default function LiveClassroom() {
               sum += dataArray[i] ?? 0;
             }
             const avg = sum / dataArray.length;
-            setIsSpeaking(avg > 18);
+            const now = Date.now();
+            const deltaMs = Math.min(now - (voiceCadenceLastFrameTimeRef.current || now), 100);
+            voiceCadenceLastFrameTimeRef.current = now;
+
+            const isUserSpeaking = avg > 14;
+            setIsSpeaking(isUserSpeaking);
+
+            // Real-Time Recitation Voice Follow Cadence Stepper
+            if (isVoiceFollowOnRef.current) {
+              if (isUserSpeaking) {
+                voiceCadenceSpeakingMsRef.current += deltaMs;
+
+                // When user recites with sustained vocal energy (>= 280ms)
+                // and at least 650ms has elapsed since the last word step
+                if (voiceCadenceSpeakingMsRef.current >= 280) {
+                  const timeSinceLastAdvance = now - voiceCadenceLastAdvanceRef.current;
+                  if (timeSinceLastAdvance >= 650) {
+                    const currentIdx = highlightedIndexRef.current ?? 0;
+                    const words = currentWordStringsRef.current;
+                    const maxIdx = words.length - 1;
+
+                    if (currentIdx < maxIdx) {
+                      const next = currentIdx + 1;
+                      sendHighlightRef.current(next);
+                      voiceCadenceLastAdvanceRef.current = now;
+                      voiceCadenceSpeakingMsRef.current = 0;
+                    } else if (now - voiceCadenceLastSpeechEndRef.current > 2200) {
+                      // Student reached end of Ayah, paused > 2.2s, and started reciting again -> loop back to Word 0
+                      sendHighlightRef.current(0);
+                      voiceCadenceLastAdvanceRef.current = now;
+                      voiceCadenceSpeakingMsRef.current = 0;
+                    }
+                  }
+                }
+              } else {
+                voiceCadenceSpeakingMsRef.current = 0;
+                voiceCadenceLastSpeechEndRef.current = now;
+              }
+            }
+
             animFrameRef.current = requestAnimationFrame(checkSpeaking);
           };
           checkSpeaking();
@@ -222,6 +289,7 @@ export default function LiveClassroom() {
       } catch {}
     } else {
       setIsSpeaking(false);
+      voiceCadenceSpeakingMsRef.current = 0;
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     }
 
@@ -246,6 +314,7 @@ export default function LiveClassroom() {
 
   // Keyboard navigation shortcuts (Arrow keys)
   const handleNextWord = useCallback(() => {
+    voiceCadenceLastAdvanceRef.current = Date.now();
     const next =
       highlightedIndex === null
         ? 0
@@ -254,6 +323,7 @@ export default function LiveClassroom() {
   }, [highlightedIndex, currentWordStrings.length, sendHighlight]);
 
   const handlePrevWord = useCallback(() => {
+    voiceCadenceLastAdvanceRef.current = Date.now();
     const prev = highlightedIndex === null ? 0 : Math.max(highlightedIndex - 1, 0);
     sendHighlight(prev);
   }, [highlightedIndex, sendHighlight]);
