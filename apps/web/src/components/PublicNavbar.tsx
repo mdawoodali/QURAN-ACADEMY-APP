@@ -510,7 +510,7 @@ export default function PublicNavbar() {
                   href="/register"
                   className="py-1.5 px-3.5 text-xs font-bold text-emerald-100 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20 rounded-full transition"
                 >
-                  {language === "ur" ? "سائن اپ" : "Sign Up"}
+                  {language === "ur" ? "رجسٹر" : "Register"}
                 </Link>
               </div>
             )}
@@ -684,7 +684,7 @@ export default function PublicNavbar() {
                       onClick={closeMenu}
                       className="w-1/2 text-center py-3 rounded-xl bg-amber-400/20 hover:bg-amber-400 text-amber-300 hover:text-emerald-950 font-bold text-sm border border-amber-400/30 transition"
                     >
-                      {language === "ur" ? "سائن اپ" : "Sign Up"}
+                      {language === "ur" ? "رجسٹر" : "Register"}
                     </Link>
                   </div>
                 )}

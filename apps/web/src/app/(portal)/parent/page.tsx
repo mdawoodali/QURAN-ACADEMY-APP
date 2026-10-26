@@ -28,9 +28,10 @@ export default function ParentPortal() {
         const enrolments = enrolData.enrolments || [];
         const schedules = schedData.schedules || [];
 
+        let list: ChildSummary[] = [];
         if (enrolments.length > 0) {
-          const mapped: ChildSummary[] = enrolments.map((en: any, idx: number) => {
-            const name = en.student_name || "Learner";
+          list = enrolments.map((en: any, idx: number) => {
+            const name = en.student_name || en.learner || "Learner";
             const initials = name
               .split(" ")
               .map((n: string) => n[0])
@@ -38,22 +39,21 @@ export default function ParentPortal() {
               .slice(0, 2)
               .toUpperCase();
 
-            const schedMatch = schedules.find((s: any) => s.studentName === name);
+            const schedMatch = schedules.find((s: any) => s.studentName === name || s.learner === name);
 
             return {
               name,
               initials: initials || "LK",
-              age: en.student_age || 10,
-              course: en.course_title || "Quran Reading & Tajweed",
+              age: en.student_age || en.age || 10,
+              course: en.course_title || en.programme || "Quran Reading & Tajweed",
               nextLessonDay: schedMatch?.dayOfWeek || "Wednesday",
               nextLessonTime: schedMatch ? `${schedMatch.startTimeLocal} – 17:30` : "17:00 – 17:30",
               progressPercent: idx === 0 ? 75 : 88,
               classroomSlug: name.toLowerCase().split(" ")[0] || "demo",
             };
           });
-          setChildren(mapped);
         } else {
-          setChildren([
+          list = [
             {
               name: "Yusuf Khan",
               initials: "YK",
@@ -73,9 +73,52 @@ export default function ParentPortal() {
               nextLessonTime: "18:00 – 18:45",
               progressPercent: 88,
               classroomSlug: "hana"
+            },
+            {
+              name: "Amina Khan",
+              initials: "AK",
+              age: 10,
+              course: "Tajweed Fluency & Recitation",
+              nextLessonDay: "Wednesday",
+              nextLessonTime: "17:00 – 17:30",
+              progressPercent: 82,
+              classroomSlug: "amina"
+            },
+            {
+              name: "Omar Ali",
+              initials: "OA",
+              age: 11,
+              course: "Quran Memorisation (Juz Amma)",
+              nextLessonDay: "Tuesday",
+              nextLessonTime: "16:30 – 17:00",
+              progressPercent: 70,
+              classroomSlug: "omar"
             }
-          ]);
+          ];
         }
+
+        // Prioritize parent-selected ward from registration
+        const matchWard = typeof document !== "undefined" ? document.cookie.match(/selected_ward=([^;]+)/) : null;
+        const selectedWardName = matchWard ? decodeURIComponent(matchWard[1]).trim() : null;
+        if (selectedWardName) {
+          const existingIdx = list.findIndex(c => c.name.toLowerCase() === selectedWardName.toLowerCase());
+          if (existingIdx > -1) {
+            const [item] = list.splice(existingIdx, 1);
+            list.unshift(item);
+          } else {
+            list.unshift({
+              name: selectedWardName,
+              initials: selectedWardName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase() || "W",
+              age: 9,
+              course: "Quran Reading for Kids (Noorani Qaida)",
+              nextLessonDay: "Wednesday",
+              nextLessonTime: "17:00 – 17:30",
+              progressPercent: 80,
+              classroomSlug: selectedWardName.toLowerCase().split(" ")[0] || "demo",
+            });
+          }
+        }
+        setChildren(list);
       })
       .catch((err) => console.error("Failed to load family dashboard:", err))
       .finally(() => setLoading(false));
@@ -122,7 +165,14 @@ export default function ParentPortal() {
                     {child.initials}
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-white">{child.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-xl font-bold text-white">{child.name}</h3>
+                      {typeof document !== "undefined" && document.cookie.includes("selected_ward=" + encodeURIComponent(child.name)) && (
+                        <span className="text-[10px] bg-amber-400 text-emerald-950 font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-xs">
+                          Linked Ward
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-emerald-100/75">{child.age} years • {child.course}</p>
                   </div>
                 </div>

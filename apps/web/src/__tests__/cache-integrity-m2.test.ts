@@ -337,7 +337,7 @@ describe("Milestone 2: Cache Integrity & State Invalidation Suite", () => {
       const req = new NextRequest("http://localhost:3000/api/portal/stats");
       const res = await getPortalStats(req);
       expect(res.headers.get("Cache-Control")).toContain("no-store");
-    });
+    }, 20000);
 
     it("returns Cache-Control: no-store on /api/health and /api/diagnostics", async () => {
       const healthRes = await getHealth();

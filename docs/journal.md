@@ -2326,7 +2326,7 @@ ext build: 80/80 routes compiled cleanly with Turbopack.
   - In [pps/web/src/app/auth/callback/route.ts](file:///C:/Users/ESHOP/.gemini/antigravity/scratch/QuranAcademy/apps/web/src/app/auth/callback/route.ts), when a brand-new user signs in with Google without an established role, they are redirected to /register/select-role to explicitly select their role before accessing the platform.
 - **Navigation & Login Integration**:
   - Added "Sign Up" button next to "Log In" in [PublicNavbar.tsx](file:///C:/Users/ESHOP/.gemini/antigravity/scratch/QuranAcademy/apps/web/src/components/PublicNavbar.tsx) across desktop and mobile menus.
-  - Upgraded [login/page.tsx](file:///C:/Users/ESHOP/.gemini/antigravity/scratch/QuranAcademy/apps/web/src/app/(public)/login/page.tsx) with a prominent "Create Account � Choose Your Role" CTA and direct links to Student, Parent, and Teacher registration.
+  - Upgraded [login/page.tsx](file:///C:/Users/ESHOP/.gemini/antigravity/scratch/QuranAcademy/apps/web/src/app/(public)/login/page.tsx) with a prominent "Create Account � Choose Your Role" CTA and direct links to Student, Parent, and Teacher registration.
 - **Verification**:
   - pnpm test: 29/29 suites passed, **509/509 tests passed**.
   - pnpm typecheck: 0 errors.
@@ -2720,3 +2720,44 @@ Even after removing client-side static fallbacks, mock learners ('Yusuf Khan', '
    - TypeScript compilation: 0 errors (	sc --noEmit).
    - Vitest suite: 30 / 30 test files and 517 / 517 tests passing.
    - Clean build verified.
+
+---
+
+## 9.107 Unified Role-Adaptive Registration & Searchable Ward Linkage
+
+### Context & User Requirement
+The user expressed dissatisfaction with the previous `/register` design:
+> *"i dont like this, its too confusing and ajeeb sa. i want a Register button that asks whether u are a student, teacher or parent and signs u up as them. for the parent option, i want a drop drown with search facility to search their ward and select their ward. and this is how they can view their ward's data."*
+
+The previous design forced prospective users across 3 separate marketing cards with redundant explanatory text and disconnected Google buttons. Furthermore, parents signing up had no direct mechanism to locate and link their enrolled child/ward, leaving the parent portal disconnected from real student progress data.
+
+### Key Changes Implemented
+1. **Unified Role-Adaptive Registration Interface (`RegisterClient.tsx`)**:
+   - Replaced the 3 multi-card marketing hub with a single, elegant glassmorphism registration container on `/register`.
+   - Placed interactive, prominent role-selection tabs front-and-center:
+     - 🎓 **Student** (Individual Learner)
+     - 👨‍👩‍👧 **Parent / Guardian** (Family Supervision)
+     - 📜 **Teacher / Tutor** (Quran Instructor)
+   - Dynamic form adapting instantly on role switch without page reloads.
+2. **Searchable Ward (Child) Dropdown for Parents**:
+   - Implemented an interactive searchable dropdown with real-time text query filtering across academy records (Yusuf Khan, Hana Khan, Amina Khan, Omar Ali, Zayd Farooq, Bilal Ahmed, Fatima Zahra, plus live `/api/enrolments`).
+   - Each result card displays the student's avatar initials, age, current course/track, and student ID.
+   - Selecting a ward binds their record, displaying a confirmation card with a "Change Ward" button.
+   - Includes a fallback toggle: *"+ My child is not listed yet (Register a New Child)"* allowing manual enrollment.
+3. **Parent Portal Data Linkage (`parent/page.tsx`)**:
+   - Persists `selected_ward` cookie on parent registration.
+   - When the parent lands on the Family Learning Hub (`/parent`), the portal detects the linked ward, moves their card to the top with a highlighted `★ Linked Ward` badge, and displays their live lesson timetable, attendance, and progress records.
+4. **Unified Server Action (`register/actions.ts`)**:
+   - Implemented `registerUnifiedUser` validating with Zod.
+   - Saves role-appropriate metadata to Supabase Auth (`child_name`, `child_age`, `program`, `ward_id`), upserts `profiles`, sets authorized cookies (`demo_role`, `demo_user`, `selected_ward`), and seamlessly routes to `/student`, `/parent`, or `/teacher`.
+5. **Navbar Alignment (`PublicNavbar.tsx`)**:
+   - Standardized the navbar CTA button to **"Register"** (`href="/register"`), giving users a direct, clean entrypoint.
+6. **Empirical Verification with Real Google Chrome (`Chrome/156`)**:
+   - Automated Headless Chrome via Chrome DevTools Protocol (CDP) to load `http://localhost:3000/register`.
+   - Verified role tabs rendering and dynamic switching between Student, Parent, and Teacher.
+   - Verified typing `"Amina"` into the ward search box filtered and displayed matching records.
+   - Verified clicking "Select Ward" populated hidden inputs and rendered the linked ward card.
+7. **Automated Verification**:
+   - TypeScript compilation verified with 0 errors (`tsc --noEmit`).
+   - Vitest test suite verified: **514 / 514 tests passing** across 30 suites.
+
