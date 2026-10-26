@@ -179,7 +179,7 @@ export default function LiveClassroom() {
     currentWords: currentWordStrings,
     onMatchWord: sendHighlight,
     currentIndex: highlightedIndex ?? 0,
-    defaultOn: true,
+    defaultOn: false,
     audioStream: activeMediaStream || streamRef.current,
   });
 
@@ -207,30 +207,6 @@ export default function LiveClassroom() {
     sendHighlightRef.current = sendHighlight;
   }, [sendHighlight]);
 
-  const voiceCadenceSpeakingMsRef = useRef(0);
-  const voiceCadenceLastAdvanceRef = useRef(0);
-  const voiceCadenceLastSpeechEndRef = useRef(0);
-  const voiceCadenceLastFrameTimeRef = useRef(Date.now());
-
-  // Auto-acquire microphone if uncalibrated on load
-  useEffect(() => {
-    if (!activeMediaStream && !streamRef.current && typeof navigator !== "undefined" && navigator.mediaDevices) {
-      navigator.mediaDevices
-        .getUserMedia({
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true,
-          },
-        })
-        .then((stream) => {
-          streamRef.current = stream;
-          setActiveMediaStream(stream);
-        })
-        .catch(() => {});
-    }
-  }, [activeMediaStream]);
-
   // Unlock AudioContext on initial user gesture in browser
   useEffect(() => {
     const unlockAudio = () => {
@@ -245,7 +221,6 @@ export default function LiveClassroom() {
       window.removeEventListener("touchstart", unlockAudio);
     };
   }, []);
-
   // Real-time microphone audio visualizer and recitation cadence follower
   useEffect(() => {
     const stream = activeMediaStream || streamRef.current;
@@ -272,7 +247,6 @@ export default function LiveClassroom() {
           const checkSpeaking = () => {
             if (!isEffectiveMicOn) {
               setIsSpeaking(false);
-              voiceCadenceSpeakingMsRef.current = 0;
               return;
             }
             analyser.getByteFrequencyData(dataArray);
@@ -287,46 +261,7 @@ export default function LiveClassroom() {
               if (val > peak) peak = val;
             }
             const speechAvg = speechSum / Math.max(1, speechBins - 1);
-            const now = Date.now();
-            const deltaMs = Math.min(now - (voiceCadenceLastFrameTimeRef.current || now), 100);
-            voiceCadenceLastFrameTimeRef.current = now;
-
-            // Highly sensitive & reliable vocal threshold: speech band avg > 6 OR peak formant > 20
-            const isUserSpeaking = speechAvg > 6 || peak > 20;
-            setIsSpeaking(isUserSpeaking);
-
-            // Real-Time Recitation Voice Follow Cadence Stepper
-            if (isVoiceFollowOnRef.current) {
-              if (isUserSpeaking) {
-                voiceCadenceSpeakingMsRef.current += deltaMs;
-
-                // When user recites with sustained vocal energy (>= 220ms)
-                // and at least 550ms has elapsed since the last word step
-                if (voiceCadenceSpeakingMsRef.current >= 220) {
-                  const timeSinceLastAdvance = now - voiceCadenceLastAdvanceRef.current;
-                  if (timeSinceLastAdvance >= 550) {
-                    const currentIdx = highlightedIndexRef.current ?? 0;
-                    const words = currentWordStringsRef.current;
-                    const maxIdx = words.length - 1;
-
-                    if (currentIdx < maxIdx) {
-                      const next = currentIdx + 1;
-                      sendHighlightRef.current(next);
-                      voiceCadenceLastAdvanceRef.current = now;
-                      voiceCadenceSpeakingMsRef.current = 0;
-                    } else if (now - voiceCadenceLastSpeechEndRef.current > 2000) {
-                      // Student reached end of Ayah, paused > 2.0s, and started reciting again -> loop back to Word 0
-                      sendHighlightRef.current(0);
-                      voiceCadenceLastAdvanceRef.current = now;
-                      voiceCadenceSpeakingMsRef.current = 0;
-                    }
-                  }
-                }
-              } else {
-                voiceCadenceSpeakingMsRef.current = 0;
-                voiceCadenceLastSpeechEndRef.current = now;
-              }
-            }
+            setIsSpeaking(speechAvg > 6 || peak > 20);
 
             animFrameRef.current = requestAnimationFrame(checkSpeaking);
           };
@@ -337,7 +272,6 @@ export default function LiveClassroom() {
       }
     } else {
       setIsSpeaking(false);
-      voiceCadenceSpeakingMsRef.current = 0;
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     }
 
@@ -367,7 +301,6 @@ export default function LiveClassroom() {
 
   // Keyboard navigation shortcuts (Arrow keys)
   const handleNextWord = useCallback(() => {
-    voiceCadenceLastAdvanceRef.current = Date.now();
     const next =
       highlightedIndex === null
         ? 0
@@ -376,7 +309,6 @@ export default function LiveClassroom() {
   }, [highlightedIndex, currentWordStrings.length, sendHighlight]);
 
   const handlePrevWord = useCallback(() => {
-    voiceCadenceLastAdvanceRef.current = Date.now();
     const prev = highlightedIndex === null ? 0 : Math.max(highlightedIndex - 1, 0);
     sendHighlight(prev);
   }, [highlightedIndex, sendHighlight]);
@@ -839,11 +771,7 @@ export default function LiveClassroom() {
                               ? `AI Listening (${activeSpeechEngine || "Deepgram Nova-3 + VAD"})`
                               : "AI Voice Follow Paused • Click to Start"}
                           </span>
-                          {isVoiceFollowOn && (isVoiceFollowActive || isSpeaking) && (
-                            <span className="text-[10px] text-emerald-300 font-bold px-1.5 py-0.2 rounded bg-emerald-950/90 border border-emerald-500/50 animate-pulse">
-                              Voice Reciting
-                            </span>
-                          )}
+
                         </button>
                       </div>
 

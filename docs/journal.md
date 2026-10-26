@@ -3226,8 +3226,6 @@ The user reported that voice follow was not working in the live classroom (`/cla
 
 ---
 
-
-
 ## 9.119. Speech-Band Frequency Analysis, AudioContext Gesture Unlock & Stream Dependency Rectification
 
 ### Problem & Root Cause Analysis
@@ -3253,5 +3251,40 @@ The user reported that voice follow was not working in the live classroom (`/cla
 
 ### Verification & Quality Assurance
 - **Vitest Suite**: **31 / 31 test files and 531 / 531 tests passing (100% green)**.
+
+---
+
+## 9.120. Eradication of Blind Volume Cadence Stepper, Default-Off on Classroom Entry, Removal of "Voice Reciting" Badge & Reverse-Proximity Recitation Recovery
+
+### Problem & UX Gap Analysis
+1. **Uncontrolled Runaway Auto-Advancing**:
+   - The volume-based cadence stepper introduced in commits `247db0f` / `12ef9d3` / `d32b634` was triggering word advancement blindly every 550ms–650ms whenever audio volume or speech band energy was detected, even if the student was coughing, breathing, talking in another language, or when background noise occurred.
+   - It advanced forward on a blind timer like an uncontrolled conveyor belt, disregarding whether actual Quran words were recognized.
+2. **Inability to Jump Back on Re-recitation**:
+   - Because the blind cadence timer unconditionally incremented (`next = (currentIdx + 1) % totalWords`), if a student made a mistake and re-recited a previous word, the blind timer immediately forced the highlight forward again.
+3. **Unsolicited Voice Follow Auto-Start**:
+   - The classroom was automatically launching voice follow upon entry (`defaultOn: true` and dynamic auto-start `useEffect`), which was intrusive and contrary to user expectations where students/teachers prefer manual control over when voice evaluation starts.
+4. **Intrusive "Voice Reciting" Visual Badge**:
+   - An unsolicited `"Voice Reciting"` pill was constantly popping up above the Mushaf canvas whenever audio exceeded the threshold.
+
+### Engineering Decisions & Fix Implementation
+1. **Complete Eradication of Blind Volume Cadence Steppers**:
+   - Removed the blind audio energy timer stepper loop from `LiveClassroom.tsx`.
+   - Removed the blind `speechTimerRef` auto-advance stepper from `useVoiceFollow.ts`.
+   - Highlight tracking is now **100% transcript-driven and recitation-matched** using Deepgram Nova-3 Arabic / Web Speech API streaming, matching actual spoken phonemes/words against the Surah text.
+2. **Manual Voice Follow Control (`defaultOn: false`)**:
+   - Restored `defaultOn = false` in both `LiveClassroom.tsx` and `useVoiceFollow.ts`.
+   - Removed auto-starting side-effects on room join. The classroom now initializes with AI Voice Follow paused/closed until explicitly toggled on by the user.
+3. **Removal of "Voice Reciting" Pill**:
+   - Completely purged the `"Voice Reciting"` UI badge element from `LiveClassroom.tsx`.
+4. **Reverse-Proximity Backward Match for Re-recitation Recovery**:
+   - In `useVoiceFollow.ts` `getCandidateIndices(lastMatchedIndex)`, updated the backward search order to reverse proximity (`for (let i = curr - 1; i >= 0; i--)`).
+   - When a student corrects themselves and re-recites an earlier word (e.g., repeating the previous word or jumping back to ayah start), the engine matches and snaps back to the closest preceding word immediately without delay.
+
+### Verification & Quality Assurance
+- **Vitest Suite**: **31 / 31 test files and 531 / 531 tests passing (100% green)** including `classroom-voice-follow.test.ts`.
+- **TypeScript Check**: `pnpm typecheck` passed with 0 compiler errors.
+- **Git Hooks & Governance**: Updated `docs/journal.md` prior to commit & push as mandated by governance policy.
+
 - **Production Build**: Turbopack compiled and prerendered all **84 / 84 routes** with 0 errors (`pnpm build`).
 - **Git Repository**: Clean working tree committed and pushed to `origin/main`.

@@ -23,10 +23,10 @@ export function useVoiceFollow({
   onMatchWord,
   audioStream,
   currentIndex = 0,
-  defaultOn = true,
+  defaultOn = false,
 }: UseVoiceFollowOptions) {
-  const [isVoiceFollowOn, setIsVoiceFollowOn] = useState(defaultOn);
-  const isVoiceFollowOnRef = useRef(defaultOn);
+  const [isVoiceFollowOn, setIsVoiceFollowOn] = useState(false);
+  const isVoiceFollowOnRef = useRef(false);
   const [lastSpokenText, setLastSpokenText] = useState("");
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const [activeSpeechEngine, setActiveSpeechEngine] = useState<string | null>(null);
@@ -166,26 +166,7 @@ export function useVoiceFollow({
             setIsVoiceActive(true);
             consecutiveSpeechMsRef.current += deltaMs;
 
-            const timeSinceAdvance = Date.now() - lastAdvanceTimeRef.current;
-            if (
-              consecutiveSpeechMsRef.current >= 220 &&
-              timeSinceAdvance >= 550
-            ) {
-              const words = currentWordsRef.current;
-              const curr = currentIndexRef.current;
-              if (words && words.length > 0 && curr < words.length - 1) {
-                const nextIdx = curr + 1;
-                currentIndexRef.current = nextIdx;
-                lastAdvanceTimeRef.current = Date.now();
-                consecutiveSpeechMsRef.current = 0;
-                onMatchWordRef.current(nextIdx);
-              } else if (words && words.length > 0 && curr >= words.length - 1 && Date.now() - lastSpeechEndTimeRef.current > 2000) {
-                currentIndexRef.current = 0;
-                lastAdvanceTimeRef.current = Date.now();
-                consecutiveSpeechMsRef.current = 0;
-                onMatchWordRef.current(0);
-              }
-            }
+            // Voice activity detected; alignment handled purely via speech recognition matching
           } else {
             setIsVoiceActive(false);
             if (consecutiveSpeechMsRef.current > 0) {
@@ -247,8 +228,8 @@ export function useVoiceFollow({
           addIdx(i);
         }
 
-        // 5. Earlier in the lesson (restarting surah or jump back)
-        for (let i = 0; i < curr; i++) {
+        // 5. Earlier in the lesson: proximity order (re-reciting previous words or restarting)
+        for (let i = curr - 1; i >= 0; i--) {
           addIdx(i);
         }
       } else {
@@ -721,14 +702,7 @@ export function useVoiceFollow({
     [processSpokenTranscript]
   );
 
-  // Auto-start voice follow if enabled by default
-  useEffect(() => {
-    if (defaultOn && !hasNotifiedVoiceRef.current) {
-      isVoiceFollowOnRef.current = true;
-      setIsVoiceFollowOn(true);
-      startVoiceFollow();
-    }
-  }, [defaultOn, startVoiceFollow]);
+
 
   // Bind audioStream dynamically whenever microphone stream initializes or updates
   useEffect(() => {
