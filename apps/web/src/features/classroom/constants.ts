@@ -18,6 +18,9 @@ export function toArabicNumerals(num: number, script: ScriptType = "uthmani"): s
 export function normalizeArabic(text: string): string {
   if (!text) return "";
   return text
+    // Normalize forms of Allah / Lillah before diacritics removal to prevent dagger-alif corruption
+    .replace(/لِلَّهِ|لِلّٰهِ|لِلَّـهِ|لِلّٰـهِ/g, "لله")
+    .replace(/ٱللَّهِ|ٱللّٰهِ|اللَّهِ|اللّٰهِ/g, "الله")
     .replace(/\u0670/g, "ا")
     .replace(/\u0640/g, "")
     .replace(/[\u06D6-\u06ED\u065F\u06E2\u06E3\u06E4\u0600-\u0605\u06DD]/g, "")
@@ -27,6 +30,7 @@ export function normalizeArabic(text: string): string {
     .replace(/[كک]/g, "ك")
     .replace(/[ؤ]/g, "و")
     .replace(/ة/g, "ه")
+    .replace(/للاه/g, "لله")
     .replace(/[.,\/#!$%\^&\*;:{}=\-_~`()]/g, "")
     .trim();
 }

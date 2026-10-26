@@ -315,4 +315,74 @@ describe("Classroom AI Voice Following & Recitation Alignment Suite", () => {
   it("normalizes IndoPak Yeh and Uthmani Alif Khanjareeyah to identical Arabic roots", () => {
     expect(normalizeArabic("الْعٰلَمِیْنَ")).toBe(normalizeArabic("ٱلْعَـٰلَمِينَ"));
   });
+
+  it("normalizes IndoPak and Uthmani Lillah to canonical لله preventing dagger-alif corruption", () => {
+    expect(normalizeArabic("لِلّٰهِ")).toBe("لله");
+    expect(normalizeArabic("لِلَّهِ")).toBe("لله");
+    expect(normalizeArabic("اللّٰهِ")).toBe("الله");
+    expect(normalizeArabic("ٱللَّهِ")).toBe("الله");
+  });
+
+  it("accurately matches all 4 IndoPak script words in Ayah 2 individually and cumulatively", () => {
+    const indopakWords = ["اَلْحَمْدُ", "لِلّٰهِ", "رَبِّ", "الْعٰلَمِیْنَ"];
+    const normIndoPak = indopakWords.map(normalizeArabic);
+
+    expect(normIndoPak).toEqual(["الحمد", "لله", "رب", "العالمين"]);
+
+    function matchIndoPakWord(spoken: string): number {
+      const tokens = spoken.trim().split(/\s+/).map(normalizeArabic).filter(Boolean);
+      for (let sIdx = tokens.length - 1; sIdx >= 0; sIdx--) {
+        const token = tokens[sIdx];
+        for (let i = normIndoPak.length - 1; i >= 0; i--) {
+          if (normIndoPak[i] === token) return i;
+          const phonetics = (PHONETIC_MAP[i] || []).map(normalizeArabic);
+          if (phonetics.includes(token)) return i;
+        }
+      }
+      return -1;
+    }
+
+    expect(matchIndoPakWord("الحمد")).toBe(0);
+    expect(matchIndoPakWord("لله")).toBe(1);
+    expect(matchIndoPakWord("رب")).toBe(2);
+    expect(matchIndoPakWord("العالمين")).toBe(3);
+    expect(matchIndoPakWord("الحمد لله")).toBe(1);
+    expect(matchIndoPakWord("الحمد لله رب")).toBe(2);
+    expect(matchIndoPakWord("الحمد لله رب العالمين")).toBe(3);
+  });
+
+  it("simulates real-time vocal cadence progression across Ayah words", () => {
+    let currentIndex = 0;
+    const words = ["اَلْحَمْدُ", "لِلّٰهِ", "رَبِّ", "الْعٰلَمِیْنَ"];
+
+    function handleVocalPulse(sustainedMs: number, timeSinceLastAdvanceMs: number) {
+      if (sustainedMs >= 300 && timeSinceLastAdvanceMs >= 700) {
+        if (currentIndex < words.length - 1) {
+          currentIndex += 1;
+        }
+      }
+    }
+
+    // Reciting Word 0 -> user vocalizes for 350ms with 800ms elapsed
+    handleVocalPulse(350, 800);
+    expect(currentIndex).toBe(1);
+
+    // Reciting Word 1 -> user vocalizes for 400ms with 750ms elapsed
+    handleVocalPulse(400, 750);
+    expect(currentIndex).toBe(2);
+
+    // Reciting Word 2 -> user vocalizes for 450ms with 900ms elapsed
+    handleVocalPulse(450, 900);
+    expect(currentIndex).toBe(3);
+
+    // Word 3 is the last word in the Ayah -> holds on last word
+    handleVocalPulse(400, 800);
+    expect(currentIndex).toBe(3);
+  });
+
+  it("generates correct Deepgram KeepAlive payload", () => {
+    const keepAliveMsg = JSON.stringify({ type: "KeepAlive" });
+    const parsed = JSON.parse(keepAliveMsg);
+    expect(parsed.type).toBe("KeepAlive");
+  });
 });

@@ -5,20 +5,26 @@
 export function normalizeArabic(text: string): string {
   if (!text) return "";
   return text
+    // Normalize forms of Allah / Lillah before diacritics removal to prevent dagger-alif corruption
+    .replace(/لِلَّهِ|لِلّٰهِ|لِلَّـهِ|لِلّٰـهِ/g, "لله")
+    .replace(/ٱللَّهِ|ٱللّٰهِ|اللَّهِ|اللّٰهِ/g, "الله")
     // Replace dagger alif \u0670 with standard alif
     .replace(/\u0670/g, "ا")
     // Remove Tatweel/Kashida \u0640
     .replace(/\u0640/g, "")
     // Remove Quranic annotation signs & pauses
-    .replace(/[\u06D6-\u06ED\u065F\u06E2\u06E3\u06E4\u0600-\u0605]/g, "")
+    .replace(/[\u06D6-\u06ED\u065F\u06E2\u06E3\u06E4\u0600-\u0605\u06DD]/g, "")
     // Remove all Harakat (diacritics/vowels)
-    .replace(/[\u0610-\u061A\u064B-\u065E]/g, "")
+    .replace(/[\u0610-\u061A\u064B-\u065E\u0653\u0654]/g, "")
     // Normalize all Alif variants
     .replace(/[إأآٱ]/g, "ا")
-    // Normalize Yaa / Alif Maqsura
-    .replace(/[ىي]/g, "ي")
+    // Normalize Yaa / Alif Maqsura and Urdu Yeh
+    .replace(/[ىيیئ]/g, "ي")
+    // Normalize Kaf
+    .replace(/[كک]/g, "ك")
     // Normalize Taa Marbuta
     .replace(/ة/g, "ه")
+    .replace(/للاه/g, "لله")
     .trim();
 }
 

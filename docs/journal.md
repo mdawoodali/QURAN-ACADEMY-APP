@@ -3113,6 +3113,53 @@ The user reported that voice follow was not working in the live classroom (`/cla
 - **Production Build**: Turbopack compiled and prerendered all **84 / 84 routes** with 0 errors (`pnpm build`).
 - **Git Repository**: Clean working tree committed and pushed to `origin/main`.
 
+---
+
+## 9.117. Multi-Modal Real-Time Recitation Tracker (Audio VAD Cadence + Deepgram Nova-3 KeepAlive + Dagger-Alif Normalization)
+
+### Problem & Root Cause Analysis
+1. **Dagger-Alif Lillah Normalization Bug (`normalizeArabic`)**:
+   - `normalizeArabic` applied `.replace(/\u0670/g, "ا")` unconditionally before removing diacritics. In IndoPak script, word 1 (`لِلّٰهِ`) has a dagger-alif over the lam (`ل` + `ل` + `\u0670` + `ه`), transforming it into `"للاه"` instead of canonical `"لله"`.
+   - When a user or speech engine recited `"لله"`, it never matched `"للاه"`, freezing the highlight permanently on Word 0 (`اَلْحَمْدُ`).
+2. **Web Speech Fatal Chrome Termination**:
+   - In Chrome on Windows, calling `recognition.start()` on an instance that already fired `onend` throws `DOMException: Failed to execute 'start' on 'SpeechRecognition': recognition has already started or already ended`.
+   - The old code called `recognitionRef.current.start()` on the terminated instance, causing speech recognition to silently die after the first 3-second pause while leaving the UI stuck on `"AI Listening (Web Speech)"`.
+3. **Deepgram WebSocket Idle Disconnection**:
+   - Deepgram's live transcription endpoint automatically terminates WebSocket connections after ~10 seconds of speech silence or buffering without a KeepAlive heartbeat.
+   - When Deepgram closed, it dropped down to Web Speech, which then crashed due to the single-use instance bug.
+4. **Cloud Speech Dependency for Melodic Quranic Recitation**:
+   - Cloud speech engines often fail to transcribe melodic Quranic recitation with prolonged Madd vowels in real time. Without an acoustic cadence fallback, the classroom was entirely frozen if cloud packets were delayed or silenced.
+
+### Engineering Decisions & Fix Implementation
+1. **Multi-Modal Hybrid Recitation Tracker (`useVoiceFollow.ts`)**:
+   - **Real-Time Audio VAD Cadence Tracker**:
+     - Connected Web Audio `AnalyserNode` directly to the live microphone `MediaStream`.
+     - Analyzes microphone frequency and volume energy at 60 FPS.
+     - When sustained recitation vocalization is detected (speech energy > threshold for >= 300ms, with natural recitation pacing >= 700ms between word boundaries), it automatically advances the active word highlight to the next word in the active Ayah (`currentIndex + 1`).
+     - When the student/teacher stops speaking (takes a breath or pauses), advancement immediately halts and remains on the current word.
+     - When the entire Ayah is completed and the reciter pauses >2.5s before reciting again, the cadence tracker smoothly loops back to word 0.
+   - **Speech-to-Text Precision Lock**:
+     - When Deepgram Nova-3 or Web Speech transcribes words, `processSpokenTranscript` immediately locks the highlight to the exact recognized word, taking immediate precedence and displaying `lastSpokenText`.
+2. **Deepgram KeepAlive Heartbeat**:
+   - Added a 5-second interval heartbeat: `socket.send(JSON.stringify({ type: "KeepAlive" }))`, ensuring the WebSocket connection never closes due to idle pauses between verses.
+3. **Resilient Web Speech Loop**:
+   - `onend` now cleanly instantiates a fresh `new SpeechRecognition()` via `startWebSpeechFallback()` with a 300ms debounce, completely eliminating Chrome's `InvalidStateError`.
+4. **Canonical Arabic & IndoPak Normalization (`constants.ts` & `speechMatcher.ts`)**:
+   - Added pre-normalization rules mapping all variations of `لِلَّهِ`, `لِلّٰهِ`, `اللَّهِ`, `اللّٰهِ` directly to canonical `"لله"` and `"الله"`.
+   - Both IndoPak `["اَلْحَمْدُ", "لِلّٰهِ", "رَبِّ", "الْعٰلَمِیْنَ"]` and Uthmani `["ٱلْحَمْدُ", "لِلَّهِ", "رَبِّ", "ٱلْعَـٰلَمِينَ"]` now normalize to identical string arrays: `["الحمد", "لله", "رب", "العالمين"]`.
+5. **Classroom UI & Telemetry Indicators (`LiveClassroom.tsx`)**:
+   - Passed `currentIndex: highlightedIndex ?? 0` into `useVoiceFollow`.
+   - Dynamic waveform audio bars pulse with emerald scaling whenever the microphone is actively capturing voice.
+   - Displays real-time badge: `"Voice Reciting"` and engine indicator: `"AI Listening (Deepgram Nova-3 + VAD)"`.
+   - Safe mic toggle automatically requests and binds `getUserMedia` stream if device check was skipped.
+
+### Verification & Quality Assurance
+- **Unit & Integration Tests**: Added 4 new tests in `classroom-voice-follow.test.ts` verifying IndoPak canonical Lillah normalization, 4-word Ayah 2 matching, vocal cadence word progression, and Deepgram KeepAlive payload.
+- **Vitest Suite**: **31 / 31 test files and 529 / 529 tests passing (100% green)**.
+- **Production Build**: Turbopack compiled and prerendered all **84 / 84 routes** with 0 errors (`pnpm build`).
+- **Git Repository**: Clean working tree committed and pushed to `origin/main`.
+
+
 
 
 

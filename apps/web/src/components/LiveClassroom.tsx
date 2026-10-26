@@ -174,10 +174,12 @@ export default function LiveClassroom() {
     voiceError,
     toggleVoiceFollow,
     simulateRecitation,
+    isVoiceActive: isVoiceFollowActive,
   } = useVoiceFollow({
     currentWords: currentWordStrings,
     onMatchWord: sendHighlight,
     audioStream: activeMediaStream || streamRef.current,
+    currentIndex: highlightedIndex ?? 0,
   });
 
   // Derived effective mic state (muted if user turned it off, remote-muted, or observer)
@@ -372,6 +374,20 @@ export default function LiveClassroom() {
       streamRef.current.getAudioTracks().forEach((track) => {
         track.enabled = !isMicOn;
       });
+    } else if (!isMicOn && typeof navigator !== "undefined" && navigator.mediaDevices) {
+      navigator.mediaDevices
+        .getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+        })
+        .then((stream) => {
+          streamRef.current = stream;
+          setActiveMediaStream(stream);
+        })
+        .catch(() => {});
     }
     setIsMicOn(!isMicOn);
     if (remoteMuted) setRemoteMuted(false);
@@ -678,8 +694,12 @@ export default function LiveClassroom() {
                           {[3, 6, 4, 8, 12, 10, 7, 4, 8, 12, 6, 3].map((h, i) => (
                             <div
                               key={i}
-                              className={`w-1 rounded-full ${
-                                isVoiceFollowOn ? "bg-amber-400 animate-pulse" : "bg-white/30"
+                              className={`w-1 rounded-full transition-all ${
+                                isVoiceFollowOn
+                                  ? isVoiceFollowActive || isSpeaking
+                                    ? "bg-emerald-400 animate-pulse scale-110"
+                                    : "bg-amber-400/80 animate-pulse"
+                                  : "bg-white/30"
                               }`}
                               style={{ height: `${h * 0.8}px`, animationDelay: `${i * 0.07}s` }}
                             />
@@ -688,12 +708,19 @@ export default function LiveClassroom() {
                         <button
                           type="button"
                           onClick={toggleVoiceFollow}
-                          className="text-amber-300 hover:text-amber-200 font-bold text-xs truncate cursor-pointer transition text-left"
+                          className="text-amber-300 hover:text-amber-200 font-bold text-xs truncate cursor-pointer transition text-left flex items-center gap-1.5"
                           title="Click to toggle AI Voice Follow"
                         >
-                          {isVoiceFollowOn
-                            ? `AI Listening (${activeSpeechEngine || "Deepgram Nova-3"})`
-                            : "AI Voice Follow Paused • Click to Start"}
+                          <span>
+                            {isVoiceFollowOn
+                              ? `AI Listening (${activeSpeechEngine || "Deepgram Nova-3 + VAD"})`
+                              : "AI Voice Follow Paused • Click to Start"}
+                          </span>
+                          {isVoiceFollowOn && (isVoiceFollowActive || isSpeaking) && (
+                            <span className="text-[10px] text-emerald-300 font-bold px-1.5 py-0.2 rounded bg-emerald-950/90 border border-emerald-500/50 animate-pulse">
+                              Voice Reciting
+                            </span>
+                          )}
                         </button>
                       </div>
 
