@@ -212,9 +212,44 @@ export default function LiveClassroom() {
   const voiceCadenceLastSpeechEndRef = useRef(0);
   const voiceCadenceLastFrameTimeRef = useRef(Date.now());
 
+  // Auto-acquire microphone if uncalibrated on load
+  useEffect(() => {
+    if (!activeMediaStream && !streamRef.current && typeof navigator !== "undefined" && navigator.mediaDevices) {
+      navigator.mediaDevices
+        .getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+        })
+        .then((stream) => {
+          streamRef.current = stream;
+          setActiveMediaStream(stream);
+        })
+        .catch(() => {});
+    }
+  }, [activeMediaStream]);
+
+  // Unlock AudioContext on initial user gesture in browser
+  useEffect(() => {
+    const unlockAudio = () => {
+      if (audioContextRef.current && audioContextRef.current.state === "suspended") {
+        audioContextRef.current.resume().catch(() => {});
+      }
+    };
+    window.addEventListener("click", unlockAudio, { once: true });
+    window.addEventListener("touchstart", unlockAudio, { once: true });
+    return () => {
+      window.removeEventListener("click", unlockAudio);
+      window.removeEventListener("touchstart", unlockAudio);
+    };
+  }, []);
+
   // Real-time microphone audio visualizer and recitation cadence follower
   useEffect(() => {
-    if (streamRef.current && isEffectiveMicOn) {
+    const stream = activeMediaStream || streamRef.current;
+    if (stream && isEffectiveMicOn) {
       try {
         const AudioCtx =
           window.AudioContext ||
@@ -223,10 +258,14 @@ export default function LiveClassroom() {
         if (AudioCtx) {
           const audioCtx = new AudioCtx();
           audioContextRef.current = audioCtx;
+          if (audioCtx.state === "suspended") {
+            audioCtx.resume().catch(() => {});
+          }
           const analyser = audioCtx.createAnalyser();
           analyser.fftSize = 64;
+          analyser.smoothingTimeConstant = 0.3;
           analyserRef.current = analyser;
-          const source = audioCtx.createMediaStreamSource(streamRef.current);
+          const source = audioCtx.createMediaStreamSource(stream);
           source.connect(analyser);
           const dataArray = new Uint8Array(analyser.frequencyBinCount);
 
@@ -237,16 +276,23 @@ export default function LiveClassroom() {
               return;
             }
             analyser.getByteFrequencyData(dataArray);
-            let sum = 0;
-            for (let i = 0; i < dataArray.length; i++) {
-              sum += dataArray[i] ?? 0;
+
+            // Speech band focus: human vocal fundamentals & formants (bins 1 to 24)
+            const speechBins = Math.min(24, dataArray.length);
+            let speechSum = 0;
+            let peak = 0;
+            for (let i = 1; i < speechBins; i++) {
+              const val = dataArray[i] ?? 0;
+              speechSum += val;
+              if (val > peak) peak = val;
             }
-            const avg = sum / dataArray.length;
+            const speechAvg = speechSum / Math.max(1, speechBins - 1);
             const now = Date.now();
             const deltaMs = Math.min(now - (voiceCadenceLastFrameTimeRef.current || now), 100);
             voiceCadenceLastFrameTimeRef.current = now;
 
-            const isUserSpeaking = avg > 14;
+            // Highly sensitive & reliable vocal threshold: speech band avg > 6 OR peak formant > 20
+            const isUserSpeaking = speechAvg > 6 || peak > 20;
             setIsSpeaking(isUserSpeaking);
 
             // Real-Time Recitation Voice Follow Cadence Stepper
@@ -254,11 +300,11 @@ export default function LiveClassroom() {
               if (isUserSpeaking) {
                 voiceCadenceSpeakingMsRef.current += deltaMs;
 
-                // When user recites with sustained vocal energy (>= 280ms)
-                // and at least 650ms has elapsed since the last word step
-                if (voiceCadenceSpeakingMsRef.current >= 280) {
+                // When user recites with sustained vocal energy (>= 220ms)
+                // and at least 550ms has elapsed since the last word step
+                if (voiceCadenceSpeakingMsRef.current >= 220) {
                   const timeSinceLastAdvance = now - voiceCadenceLastAdvanceRef.current;
-                  if (timeSinceLastAdvance >= 650) {
+                  if (timeSinceLastAdvance >= 550) {
                     const currentIdx = highlightedIndexRef.current ?? 0;
                     const words = currentWordStringsRef.current;
                     const maxIdx = words.length - 1;
@@ -268,8 +314,8 @@ export default function LiveClassroom() {
                       sendHighlightRef.current(next);
                       voiceCadenceLastAdvanceRef.current = now;
                       voiceCadenceSpeakingMsRef.current = 0;
-                    } else if (now - voiceCadenceLastSpeechEndRef.current > 2200) {
-                      // Student reached end of Ayah, paused > 2.2s, and started reciting again -> loop back to Word 0
+                    } else if (now - voiceCadenceLastSpeechEndRef.current > 2000) {
+                      // Student reached end of Ayah, paused > 2.0s, and started reciting again -> loop back to Word 0
                       sendHighlightRef.current(0);
                       voiceCadenceLastAdvanceRef.current = now;
                       voiceCadenceSpeakingMsRef.current = 0;
@@ -286,7 +332,9 @@ export default function LiveClassroom() {
           };
           checkSpeaking();
         }
-      } catch {}
+      } catch (err) {
+        console.warn("[LiveClassroom] Audio visualizer error:", err);
+      }
     } else {
       setIsSpeaking(false);
       voiceCadenceSpeakingMsRef.current = 0;
@@ -295,8 +343,13 @@ export default function LiveClassroom() {
 
     return () => {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      if (audioContextRef.current && audioContextRef.current.state !== "closed") {
+        try {
+          audioContextRef.current.close();
+        } catch {}
+      }
     };
-  }, [isEffectiveMicOn]);
+  }, [isEffectiveMicOn, activeMediaStream]);
 
   // Keep participant presence media updated
   useEffect(() => {

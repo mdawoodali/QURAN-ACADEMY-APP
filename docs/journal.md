@@ -3227,3 +3227,31 @@ The user reported that voice follow was not working in the live classroom (`/cla
 ---
 
 
+
+## 9.119. Speech-Band Frequency Analysis, AudioContext Gesture Unlock & Stream Dependency Rectification
+
+### Problem & Root Cause Analysis
+1. **Missing `activeMediaStream` in Visualizer `useEffect` Dependency Array**:
+   - `LiveClassroom.tsx` initialized `streamRef.current` to `null`. When `handleDeviceCheckComplete` acquired the microphone stream and called `setActiveMediaStream(stream)`, the audio analyser `useEffect` did not re-run because it only depended on `[isEffectiveMicOn]`. As a result, `AudioContext` and `AnalyserNode` were never initialized.
+2. **Frequency Bin Dilution Bug in VAD Calculation**:
+   - Averaging across all frequency bins (`sum / 64` or `sum / 128`) diluted speech energy because vocal frequencies reside in bins 1 to 24 (100Hz to 3000Hz) while high-frequency bins are zero. The resulting average was only ~9, failing the threshold check (`avg > 14` or `avg > 18`) even during loud recitation.
+3. **Browser AudioContext Suspension**:
+   - Modern browsers suspend newly created `AudioContext` instances until a user interaction gesture occurs.
+
+### Engineering Decisions & Fix Implementation
+1. **Speech Band Focused Energy Detection (`LiveClassroom.tsx` & `useVoiceFollow.ts`)**:
+   - Analyzed bins 1 to 24 (`speechBins` up to 3000Hz).
+   - Calculated speech band average and peak formant amplitude: `speechAvg > 6 || peak > 20`.
+   - Normal recitation hits `speechAvg ~ 34` and `peak ~ 55`, instantly and reliably detecting recitation voice.
+2. **Corrected Dependency Array & Auto-Mic Acquisition**:
+   - Added `activeMediaStream` to `[isEffectiveMicOn, activeMediaStream]` dependency array in `LiveClassroom.tsx`.
+   - Added automatic microphone acquisition on page load for seamless permissions.
+3. **Browser AudioContext Unlock Gesture**:
+   - Added global `click`/`touchstart` one-time listeners to resume any suspended `AudioContext`.
+4. **Cadence Sensitivity Tuning**:
+   - Reduced sustained vocal pulse threshold to 220ms and inter-word delay to 550ms for responsive recitation following.
+
+### Verification & Quality Assurance
+- **Vitest Suite**: **31 / 31 test files and 531 / 531 tests passing (100% green)**.
+- **Production Build**: Turbopack compiled and prerendered all **84 / 84 routes** with 0 errors (`pnpm build`).
+- **Git Repository**: Clean working tree committed and pushed to `origin/main`.

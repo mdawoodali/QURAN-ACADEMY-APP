@@ -142,27 +142,34 @@ export function useVoiceFollow({
           if (!isVoiceFollowOnRef.current) return;
 
           analyser.getByteFrequencyData(dataArray);
-          let sum = 0;
-          for (let i = 0; i < dataArray.length; i++) {
-            sum += dataArray[i]!;
+
+          // Focus on human vocal speech band (bins 1 to 24)
+          const speechBins = Math.min(24, dataArray.length);
+          let speechSum = 0;
+          let peak = 0;
+          for (let i = 1; i < speechBins; i++) {
+            const val = dataArray[i]!;
+            speechSum += val;
+            if (val > peak) peak = val;
           }
-          const avg = sum / dataArray.length;
-          const normalized = Math.min(100, Math.round((avg / 128) * 100));
+          const speechAvg = speechSum / Math.max(1, speechBins - 1);
+          const isSpeakingNow = speechAvg > 6 || peak > 20;
+
+          const normalized = Math.min(100, Math.round((peak / 128) * 100));
           setAudioLevel(normalized);
 
           const now = performance.now();
           const deltaMs = now - (lastFrameTimeRef.current || now);
           lastFrameTimeRef.current = now;
 
-          const VOICE_THRESHOLD = 18;
-          if (avg > VOICE_THRESHOLD) {
+          if (isSpeakingNow) {
             setIsVoiceActive(true);
             consecutiveSpeechMsRef.current += deltaMs;
 
             const timeSinceAdvance = Date.now() - lastAdvanceTimeRef.current;
             if (
-              consecutiveSpeechMsRef.current >= 400 &&
-              timeSinceAdvance >= 750
+              consecutiveSpeechMsRef.current >= 220 &&
+              timeSinceAdvance >= 550
             ) {
               const words = currentWordsRef.current;
               const curr = currentIndexRef.current;
@@ -172,6 +179,11 @@ export function useVoiceFollow({
                 lastAdvanceTimeRef.current = Date.now();
                 consecutiveSpeechMsRef.current = 0;
                 onMatchWordRef.current(nextIdx);
+              } else if (words && words.length > 0 && curr >= words.length - 1 && Date.now() - lastSpeechEndTimeRef.current > 2000) {
+                currentIndexRef.current = 0;
+                lastAdvanceTimeRef.current = Date.now();
+                consecutiveSpeechMsRef.current = 0;
+                onMatchWordRef.current(0);
               }
             }
           } else {
@@ -179,7 +191,7 @@ export function useVoiceFollow({
             if (consecutiveSpeechMsRef.current > 0) {
               lastSpeechEndTimeRef.current = Date.now();
             }
-            consecutiveSpeechMsRef.current = Math.max(0, consecutiveSpeechMsRef.current - deltaMs * 1.5);
+            consecutiveSpeechMsRef.current = Math.max(0, consecutiveSpeechMsRef.current - deltaMs * 0.5);
           }
 
           vadAnimFrameRef.current = requestAnimationFrame(monitorLoop);
