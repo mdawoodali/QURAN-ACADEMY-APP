@@ -3049,6 +3049,38 @@ The user reported that voice follow was not working in the live classroom (`/cla
 - **TypeScript Analysis**: `tsc --noEmit` verified with 0 errors across all workspaces.
 - **Vitest Suite**: **31 / 31 test files and 525 / 525 tests passing (100% green)**.
 
+---
+
+## 9.115. Google Meet 3-Way Classroom, Next.js 16 CacheComponents Build Hardening & Multi-Ward Ecosystem Verification
+
+### Problem & Architectural Overview
+1. **Google Meet Classroom Workflow Alignment**:
+   - Live classroom sessions require a seamless Google Meet interface featuring shareable links, formatted meeting codes (e.g. `qra-yus-101`), real-time reactions (`💖 👍 👏 🎉 🤲 ⭐ 🔥 ✋`), in-call chat box, and teacher host management (Mute All Participants, Disallow Mic, Disallow Chat, Autonomous Whiteboard Toggle).
+   - The Parent of the student receives real-time notification on their portal (`/parent`) with a direct action button: *"Join Live as Parent Observer (Muted)"*.
+   - By default, parent observers join muted (`isMicOn: false`, camera off, with clear safeguarding tooltips preventing accidental recitation interference).
+   - Zero connectivity drops: Dual-layer sync utilizing BroadcastChannel, resilient WebSockets with exponential backoff and application ping/pongs, and dynamic re-sync snapshots.
+2. **Next.js 16 CacheComponents Compatibility**:
+   - In Next.js 16 App Router with Turbopack and `cacheComponents: true` / Partial Prerendering (PPR), using `export const dynamic = 'force-dynamic'` triggers build-time rejection: *"Route segment config 'dynamic' is not compatible with nextConfig.cacheComponents"*.
+   - Conversely, omitting segment configuration when reading dynamic runtime `searchParams` on prerendered routes halts static page generation with prerender errors.
+   - The standard Next.js 16 route directive for blocking runtime searchParams resolution is `export const instant = false;`.
+
+### Engineering Decisions & Fix Implementation
+1. **Login Page Build Hardening (`apps/web/src/app/(public)/login/page.tsx`)**:
+   - Replaced incompatible `export const dynamic = 'force-dynamic'` with `export const instant = false;`, bringing the route into harmony with `apps/web/src/app/(portal)/layout.tsx` and the registration pages.
+   - Retained top-level `await props.searchParams` extraction for `error` and `redirectPath` without nested Suspense bailing.
+2. **Three-Way Connected Ecosystem Verification**:
+   - **Teacher**: Launches classroom from `/teacher` (`/classroom/${slug}?role=teacher`), receives full host controls drawer, interactive whiteboard Ayah selection, Tajweed toggle, laser pointer, and audio visualizer.
+   - **Student**: Launches or follows from `/student` (`/classroom/${slug}?role=student`), synchronizes with teacher annotations, possesses autonomous practice toggle.
+   - **Parent**: Receives active class banner and child card notifications on `/parent`, joins via `/classroom/${slug}?role=observer&child=${name}`, default-muted, with read-only chat and audio/video monitoring.
+   - **Multi-Ward Linkage**: Verified with high-contrast amber `<Plus /> Add Another Ward (Child)` button, multi-child card state, and persistent ward badges.
+   - **AI Voice Follow**: Web Speech + Deepgram fallback engine with Uthmani/IndoPak ligature normalization, phonetic token mapping, and one-click auto-follow simulation.
+
+### Verification & Quality Assurance
+- **Production Build**: Full Turbopack compilation across all 84 routes completed with 0 errors (`pnpm build`).
+- **Vitest Suite**: **31 / 31 test files and 525 / 525 tests passing (100% green)**.
+- **Git State**: Clean working tree committed and pushed to `origin/main`.
+
+
 
 
 
