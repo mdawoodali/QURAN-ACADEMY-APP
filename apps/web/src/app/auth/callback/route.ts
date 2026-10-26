@@ -38,6 +38,23 @@ export async function GET(request: Request) {
           cookieStore.delete("pending_oauth_role");
         }
 
+        const pendingWards = cookieStore.get("pending_oauth_wards")?.value;
+        if (cookieStore.has("pending_oauth_wards")) {
+          cookieStore.delete("pending_oauth_wards");
+        }
+        if (pendingWards) {
+          try {
+            const parsedWards = JSON.parse(pendingWards);
+            if (Array.isArray(parsedWards) && parsedWards.length > 0) {
+              const names = parsedWards.map((w: any) => (typeof w === "string" ? w : w.name)).filter(Boolean);
+              if (names.length > 0) {
+                cookieStore.set("selected_wards", JSON.stringify(names), { path: "/", maxAge: 60 * 60 * 24 * 7 });
+                cookieStore.set("selected_ward", String(names[0]), { path: "/", maxAge: 60 * 60 * 24 * 7 });
+              }
+            }
+          } catch {}
+        }
+
         const role = profile?.role || pendingRole || (data.user.user_metadata?.role as string | undefined);
         const name =
           `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() ||

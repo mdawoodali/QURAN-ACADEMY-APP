@@ -15,7 +15,9 @@ import {
   EyeOff, 
   UserCheck, 
   Sparkles,
-  PlusCircle
+  PlusCircle,
+  Plus,
+  Trash2
 } from "lucide-react";
 import { registerUnifiedUser } from "./actions";
 import { loginWithGoogle } from "../login/actions";
@@ -92,14 +94,16 @@ export default function RegisterClient({ initialError }: { initialError?: string
   const [selectedRole, setSelectedRole] = useState<"student" | "parent" | "teacher">("parent");
   const [showPassword, setShowPassword] = useState(false);
 
-  // Ward search states for Parent role
+  // Ward search states for Parent role (Supports multiple wards with plus-sign addition)
   const [availableWards, setAvailableWards] = useState<WardRecord[]>(PRESET_WARDS);
   const [searchQuery, setSearchQuery] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [selectedWard, setSelectedWard] = useState<WardRecord | null>(null);
+  const [selectedWards, setSelectedWards] = useState<WardRecord[]>([PRESET_WARDS[0]]);
+  const [isSearchingMore, setIsSearchingMore] = useState(false);
   const [isAddingNewWard, setIsAddingNewWard] = useState(false);
   const [newWardName, setNewWardName] = useState("");
   const [newWardAge, setNewWardAge] = useState(8);
+  const [newWardCourse, setNewWardCourse] = useState("Quran Reading for Kids (Noorani Qaida)");
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -157,16 +161,34 @@ export default function RegisterClient({ initialError }: { initialError?: string
   });
 
   const handleSelectWard = (ward: WardRecord) => {
-    setSelectedWard(ward);
+    if (!selectedWards.some((w) => w.id === ward.id || w.name.toLowerCase() === ward.name.toLowerCase())) {
+      setSelectedWards((prev) => [...prev, ward]);
+    }
+    setIsSearchingMore(false);
     setIsAddingNewWard(false);
     setIsDropdownOpen(false);
     setSearchQuery("");
   };
 
-  const handleClearSelectedWard = () => {
-    setSelectedWard(null);
+  const handleRemoveWard = (wardId: string) => {
+    setSelectedWards((prev) => prev.filter((w) => w.id !== wardId));
+  };
+
+  const handleAddNewWard = () => {
+    if (!newWardName.trim()) return;
+    const newWard: WardRecord = {
+      id: "ward_custom_" + Date.now(),
+      name: newWardName.trim(),
+      age: newWardAge,
+      course: newWardCourse || "Quran Reading for Kids (Noorani Qaida)",
+      studentId: "STU-" + Math.floor(1000 + Math.random() * 9000),
+    };
+    setSelectedWards((prev) => [...prev, newWard]);
+    setNewWardName("");
+    setNewWardAge(8);
     setIsAddingNewWard(false);
-    setSearchQuery("");
+    setIsSearchingMore(false);
+    setIsDropdownOpen(false);
   };
 
   return (
@@ -256,6 +278,9 @@ export default function RegisterClient({ initialError }: { initialError?: string
         <div className="mb-6">
           <form action={loginWithGoogle}>
             <input type="hidden" name="role" value={selectedRole} />
+            {selectedRole === "parent" && selectedWards.length > 0 && (
+              <input type="hidden" name="wardsData" value={JSON.stringify(selectedWards)} />
+            )}
             <button
               type="submit"
               className="w-full flex items-center justify-center gap-3 bg-white hover:bg-stone-100 text-stone-900 py-3.5 px-4 rounded-2xl font-bold transition-all shadow-md hover:shadow-lg border border-stone-200 text-sm sm:text-base cursor-pointer group"
@@ -303,28 +328,33 @@ export default function RegisterClient({ initialError }: { initialError?: string
             <>
               <input
                 type="hidden"
+                name="wardsData"
+                value={JSON.stringify(selectedWards)}
+              />
+              <input
+                type="hidden"
                 name="wardName"
-                value={isAddingNewWard ? newWardName : (selectedWard?.name || "")}
+                value={selectedWards.map((w) => w.name).join(", ")}
               />
               <input
                 type="hidden"
                 name="wardAge"
-                value={isAddingNewWard ? newWardAge : (selectedWard?.age || 10)}
+                value={selectedWards[0]?.age || 10}
               />
               <input
                 type="hidden"
                 name="wardCourse"
-                value={selectedWard?.course || "Quran Reading for Kids (Noorani Qaida)"}
+                value={selectedWards[0]?.course || "Quran Reading for Kids (Noorani Qaida)"}
               />
               <input
                 type="hidden"
                 name="wardId"
-                value={selectedWard?.studentId || selectedWard?.id || ""}
+                value={selectedWards.map((w) => w.studentId || w.id).join(",")}
               />
             </>
           )}
 
-          {/* PARENT SPECIFIC: SEARCHABLE WARD SELECTOR FACILITY */}
+          {/* PARENT SPECIFIC: SEARCHABLE MULTI-WARD SELECTOR FACILITY WITH PLUS SIGN */}
           {selectedRole === "parent" && (
             <div className="bg-[#022319]/90 border border-amber-400/40 rounded-2xl p-4 sm:p-5 shadow-lg animate-in fade-in-50">
               <div className="flex items-center justify-between gap-2 mb-2">
@@ -333,6 +363,11 @@ export default function RegisterClient({ initialError }: { initialError?: string
                   <span className="text-xs sm:text-sm font-bold text-amber-300">
                     Search & Select Your Ward (Child)
                   </span>
+                  {selectedWards.length > 0 && (
+                    <span className="bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      {selectedWards.length} {selectedWards.length === 1 ? "Ward Linked" : "Wards Linked"}
+                    </span>
+                  )}
                 </div>
                 <span className="text-[10px] text-emerald-200/70 uppercase tracking-wider font-semibold">
                   Required for Family Data
@@ -342,45 +377,179 @@ export default function RegisterClient({ initialError }: { initialError?: string
                 Search our academy records to link your child. This allows your parent portal to display your ward&apos;s live lesson schedules, teacher notes, and recitation milestones.
               </p>
 
-              {/* Display if already selected */}
-              {selectedWard && !isAddingNewWard ? (
-                <div className="bg-emerald-950/90 border border-amber-400/60 rounded-xl p-3 sm:p-4 flex items-center justify-between gap-3 shadow-md">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-full bg-amber-400 text-emerald-950 font-bold flex items-center justify-center shrink-0 text-xs">
-                      {selectedWard.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm text-white truncate">{selectedWard.name}</span>
-                        <span className="text-[10px] bg-amber-400/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-400/30">
-                          Age {selectedWard.age}
-                        </span>
+              {/* Display list of selected wards */}
+              {selectedWards.length > 0 && (
+                <div className="space-y-2.5 mb-3">
+                  {selectedWards.map((ward) => (
+                    <div
+                      key={ward.id}
+                      className="bg-emerald-950/90 border border-amber-400/60 rounded-xl p-3 sm:p-4 flex items-center justify-between gap-3 shadow-md"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-full bg-amber-400 text-emerald-950 font-bold flex items-center justify-center shrink-0 text-xs">
+                          {ward.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-sm text-white truncate">{ward.name}</span>
+                            <span className="text-[10px] bg-amber-400/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-400/30">
+                              Age {ward.age}
+                            </span>
+                          </div>
+                          <p className="text-xs text-emerald-200/80 truncate">{ward.course}</p>
+                          {ward.teacher && (
+                            <p className="text-[11px] text-amber-300/80 truncate">Tutor: {ward.teacher}</p>
+                          )}
+                        </div>
                       </div>
-                      <p className="text-xs text-emerald-200/80 truncate">{selectedWard.course}</p>
-                      {selectedWard.teacher && (
-                        <p className="text-[11px] text-amber-300/80 truncate">Tutor: {selectedWard.teacher}</p>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveWard(ward.id)}
+                          className="text-xs bg-red-950/60 hover:bg-red-900/60 text-red-300 hover:text-red-200 border border-red-500/30 px-2.5 py-1.5 rounded-lg font-semibold transition cursor-pointer flex items-center gap-1"
+                          title="Remove this ward"
+                        >
+                          <X size={13} />
+                          <span className="hidden sm:inline">Remove</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* PLUS SIGN BUTTON: ADD ANOTHER WARD */}
+              {!isSearchingMore && !isAddingNewWard && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSearchingMore(true);
+                    setIsDropdownOpen(true);
+                  }}
+                  className="w-full py-3 px-4 rounded-xl border-2 border-dashed border-amber-400/60 bg-amber-400/10 hover:bg-amber-400/20 text-amber-300 hover:text-amber-200 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer shadow-sm hover:shadow-md"
+                >
+                  <Plus size={18} className="text-amber-400 font-extrabold" />
+                  <span>+ Add Another Ward (Child)</span>
+                </button>
+              )}
+
+              {/* SEARCH FACILITY (When adding another ward or if 0 wards selected) */}
+              {(isSearchingMore || selectedWards.length === 0) && !isAddingNewWard && (
+                <div className="mt-3 space-y-2">
+                  <div className="flex items-center justify-between text-xs font-semibold text-amber-300">
+                    <span>{selectedWards.length === 0 ? "Search & Select Ward" : "Search to Add Another Ward"}</span>
+                    {selectedWards.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsSearchingMore(false);
+                          setIsDropdownOpen(false);
+                          setSearchQuery("");
+                        }}
+                        className="text-[11px] text-emerald-200/80 hover:text-white underline cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="relative" ref={dropdownRef}>
+                    <div className="relative flex items-center">
+                      <Search size={16} className="absolute left-3.5 text-amber-400/90 pointer-events-none" />
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => {
+                          setSearchQuery(e.target.value);
+                          setIsDropdownOpen(true);
+                        }}
+                        onFocus={() => setIsDropdownOpen(true)}
+                        placeholder="Search ward by name (e.g. Hana, Amina, Omar) or course..."
+                        className="w-full pl-10 pr-4 py-2.5 bg-black/60 border border-amber-400/50 rounded-xl text-white placeholder:text-emerald-200/40 text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-amber-400"
+                        autoFocus={isSearchingMore}
+                      />
+                      {searchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => setSearchQuery("")}
+                          className="absolute right-3 text-emerald-300 hover:text-white"
+                        >
+                          <X size={14} />
+                        </button>
                       )}
                     </div>
+
+                    {/* Dropdown Results */}
+                    {isDropdownOpen && (
+                      <div className="absolute top-full left-0 right-0 mt-1.5 max-h-56 overflow-y-auto bg-[#04241b] border border-amber-400/40 rounded-xl shadow-2xl z-30 divide-y divide-white/10 animate-in fade-in-50">
+                        {filteredWards.filter((w) => !selectedWards.some((sw) => sw.id === w.id || sw.name.toLowerCase() === w.name.toLowerCase())).length > 0 ? (
+                          filteredWards
+                            .filter((w) => !selectedWards.some((sw) => sw.id === w.id || sw.name.toLowerCase() === w.name.toLowerCase()))
+                            .map((ward) => (
+                              <div
+                                key={ward.id}
+                                onClick={() => handleSelectWard(ward)}
+                                className="p-3 hover:bg-emerald-800/50 cursor-pointer transition flex items-center justify-between gap-3 text-left"
+                              >
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <div className="w-8 h-8 rounded-full bg-amber-400/20 text-amber-300 font-bold flex items-center justify-center shrink-0 text-[11px] border border-amber-400/30">
+                                    {ward.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="font-bold text-xs text-white truncate">{ward.name}</span>
+                                      <span className="text-[10px] text-amber-300 font-mono">({ward.age} yrs)</span>
+                                    </div>
+                                    <p className="text-[11px] text-emerald-200/70 truncate">{ward.course}</p>
+                                  </div>
+                                </div>
+                                <span className="text-[10px] font-bold text-amber-300 bg-black/40 border border-amber-400/20 px-2 py-1 rounded-md shrink-0 flex items-center gap-1 hover:bg-amber-400 hover:text-emerald-950 transition">
+                                  <Plus size={12} />
+                                  <span>+ Add Ward</span>
+                                </span>
+                              </div>
+                            ))
+                        ) : (
+                          <div className="p-4 text-center text-xs text-emerald-200/70">
+                            {searchQuery ? `No student matching "${searchQuery}" found in academy records.` : "All preset students have been added."}
+                          </div>
+                        )}
+
+                        {/* Fallback to add new ward */}
+                        <div
+                          onClick={() => {
+                            setIsAddingNewWard(true);
+                            setIsSearchingMore(false);
+                            setIsDropdownOpen(false);
+                            if (searchQuery.trim()) {
+                              setNewWardName(searchQuery.trim());
+                            }
+                          }}
+                          className="p-3 bg-black/40 hover:bg-amber-400 hover:text-emerald-950 text-amber-300 text-xs font-bold cursor-pointer transition flex items-center justify-center gap-1.5"
+                        >
+                          <PlusCircle size={14} />
+                          <span>Child is not listed? Register a New Child Manually</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleClearSelectedWard}
-                    className="text-xs bg-white/10 hover:bg-white/20 text-white px-2.5 py-1.5 rounded-lg font-semibold transition shrink-0 cursor-pointer"
-                  >
-                    Change Ward
-                  </button>
                 </div>
-              ) : isAddingNewWard ? (
-                /* Manual ward enrollment fields */
-                <div className="bg-black/40 border border-white/15 rounded-xl p-3.5 space-y-3">
+              )}
+
+              {/* MANUAL NEW WARD ENROLLMENT FORM */}
+              {isAddingNewWard && (
+                <div className="mt-3 bg-black/40 border border-white/15 rounded-xl p-3.5 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-amber-300">Enroll a New Child</span>
+                    <span className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                      <PlusCircle size={14} />
+                      <span>Enroll a New Child to Your Family</span>
+                    </span>
                     <button
                       type="button"
                       onClick={() => setIsAddingNewWard(false)}
                       className="text-[11px] text-emerald-200/80 hover:text-white underline cursor-pointer"
                     >
-                      ← Back to Search
+                      ← Back
                     </button>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -390,7 +559,6 @@ export default function RegisterClient({ initialError }: { initialError?: string
                         type="text"
                         value={newWardName}
                         onChange={(e) => setNewWardName(e.target.value)}
-                        required={isAddingNewWard}
                         placeholder="e.g. Ibrahim Khan"
                         className="w-full px-3 py-2 bg-black/60 border border-white/20 rounded-lg text-white text-xs focus:outline-none focus:border-amber-400"
                       />
@@ -403,88 +571,41 @@ export default function RegisterClient({ initialError }: { initialError?: string
                         max="20"
                         value={newWardAge}
                         onChange={(e) => setNewWardAge(Number(e.target.value))}
-                        required={isAddingNewWard}
                         className="w-full px-3 py-2 bg-black/60 border border-white/20 rounded-lg text-white text-xs focus:outline-none focus:border-amber-400"
                       />
                     </div>
                   </div>
-                </div>
-              ) : (
-                /* Search facility dropdown */
-                <div className="relative" ref={dropdownRef}>
-                  <div className="relative flex items-center">
-                    <Search size={16} className="absolute left-3.5 text-amber-400/90 pointer-events-none" />
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => {
-                        setSearchQuery(e.target.value);
-                        setIsDropdownOpen(true);
-                      }}
-                      onFocus={() => setIsDropdownOpen(true)}
-                      placeholder="Search ward by name (e.g. Yusuf, Hana, Amina) or course..."
-                      className="w-full pl-10 pr-4 py-2.5 bg-black/60 border border-amber-400/50 rounded-xl text-white placeholder:text-emerald-200/40 text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-amber-400"
-                    />
-                    {searchQuery && (
-                      <button
-                        type="button"
-                        onClick={() => setSearchQuery("")}
-                        className="absolute right-3 text-emerald-300 hover:text-white"
-                      >
-                        <X size={14} />
-                      </button>
-                    )}
+                  <div>
+                    <label className="block text-[11px] font-semibold text-emerald-100 mb-1">Preferred Course</label>
+                    <select
+                      value={newWardCourse}
+                      onChange={(e) => setNewWardCourse(e.target.value)}
+                      className="w-full px-3 py-2 bg-black/60 border border-white/20 rounded-lg text-white text-xs focus:outline-none focus:border-amber-400"
+                    >
+                      <option value="Quran Reading for Kids (Noorani Qaida)">Quran Reading for Kids (Noorani Qaida)</option>
+                      <option value="Tajweed Fluency & Recitation">Tajweed Fluency & Recitation</option>
+                      <option value="Hifz (Quran Memorization)">Hifz (Quran Memorization)</option>
+                      <option value="Islamic Studies & Daily Duas">Islamic Studies & Daily Duas</option>
+                    </select>
                   </div>
-
-                  {/* Dropdown Results */}
-                  {isDropdownOpen && (
-                    <div className="absolute top-full left-0 right-0 mt-1.5 max-h-56 overflow-y-auto bg-[#04241b] border border-amber-400/40 rounded-xl shadow-2xl z-30 divide-y divide-white/10 animate-in fade-in-50">
-                      {filteredWards.length > 0 ? (
-                        filteredWards.map((ward) => (
-                          <div
-                            key={ward.id}
-                            onClick={() => handleSelectWard(ward)}
-                            className="p-3 hover:bg-emerald-800/50 cursor-pointer transition flex items-center justify-between gap-3 text-left"
-                          >
-                            <div className="flex items-center gap-2.5 min-w-0">
-                              <div className="w-8 h-8 rounded-full bg-amber-400/20 text-amber-300 font-bold flex items-center justify-center shrink-0 text-[11px] border border-amber-400/30">
-                                {ward.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
-                              </div>
-                              <div className="min-w-0">
-                                <div className="flex items-center gap-1.5">
-                                  <span className="font-bold text-xs text-white truncate">{ward.name}</span>
-                                  <span className="text-[10px] text-amber-300 font-mono">({ward.age} yrs)</span>
-                                </div>
-                                <p className="text-[11px] text-emerald-200/70 truncate">{ward.course}</p>
-                              </div>
-                            </div>
-                            <span className="text-[10px] font-bold text-amber-300 bg-black/40 border border-amber-400/20 px-2 py-0.5 rounded-md shrink-0">
-                              Select Ward
-                            </span>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="p-4 text-center text-xs text-emerald-200/70">
-                          No student matching &quot;{searchQuery}&quot; found in academy records.
-                        </div>
-                      )}
-
-                      {/* Fallback to add new ward */}
-                      <div
-                        onClick={() => {
-                          setIsAddingNewWard(true);
-                          setIsDropdownOpen(false);
-                          if (searchQuery.trim()) {
-                            setNewWardName(searchQuery.trim());
-                          }
-                        }}
-                        className="p-3 bg-black/40 hover:bg-amber-400 hover:text-emerald-950 text-amber-300 text-xs font-bold cursor-pointer transition flex items-center justify-center gap-1.5"
-                      >
-                        <PlusCircle size={14} />
-                        <span>My child is not listed yet — Register a New Child</span>
-                      </div>
-                    </div>
-                  )}
+                  <div className="flex justify-end gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setIsAddingNewWard(false)}
+                      className="px-3 py-1.5 rounded-lg text-xs text-white/70 hover:text-white bg-white/10 cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleAddNewWard}
+                      disabled={!newWardName.trim()}
+                      className="px-4 py-1.5 rounded-lg text-xs font-bold text-emerald-950 bg-amber-400 hover:bg-amber-300 disabled:opacity-50 transition flex items-center gap-1 cursor-pointer"
+                    >
+                      <Plus size={14} />
+                      <span>+ Add Child</span>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -649,7 +770,9 @@ export default function RegisterClient({ initialError }: { initialError?: string
           >
             <span>
               {selectedRole === "parent"
-                ? "Register as Parent & Link Ward"
+                ? selectedWards.length > 1
+                  ? `Register as Parent & Link ${selectedWards.length} Wards`
+                  : "Register as Parent & Link Ward"
                 : selectedRole === "teacher"
                 ? "Register as Teacher"
                 : "Register as Student"}
@@ -662,6 +785,9 @@ export default function RegisterClient({ initialError }: { initialError?: string
         <div className="mt-5 pt-5 border-t border-white/10">
           <form action={loginWithGoogle}>
             <input type="hidden" name="role" value={selectedRole} />
+            {selectedRole === "parent" && selectedWards.length > 0 && (
+              <input type="hidden" name="wardsData" value={JSON.stringify(selectedWards)} />
+            )}
             <button
               type="submit"
               className="w-full py-3 px-4 bg-white hover:bg-stone-100 border border-stone-200 rounded-xl text-xs sm:text-sm font-bold text-stone-900 transition flex items-center justify-center gap-2.5 cursor-pointer shadow-md"

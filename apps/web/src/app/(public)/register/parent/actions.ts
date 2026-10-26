@@ -66,6 +66,10 @@ export async function registerParent(formData: FormData) {
       const cookieStore = await cookies();
       cookieStore.set('demo_role', 'parent', { path: '/', maxAge: 60 * 60 * 24 * 7 });
       cookieStore.set('demo_user', parsed.fullName, { path: '/', maxAge: 60 * 60 * 24 * 7 });
+      if (parsed.childName) {
+        cookieStore.set('selected_ward', parsed.childName, { path: '/', maxAge: 60 * 60 * 24 * 7 });
+        cookieStore.set('selected_wards', JSON.stringify([parsed.childName]), { path: '/', maxAge: 60 * 60 * 24 * 7 });
+      }
     } catch (cookieErr) {
       console.warn("[RegisterParent] Cookie set warning:", cookieErr);
     }

@@ -70,6 +70,7 @@ const DEFAULT_CHILDREN: ChildSummary[] = [
 
 export default function ParentPortal() {
   const [children, setChildren] = useState<ChildSummary[]>(DEFAULT_CHILDREN);
+  const [linkedWardNames, setLinkedWardNames] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -111,11 +112,29 @@ export default function ParentPortal() {
           list = [...DEFAULT_CHILDREN];
         }
 
-        // Prioritize parent-selected ward from registration
-        const matchWard = typeof document !== "undefined" ? document.cookie.match(/selected_ward=([^;]+)/) : null;
-        const selectedWardName = matchWard ? decodeURIComponent(matchWard[1]).trim() : null;
-        if (selectedWardName) {
-          const existingIdx = list.findIndex(c => c.name.toLowerCase() === selectedWardName.toLowerCase());
+        // Prioritize parent-selected wards from registration (supports multiple wards)
+        let names: string[] = [];
+        const matchMulti = typeof document !== "undefined" ? document.cookie.match(/selected_wards=([^;]+)/) : null;
+        if (matchMulti) {
+          try {
+            const parsed = JSON.parse(decodeURIComponent(matchMulti[1]));
+            if (Array.isArray(parsed)) names = parsed.map((s: any) => String(s).trim()).filter(Boolean);
+          } catch {}
+        }
+        const matchSingle = typeof document !== "undefined" ? document.cookie.match(/selected_ward=([^;]+)/) : null;
+        if (matchSingle && names.length === 0) {
+          const raw = decodeURIComponent(matchSingle[1]).trim();
+          if (raw.includes(",")) {
+            names = raw.split(",").map((s) => s.trim()).filter(Boolean);
+          } else if (raw) {
+            names = [raw];
+          }
+        }
+        setLinkedWardNames(names);
+
+        // Prepend all linked wards to the children list
+        names.slice().reverse().forEach((selectedWardName) => {
+          const existingIdx = list.findIndex((c) => c.name.toLowerCase() === selectedWardName.toLowerCase());
           if (existingIdx > -1) {
             const [item] = list.splice(existingIdx, 1);
             list.unshift(item);
@@ -133,7 +152,7 @@ export default function ParentPortal() {
               classCode: `qra-${selectedWardName.toLowerCase().slice(0, 3)}-101`,
             });
           }
-        }
+        });
         setChildren(list);
       })
       .catch((err) => console.error("Failed to load family dashboard:", err))
@@ -221,7 +240,7 @@ export default function ParentPortal() {
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="text-xl font-bold text-white">{child.name}</h3>
-                      {typeof document !== "undefined" && document.cookie.includes("selected_ward=" + encodeURIComponent(child.name)) && (
+                      {linkedWardNames.some((w) => w.toLowerCase() === child.name.toLowerCase()) && (
                         <span className="text-[10px] bg-amber-400 text-emerald-950 font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-xs">
                           Linked Ward
                         </span>

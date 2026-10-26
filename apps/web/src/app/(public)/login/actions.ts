@@ -201,6 +201,16 @@ export async function loginWithGoogle(formData?: FormData) {
     })
   }
 
+  const wardsData = (formData?.get('wardsData') as string || '').trim()
+  if (wardsData) {
+    cookieStore.set('pending_oauth_wards', wardsData, {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'lax',
+      maxAge: 600,
+    })
+  }
+
   const headerList = await headers()
   const host = headerList.get('x-forwarded-host') || headerList.get('host')
   const proto = headerList.get('x-forwarded-proto') || (host && host.includes('localhost') ? 'http' : 'https')

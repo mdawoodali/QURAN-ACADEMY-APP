@@ -23,6 +23,7 @@ const RegisterSchema = z.object({
   wardAge: z.coerce.number().optional(),
   wardCourse: z.string().optional(),
   wardId: z.string().optional(),
+  wardsData: z.string().optional(),
 
   // Teacher specific
   qualification: z.string().optional(),
@@ -47,12 +48,35 @@ export async function registerUnifiedUser(formData: FormData) {
       wardAge: formData.get('wardAge') ? Number(formData.get('wardAge')) : undefined,
       wardCourse: (formData.get('wardCourse') as string || '').trim() || undefined,
       wardId: (formData.get('wardId') as string || '').trim() || undefined,
+      wardsData: (formData.get('wardsData') as string || '').trim() || undefined,
       qualification: (formData.get('qualification') as string || '').trim() || undefined,
       experience: (formData.get('experience') as string || '').trim() || undefined,
       maslak: (formData.get('maslak') as string || '').trim() || undefined,
     };
 
     const parsed = RegisterSchema.parse(rawData);
+
+    // Parse multi-ward JSON array if present
+    let wardsList: Array<{ id?: string; name: string; age?: number; course?: string; teacher?: string; studentId?: string }> = [];
+    if (parsed.wardsData) {
+      try {
+        const parsedJson = JSON.parse(parsed.wardsData);
+        if (Array.isArray(parsedJson)) {
+          wardsList = parsedJson.filter(w => Boolean(w && w.name));
+        }
+      } catch (err) {
+        console.warn("[RegisterUnified] Failed to parse wardsData JSON:", err);
+      }
+    }
+    if (wardsList.length === 0 && parsed.wardName) {
+      const names = parsed.wardName.split(',').map(s => s.trim()).filter(Boolean);
+      wardsList = names.map((name, i) => ({
+        name,
+        age: parsed.wardAge || 10,
+        course: parsed.wardCourse || 'Quran Reading for Kids (Noorani Qaida)',
+        studentId: parsed.wardId ? parsed.wardId.split(',')[i]?.trim() : undefined,
+      }));
+    }
 
     const nameParts = parsed.fullName.split(' ');
     const firstName = nameParts[0] || 'User';
@@ -69,10 +93,12 @@ export async function registerUnifiedUser(formData: FormData) {
     };
 
     if (parsed.role === 'parent') {
-      metadata.child_name = parsed.wardName;
-      metadata.child_age = parsed.wardAge;
-      metadata.program = parsed.wardCourse || parsed.program || 'Quran Reading & Tajweed';
-      metadata.ward_id = parsed.wardId;
+      metadata.child_name = wardsList[0]?.name || parsed.wardName;
+      metadata.child_age = wardsList[0]?.age || parsed.wardAge;
+      metadata.program = wardsList[0]?.course || parsed.wardCourse || parsed.program || 'Quran Reading & Tajweed';
+      metadata.ward_id = wardsList[0]?.studentId || parsed.wardId;
+      metadata.children = wardsList;
+      metadata.child_names = wardsList.map(w => w.name);
     } else if (parsed.role === 'student') {
       metadata.age = parsed.age;
       metadata.program = parsed.program || 'Kids Reading & Noorani Qaida';
@@ -96,13 +122,14 @@ export async function registerUnifiedUser(formData: FormData) {
       redirect('/register?error=' + encodeURIComponent(authError?.message || 'Could not create account'));
     }
 
-    // 2. Set authoritative cookies for role, user, and linked ward
+    // 2. Set authoritative cookies for role, user, and linked wards
     try {
       const cookieStore = await cookies();
       cookieStore.set('demo_role', parsed.role, { path: '/', maxAge: 60 * 60 * 24 * 7 });
       cookieStore.set('demo_user', parsed.fullName, { path: '/', maxAge: 60 * 60 * 24 * 7 });
-      if (parsed.role === 'parent' && parsed.wardName) {
-        cookieStore.set('selected_ward', parsed.wardName, { path: '/', maxAge: 60 * 60 * 24 * 7 });
+      if (parsed.role === 'parent' && wardsList.length > 0) {
+        cookieStore.set('selected_ward', wardsList[0].name, { path: '/', maxAge: 60 * 60 * 24 * 7 });
+        cookieStore.set('selected_wards', JSON.stringify(wardsList.map(w => w.name)), { path: '/', maxAge: 60 * 60 * 24 * 7 });
       }
     } catch (cookieErr) {
       console.warn("[RegisterUnified] Cookie set warning:", cookieErr);
@@ -121,21 +148,24 @@ export async function registerUnifiedUser(formData: FormData) {
       console.warn("[RegisterUnified] Profile upsert warning:", dbErr);
     }
 
-    // 4. If parent linked a new or existing ward, associate with enrolments table
-    if (parsed.role === 'parent' && parsed.wardName) {
-      try {
-        await supabase.from('enrolments').insert({
-          learner_name: parsed.wardName,
-          parent_name: parsed.fullName,
-          age: parsed.wardAge || 10,
-          programme: parsed.wardCourse || 'Quran Reading for Kids (Noorani Qaida)',
-          email: parsed.email,
-          phone: parsed.mobile || '',
-          status: 'active',
-          assessment_stage: 'Enrolled & Verified',
-        });
-      } catch (enrolErr) {
-        console.warn("[RegisterUnified] Enrolment insertion warning:", enrolErr);
+    // 4. If parent linked wards, associate each with enrolments table
+    if (parsed.role === 'parent' && wardsList.length > 0) {
+      for (const ward of wardsList) {
+        if (!ward.name) continue;
+        try {
+          await supabase.from('enrolments').insert({
+            learner_name: ward.name,
+            parent_name: parsed.fullName,
+            age: ward.age || 10,
+            programme: ward.course || 'Quran Reading for Kids (Noorani Qaida)',
+            email: parsed.email,
+            phone: parsed.mobile || '',
+            status: 'active',
+            assessment_stage: 'Enrolled & Verified',
+          });
+        } catch (enrolErr) {
+          console.warn("[RegisterUnified] Enrolment insertion warning for " + ward.name + ":", enrolErr);
+        }
       }
     }
 

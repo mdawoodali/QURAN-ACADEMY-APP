@@ -2951,3 +2951,41 @@ The user reported that voice follow was not working in the live classroom (`/cla
 - **Vitest Suite**: All 30 test files and 520 tests passing (100% green).
 - **OAuth Callback URL Verification**: Verified Supabase OAuth flow constructs valid authorization URL (`supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } })`).
 
+---
+
+## 9.112. Multi-Ward Selection & Linkage Engine with Dedicated Plus Sign Addition
+
+### Problem & UX Gap Analysis
+1. **Single-Ward Lockout on `/register`**:
+   - Parents registering on `/register` were previously constrained to selecting only one ward (`selectedWard: WardRecord | null`).
+   - When a ward (such as Yusuf Khan) was selected, the UI only displayed a single card with a "Change Ward" button. There was no mechanism or button to link multiple children (e.g. brothers/sisters in the same household).
+2. **Missing Multi-Ward Linkage in Auth & Database**:
+   - Registration server action only stored a single `wardName` and `wardId`.
+   - The parent portal needed to read multiple linked children so that all enrolled wards are recognized as `Linked Ward` in the Family Learning Hub.
+
+### Engineering Decisions & Fix Implementation
+1. **Multi-Ward State & Dedicated Plus Sign Button (`RegisterClient.tsx`)**:
+   - Upgraded state to `selectedWards: WardRecord[]`, initialized with the selected ward while allowing unlimited additional wards.
+   - Added a prominent dashed action button with an unmistakable **Plus Sign (`+`)**:
+     `+ Add Another Ward (Child)`
+   - Added a counter pill in the card header: `${selectedWards.length} Ward(s) Linked`.
+   - Each selected ward in the list displays initials avatar, child name, age pill, course, assigned tutor, and an individual "Remove" button with `X` / trash action.
+2. **Search Dropdown & Manual Enrollment Integration**:
+   - Clicking `+ Add Another Ward (Child)` dynamically opens the search bar and academy records dropdown.
+   - The search results filter out already-linked wards to prevent duplicate additions.
+   - Each search result has an intuitive `+ Add Ward` button with a plus icon.
+   - Preserved the manual enrollment fallback (`+ Child is not listed? Register a New Child Manually`) allowing parents to enroll a new child with full name, age, and course directly into the family bundle.
+3. **Multi-Ward Data Serialization (`actions.ts` & `login/actions.ts`)**:
+   - Injected serialized `wardsData` JSON input into both the primary form and the fast-track Google Sign In forms.
+   - In `registerUnifiedUser`: parses `wardsData`, populates `metadata.children` and `metadata.child_names`, sets both `selected_ward` and `selected_wards` cookies, and inserts database records for all linked children into `enrolments`.
+   - In `loginWithGoogle` and OAuth callback: propagates `pending_oauth_wards` into authoritative `selected_wards` cookies upon Google Sign In completion.
+4. **Parent Portal Multi-Child Recognition (`parent/page.tsx`)**:
+   - Upgraded parent portal to parse `selected_wards` cookie (JSON array of names) with backwards compatibility for comma-separated or single-name values.
+   - Displays all linked wards at the top of the Family Learning Hub with active `Linked Ward` badges.
+
+### Verification & Quality Assurance
+- **Unit & Integration Suite**: Added `apps/web/src/__tests__/multi-ward-linkage.test.ts` (5 tests) verifying multi-ward addition, duplicate rejection, deletion, payload serialization, and cookie parsing.
+- **Vitest Suite**: **31 / 31 test files and 525 / 525 tests passing (100% green)**.
+- **TypeScript Analysis**: `tsc --noEmit` verified with 0 errors across all workspaces.
+
+
