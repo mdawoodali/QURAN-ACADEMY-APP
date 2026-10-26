@@ -2915,3 +2915,39 @@ The user reported that voice follow was not working in the live classroom (`/cla
 - **Unit & Integration Tests**: Added 3 new tests in `classroom-voice-follow.test.ts` verifying cumulative transliteration progression, cumulative Arabic token progression, and Indo-Pak Yeh normalization.
 - **Vitest Suite**: **30 / 30 test files and 520 / 520 tests passing (100% green)**.
 - **TypeScript Analysis**: `tsc --noEmit` verified with 0 errors.
+
+---
+
+## 9.111. Prominent Site-Wide Google Sign-In Integration Across Register, Login, Navbar & Dedicated Role Pages
+
+### Problem & UX Gap Analysis
+1. **Low Visibility on `/register`**:
+   - The Google OAuth registration button was positioned at the very bottom of the page, below eight text inputs, making it invisible without scrolling.
+   - It was styled with a low-contrast dark glass background (`bg-white/10 hover:bg-white/20`), making it blend into the dark emerald background rather than standing out as a high-intent CTA.
+2. **Missing Google Action on Dedicated Role Pages**:
+   - Users navigating directly to `/register/parent`, `/register/student`, or `/register/teacher` encountered only email-password forms with zero Google OAuth options.
+3. **Inconsistent Login CTA & Navbar Absenteeism**:
+   - The login page labeled the button "Continue with Google", while navigation drawers lacked a direct Google quick-action, creating friction for users expecting standard one-click Google entry.
+
+### Engineering Decisions & Fix Implementation
+1. **High-Contrast Google Button at Top & Bottom of `/register` (`RegisterClient.tsx`)**:
+   - Added an official white Google Sign-In card immediately below the role selection pills (`Parent`, `Student`, `Teacher`).
+   - Dynamically binds the role parameter (`role="parent" | "student" | "teacher"`) into `loginWithGoogle` Server Action.
+   - Styled with standard Google white card appearance (`bg-white text-stone-900 shadow-md font-bold hover:bg-stone-100 hover:shadow-lg`) and full-color 4-color Google G SVG.
+   - Added an explicit divider: *"or register with email below"*.
+   - Retained and upgraded the secondary Google CTA at the bottom of the form for users who scrolled through.
+2. **Dedicated Role Registration Pages Upgraded (`/register/parent`, `/register/student`, `/register/teacher`)**:
+   - Injected the prominent Google Sign-In card at the top of each dedicated role page:
+     - `/register/parent`: `"Sign in with Google (Parent)"` with hidden `<input name="role" value="parent" />`.
+     - `/register/student`: `"Sign in with Google (Student)"` with hidden `<input name="role" value="student" />`.
+     - `/register/teacher`: `"Sign in with Google (Teacher)"` with hidden `<input name="role" value="teacher" />`.
+3. **Standardized `/login` and Public Navbar (`PublicNavbar.tsx`)**:
+   - Standardized button label on `/login` to `"Sign in with Google"`.
+   - Added a direct Google Sign-In button in `PublicNavbar` both in the desktop navigation header and inside the mobile menu drawer.
+   - Ensured proper React JSX fragmenting and zero hydration or TypeScript compilation issues.
+
+### Verification & Quality Assurance
+- **TypeScript Check**: `tsc --noEmit` passes cleanly with 0 errors across all workspaces.
+- **Vitest Suite**: All 30 test files and 520 tests passing (100% green).
+- **OAuth Callback URL Verification**: Verified Supabase OAuth flow constructs valid authorization URL (`supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } })`).
+
