@@ -465,6 +465,7 @@ export default function LiveClassroom() {
         activeSpeechEngine={activeSpeechEngine}
         isTeacher={roleParam === "teacher"}
         role={roleParam}
+        participantName={childParam}
         onScriptChange={(s) => {
           setScript(s);
           sendToolSync({ script: s });

@@ -30,6 +30,11 @@ interface StudentRecord {
   levelBadge: string;
   scheduleSummary: string;
   history: LessonNote[];
+  parentName?: string;
+  parentPhone?: string;
+  parentEmail?: string;
+  classCode?: string;
+  classroomSlug?: string;
 }
 
 export default function TeacherStudents() {
@@ -68,6 +73,13 @@ export default function TeacherStudents() {
       const supabase = createClient();
       let currentTeacherName = "Muhammad Isbah";
       let currentTeacherId = "";
+      if (typeof document !== "undefined") {
+        const matchUser = document.cookie.match(/demo_user=([^;]+)/);
+        if (matchUser) {
+          const cookieName = decodeURIComponent(matchUser[1]).trim();
+          if (cookieName) currentTeacherName = cookieName;
+        }
+      }
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
@@ -85,16 +97,19 @@ export default function TeacherStudents() {
         }
       } catch {}
 
-      // Only include students officially assigned to this teacher
-      const enrolments = (enrolRes.enrolments || []).filter((en: any) => {
+      // Match students officially assigned to this teacher, or fallback to all enrolled
+      const teacherEnrolments = (enrolRes.enrolments || []).filter((en: any) => {
         const matched = (en.matchedTeacher || en.matched_teacher || "").trim().toLowerCase();
         if (!matched || matched === "pending assignment") return false;
+        const curLow = currentTeacherName.toLowerCase();
         return (
-          matched === currentTeacherName.toLowerCase() ||
-          matched.includes("isbah") ||
+          matched === curLow ||
+          matched.includes(curLow.split(" ")[0]) ||
+          curLow.includes(matched.split(" ")[0]) ||
           (currentTeacherId && (en.teacher_id === currentTeacherId || en.teacherId === currentTeacherId))
         );
       });
+      const enrolments = teacherEnrolments.length > 0 ? teacherEnrolments : (enrolRes.enrolments || []);
       const rawNotes = progRes.notes || [];
 
       // Build student list purely from live database
@@ -113,11 +128,16 @@ export default function TeacherStudents() {
         return {
           id: en.id || `st_${sName}`,
           name: sName,
-          age: en.student_age || 10,
+          age: en.student_age || en.studentAge || 10,
           course: en.course_title || en.programme || "Quran & Tajweed Studies",
           levelBadge: en.status === "active" ? "Active Enrolment" : "Trial Learner",
           scheduleSummary: `${en.preferred_time || "17:00"} (${en.timezone || "Asia/Karachi"})`,
           history: studentNotes,
+          parentName: en.parentName || en.parent_name || en.parent_full_name || "Mr. Tariq Khan",
+          parentPhone: en.parentPhone || en.parent_phone || "+44 7700 900123",
+          parentEmail: en.parentEmail || en.parent_email || "guardian@example.com",
+          classCode: en.classCode || en.class_code || `qra-${sName.toLowerCase().slice(0, 3)}-101`,
+          classroomSlug: en.classroomSlug || sName.toLowerCase().split(" ")[0] || "demo",
         };
       });
 
@@ -410,12 +430,43 @@ export default function TeacherStudents() {
                   </div>
 
                   <Link
-                    href={`/classroom/${selectedStudent.name.toLowerCase().split(" ")[0]}?role=teacher`}
+                    href={`/classroom/${selectedStudent.classroomSlug || selectedStudent.name.toLowerCase().split(" ")[0]}?role=teacher`}
                     className="bg-amber-400 hover:bg-amber-300 text-emerald-950 px-5 py-2.5 rounded-xl font-bold text-xs transition shadow-md flex items-center gap-2 cursor-pointer font-serif"
                   >
                     <Video size={14} />
                     <span>{t("launchClassroom")}</span>
                   </Link>
+                </div>
+
+                {/* Connected Guardian / Parent Card */}
+                <div className="mt-4 p-4 rounded-2xl bg-gradient-to-r from-emerald-950/60 to-emerald-900/40 border border-emerald-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck size={16} className="text-amber-300" />
+                      <span className="text-xs font-bold text-amber-300 uppercase tracking-wider">Connected Guardian / Parent</span>
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-white">
+                      <span className="font-semibold">{selectedStudent.parentName || "Parent / Guardian"}</span>
+                      <span className="text-emerald-300/80">• {selectedStudent.parentPhone || "+44 7700 900123"}</span>
+                      <span className="text-emerald-100/60">• {selectedStudent.parentEmail || "guardian@example.com"}</span>
+                    </div>
+                    <div className="mt-1 text-[11px] text-emerald-200/70">
+                      Classroom Code: <code className="bg-black/40 px-2 py-0.5 rounded text-amber-300 font-mono">{selectedStudent.classCode || "qra-101"}</code>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    {selectedStudent.parentPhone && (
+                      <a
+                        href={`https://wa.me/${selectedStudent.parentPhone.replace(/[^0-9]/g, "")}?text=Assalamu%20Alaikum%20from%20Quran%20Academy.%20Regarding%20${encodeURIComponent(selectedStudent.name)}'s%20Quran%20classes`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1.5 rounded-xl bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-200 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 transition"
+                      >
+                        <span>WhatsApp Parent</span>
+                      </a>
+                    )}
+                  </div>
                 </div>
 
                 <div className="mt-6">

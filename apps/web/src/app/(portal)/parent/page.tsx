@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, CreditCard, PlaySquare, TrendingUp, HelpCircle, Eye } from "lucide-react";
+import { Plus, CreditCard, PlaySquare, TrendingUp, HelpCircle, Eye, User, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 
 interface ChildSummary {
@@ -9,10 +9,12 @@ interface ChildSummary {
   initials: string;
   age: number;
   course: string;
+  teacherName?: string;
   nextLessonDay: string;
   nextLessonTime: string;
   progressPercent: number;
   classroomSlug: string;
+  classCode?: string;
 }
 
 const DEFAULT_CHILDREN: ChildSummary[] = [
@@ -21,40 +23,48 @@ const DEFAULT_CHILDREN: ChildSummary[] = [
     initials: "YK",
     age: 9,
     course: "Quran Reading for Kids (Noorani Qaida)",
+    teacherName: "Ustadha Maryam",
     nextLessonDay: "Wednesday",
     nextLessonTime: "17:00 – 17:30",
     progressPercent: 75,
-    classroomSlug: "yusuf"
+    classroomSlug: "yusuf",
+    classCode: "qra-yus-101",
   },
   {
     name: "Hana Khan",
     initials: "HK",
     age: 12,
     course: "Hifz & Tajweed Memorisation",
+    teacherName: "Ustadha Maryam",
     nextLessonDay: "Thursday",
     nextLessonTime: "18:00 – 18:45",
     progressPercent: 88,
-    classroomSlug: "hana"
+    classroomSlug: "hana",
+    classCode: "qra-han-101",
   },
   {
     name: "Amina Khan",
     initials: "AK",
     age: 10,
     course: "Tajweed Fluency & Recitation",
+    teacherName: "Muhammad Isbah",
     nextLessonDay: "Wednesday",
     nextLessonTime: "17:00 – 17:30",
     progressPercent: 82,
-    classroomSlug: "amina"
+    classroomSlug: "amina",
+    classCode: "qra-ami-101",
   },
   {
     name: "Omar Ali",
     initials: "OA",
     age: 11,
     course: "Quran Memorisation (Juz Amma)",
+    teacherName: "Muhammad Isbah",
     nextLessonDay: "Tuesday",
     nextLessonTime: "16:30 – 17:00",
     progressPercent: 70,
-    classroomSlug: "omar"
+    classroomSlug: "omar",
+    classCode: "qra-oma-101",
   }
 ];
 
@@ -89,10 +99,12 @@ export default function ParentPortal() {
               initials: initials || "LK",
               age: en.student_age || en.age || 10,
               course: en.course_title || en.programme || "Quran Reading & Tajweed",
+              teacherName: en.matchedTeacher || en.matched_teacher || schedMatch?.instructor || "Ustadha Maryam",
               nextLessonDay: schedMatch?.dayOfWeek || "Wednesday",
               nextLessonTime: schedMatch ? `${schedMatch.startTimeLocal} – 17:30` : "17:00 – 17:30",
               progressPercent: idx === 0 ? 75 : 88,
               classroomSlug: name.toLowerCase().split(" ")[0] || "demo",
+              classCode: en.classCode || schedMatch?.classCode || `qra-${name.toLowerCase().slice(0, 3)}-101`,
             };
           });
         } else {
@@ -113,10 +125,12 @@ export default function ParentPortal() {
               initials: selectedWardName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase() || "W",
               age: 9,
               course: "Quran Reading for Kids (Noorani Qaida)",
+              teacherName: "Ustadha Maryam",
               nextLessonDay: "Wednesday",
               nextLessonTime: "17:00 – 17:30",
               progressPercent: 80,
               classroomSlug: selectedWardName.toLowerCase().split(" ")[0] || "demo",
+              classCode: `qra-${selectedWardName.toLowerCase().slice(0, 3)}-101`,
             });
           }
         }
@@ -214,6 +228,17 @@ export default function ParentPortal() {
                       )}
                     </div>
                     <p className="text-xs text-emerald-100/75">{child.age} years • {child.course}</p>
+                    {child.teacherName && (
+                      <div className="mt-1 flex items-center gap-2 text-[11px] text-amber-200/90">
+                        <ShieldCheck size={12} className="text-amber-300" />
+                        <span>Tutor: <strong className="text-white">{child.teacherName}</strong></span>
+                        {child.classCode && (
+                          <span className="font-mono text-[10px] bg-black/40 px-1.5 py-0.5 rounded text-amber-300">
+                            {child.classCode}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -239,7 +264,7 @@ export default function ParentPortal() {
               {/* Action Buttons */}
               <div className="grid grid-cols-2 gap-3 pt-2">
                 <Link
-                  href="/parent/progress"
+                  href={`/parent/progress?child=${encodeURIComponent(child.classroomSlug)}`}
                   className="bg-black/40 hover:bg-black/60 text-emerald-100 hover:text-white border border-white/15 py-3 rounded-xl font-bold text-xs transition text-center flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <TrendingUp size={14} className="text-amber-300" />

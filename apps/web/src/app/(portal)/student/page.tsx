@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Clock, BookOpen, Star, Video } from "lucide-react";
+import { Clock, BookOpen, Star, Video, User, ShieldCheck } from "lucide-react";
 
 interface StudentSchedule {
   course: string;
@@ -12,6 +12,9 @@ interface StudentSchedule {
 }
 
 export default function StudentDashboard() {
+  const [studentName, setStudentName] = useState<string>("Yusuf");
+  const [teacherName, setTeacherName] = useState<string>("Ustadha Maryam");
+  const [classCode, setClassCode] = useState<string>("qra-yus-101");
   const [schedule, setSchedule] = useState<StudentSchedule>({
     course: "Quran Reading for Kids (Noorani Qaida)",
     time: "17:00–17:30",
@@ -23,6 +26,18 @@ export default function StudentDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let currentStudent = "Yusuf";
+    if (typeof document !== "undefined") {
+      const match = document.cookie.match(/demo_user=([^;]+)/);
+      if (match) {
+        const decoded = decodeURIComponent(match[1]).trim();
+        if (decoded) {
+          currentStudent = decoded;
+          setStudentName(decoded);
+        }
+      }
+    }
+
     Promise.all([
       fetch(`/api/scheduling?_t=${Date.now()}`, { cache: "no-store", headers: { "Cache-Control": "no-cache" } }).then((r) => r.json()).catch(() => ({ schedules: [] })),
       fetch(`/api/progress?_t=${Date.now()}`, { cache: "no-store", headers: { "Cache-Control": "no-cache" } }).then((r) => r.json()).catch(() => ({ notes: [] }))
@@ -30,20 +45,31 @@ export default function StudentDashboard() {
       .then(([schedData, progData]) => {
         const schedules = schedData.schedules || [];
         if (schedules.length > 0) {
-          const match = schedules[0];
+          const match = schedules.find((s: any) =>
+            (s.studentName || "").toLowerCase().includes(currentStudent.toLowerCase()) ||
+            currentStudent.toLowerCase().includes((s.studentName || "").toLowerCase())
+          ) || schedules[0];
+
           setSchedule({
             course: match.subject || "Quran Reading for Kids",
             time: `${match.startTimeLocal || "17:00"}–17:30`,
             day: match.dayOfWeek?.toUpperCase() || "TODAY",
             classroomSlug: (match.studentName || "demo").toLowerCase().split(" ")[0],
           });
+          if (match.instructor) setTeacherName(match.instructor);
+          if (match.classCode) setClassCode(match.classCode);
         }
 
         const notes = progData.notes || [];
         if (notes.length > 0) {
-          const first = notes[0];
-          if (first.homework) setLatestHomework(first.homework);
-          if (first.feedback) setLatestFeedback(first.feedback);
+          const matchNote = notes.find((n: any) =>
+            (n.student_name || n.studentName || "").toLowerCase().includes(currentStudent.toLowerCase()) ||
+            currentStudent.toLowerCase().includes((n.student_name || n.studentName || "").toLowerCase())
+          ) || notes[0];
+
+          if (matchNote.homework) setLatestHomework(matchNote.homework);
+          if (matchNote.feedback) setLatestFeedback(matchNote.feedback);
+          if (matchNote.teacher_name || matchNote.teacherName) setTeacherName(matchNote.teacher_name || matchNote.teacherName);
         }
       })
       .finally(() => setLoading(false));
@@ -52,9 +78,15 @@ export default function StudentDashboard() {
   return (
     <div className="p-4 md:p-8 max-w-5xl mx-auto text-white">
       <div className="mb-8">
-        <div className="flex items-center gap-2 mb-1">
-          <h1 className="text-3xl md:text-4xl font-serif text-white">Assalamu alaikum, Yusuf</h1>
-          
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-1">
+          <h1 className="text-3xl md:text-4xl font-serif text-white">Assalamu alaikum, {studentName}</h1>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-xs text-emerald-200">
+            <ShieldCheck size={14} className="text-amber-300" />
+            <span>Assigned Tutor: <strong className="text-white">{teacherName}</strong></span>
+            <span className="font-mono text-[11px] bg-black/40 px-2 py-0.5 rounded text-amber-300">
+              {classCode}
+            </span>
+          </div>
         </div>
         <p className="text-emerald-100/85 text-sm">Your learning day, clearly organised.</p>
       </div>

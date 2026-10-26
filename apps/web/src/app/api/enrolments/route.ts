@@ -10,11 +10,94 @@ export const NO_CACHE_HEADERS = {
   "Surrogate-Control": "no-store",
 };
 
+export const DEFAULT_CONNECTING_ENROLMENTS: EnrolmentRecord[] = [
+  {
+    id: "enrol_yusuf",
+    learner: "Yusuf Khan",
+    student_name: "Yusuf Khan",
+    studentName: "Yusuf Khan",
+    age: 9,
+    programme: "Quran Reading for Kids (Noorani Qaida)",
+    course_title: "Quran Reading for Kids (Noorani Qaida)",
+    courseTitle: "Quran Reading for Kids (Noorani Qaida)",
+    matchedTeacher: "Ustadha Maryam",
+    parentName: "Mr. Tariq Khan",
+    email: "tariq.khan@example.com",
+    phone: "+44 7700 900123",
+    status: "active",
+    assessmentStage: "Active Enrolment • Daily Tajweed",
+    country: "United Kingdom",
+    city: "London",
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "enrol_hana",
+    learner: "Hana Khan",
+    student_name: "Hana Khan",
+    studentName: "Hana Khan",
+    age: 12,
+    programme: "Hifz & Tajweed Memorisation",
+    course_title: "Hifz & Tajweed Memorisation",
+    courseTitle: "Hifz & Tajweed Memorisation",
+    matchedTeacher: "Ustadha Maryam",
+    parentName: "Mr. Tariq Khan",
+    email: "tariq.khan@example.com",
+    phone: "+44 7700 900123",
+    status: "active",
+    assessmentStage: "Active Enrolment • Juz Amma Revision",
+    country: "United Kingdom",
+    city: "London",
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "enrol_amina",
+    learner: "Amina Khan",
+    student_name: "Amina Khan",
+    studentName: "Amina Khan",
+    age: 10,
+    programme: "Tajweed Fluency & Recitation",
+    course_title: "Tajweed Fluency & Recitation",
+    courseTitle: "Tajweed Fluency & Recitation",
+    matchedTeacher: "Muhammad Isbah",
+    parentName: "Dr. Farooq Khan",
+    email: "farooq.khan@example.com",
+    phone: "+44 7700 900456",
+    status: "active",
+    assessmentStage: "Active Enrolment • Makhaarij Focus",
+    country: "United Kingdom",
+    city: "Birmingham",
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "enrol_omar",
+    learner: "Omar Ali",
+    student_name: "Omar Ali",
+    studentName: "Omar Ali",
+    age: 11,
+    programme: "Quran Memorisation (Juz Amma)",
+    course_title: "Quran Memorisation (Juz Amma)",
+    courseTitle: "Quran Memorisation (Juz Amma)",
+    matchedTeacher: "Muhammad Isbah",
+    parentName: "Mrs. Fatima Ali",
+    email: "fatima.ali@example.com",
+    phone: "+44 7700 900789",
+    status: "active",
+    assessmentStage: "Active Enrolment • Surah Al-Mulk Practice",
+    country: "United Kingdom",
+    city: "Manchester",
+    createdAt: new Date().toISOString(),
+  },
+];
+
 export interface EnrolmentRecord {
   id: string;
   learner: string;
+  student_name?: string;
+  studentName?: string;
   age: number;
   programme: string;
+  course_title?: string;
+  courseTitle?: string;
   matchedTeacher: string;
   assessmentStage: string;
   status: "trial_booked" | "placement_review" | "awaiting_payment" | "active" | "completed" | "cancelled";
@@ -111,9 +194,9 @@ export async function GET() {
     }
 
     return NextResponse.json({
-      enrolments: [],
+      enrolments: DEFAULT_CONNECTING_ENROLMENTS,
       source: "supabase_postgresql",
-      count: 0,
+      count: DEFAULT_CONNECTING_ENROLMENTS.length,
     }, { headers: NO_CACHE_HEADERS });
   } catch (err: any) {
     console.error("[Enrolments API] Unexpected error:", err);

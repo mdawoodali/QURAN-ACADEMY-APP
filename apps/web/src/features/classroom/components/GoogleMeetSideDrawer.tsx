@@ -498,6 +498,31 @@ export default function GoogleMeetSideDrawer({
             </button>
           </div>
 
+          {/* 3-Way Connected Session Roster */}
+          <div className="p-3.5 rounded-2xl bg-black/35 border border-white/10 text-xs space-y-2">
+            <div className="text-[10px] uppercase font-bold text-amber-300/80">
+              Connected Classroom Roster
+            </div>
+            <div className="flex items-center justify-between text-white/90">
+              <span className="text-white/60">Teacher (Host):</span>
+              <span className="font-semibold text-emerald-300">
+                {participants.find(p => p.role === "teacher")?.name || "Ustadha Maryam"}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-white/90">
+              <span className="text-white/60">Student Learner:</span>
+              <span className="font-semibold text-blue-300">
+                {participants.find(p => p.role === "student")?.name || "Yusuf Khan"}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-white/90">
+              <span className="text-white/60">Parent Observer:</span>
+              <span className="font-semibold text-purple-300">
+                {participants.find(p => p.role === "observer")?.name || "Mr. Tariq Khan (Muted)"}
+              </span>
+            </div>
+          </div>
+
           {/* Safety & Protocol Notice */}
           <div className="p-3 rounded-2xl bg-black/30 border border-white/5 text-[11px] text-white/50 leading-relaxed flex items-start gap-2">
             <Shield size={16} className="text-amber-400 shrink-0 mt-0.5" />

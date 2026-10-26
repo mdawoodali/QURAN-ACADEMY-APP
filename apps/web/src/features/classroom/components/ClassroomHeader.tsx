@@ -18,6 +18,7 @@ interface ClassroomHeaderProps {
   activeSpeechEngine: string | null;
   isTeacher?: boolean;
   role?: string;
+  participantName?: string;
   onScriptChange: (script: ScriptType) => void;
   onTajweedChange: (mode: boolean) => void;
   onLessonChange?: (lessonId: string) => void;
@@ -38,6 +39,7 @@ export default function ClassroomHeader({
   activeSpeechEngine,
   isTeacher = true,
   role = "teacher",
+  participantName,
   onScriptChange,
   onTajweedChange,
   onLessonChange,
@@ -60,7 +62,7 @@ export default function ClassroomHeader({
               Live Quran Classroom
             </h1>
             <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-950/80 text-amber-300 border border-amber-400/30 px-2 py-0.5 rounded-full hidden sm:inline-block">
-              {isDemo ? "Interactive Demo Classroom" : role === "teacher" ? "Teacher Control" : role === "observer" ? "Silent Observer" : "Student View"} • {classId}
+              {isDemo ? "Interactive Demo Classroom" : role === "teacher" ? `Teacher Control (${participantName || "Ustadha Maryam"})` : role === "observer" ? `Parent Observer (${participantName || "Ward"})` : `Student View (${participantName || "Learner"})`} • {classId}
             </span>
           </div>
 

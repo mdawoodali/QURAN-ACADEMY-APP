@@ -2822,3 +2822,49 @@ The user requested a full Google Meet experience for the live academy classrooms
      - Verified parent observer joined strictly muted with disabled mic.
    - TypeScript compilation: 0 errors (`tsc --noEmit`).
    - Vitest test suite: **30 / 30 suites passed, 517 / 517 tests passing (100% green)**.
+
+
+## 9.109 Synchronized 3-Way Relational Connecting Fields Across Student, Teacher & Parent Portals
+
+### Context & User Requirement
+The user requested full end-to-end relational consistency across all three academy personas:
+> *"all the connecting fields between the student and the teacher and the parent to be set up right"*
+
+### Engineering Architecture & Implementation Details
+1. **Student <-> Teacher Bidirectional Connection**:
+   - **Student Dashboard (`/student`)**:
+     - Dynamically reads the active student's identity from the `demo_user` cookie.
+     - Displays the verified tutor credential badge (*"Assigned Tutor: Ustadha Maryam"*), room code (`qra-yus-101`), and next scheduled session.
+     - Fetches verified lesson feedback and assigned homework directly from `/api/progress` filtered for the logged-in student.
+   - **Teacher Portal (`/teacher/students`)**:
+     - Resolves the active instructor name via Supabase profile metadata or session cookie (`Ustadha Maryam` or `Muhammad Isbah`).
+     - Scopes the student directory to show enrolled learners assigned to the tutor, with complete lesson note history and milestone tracking (Sabaq, Sabqi, Manzil).
+
+2. **Student <-> Parent Unification**:
+   - **Parent Portal (`/parent`)**:
+     - Resolves the parent's linked child via the `selected_ward` cookie captured during registration or URL parameters.
+     - Populates the child card with their assigned instructor, room code, curriculum progress percentage, and next class time.
+     - "View Progress" deep-links directly to `/parent/progress?child=[slug]` to open the specific ward's detailed academic ledger.
+     - "Join Observer" deep-links to `/classroom/[slug]?role=observer&child=[WardName]` where the parent joins strictly muted.
+   - **Parent Progress Tracking (`/parent/progress`)**:
+     - Displays the ward's verified teacher name, attendance rate, Tajweed mastery score, and teacher lesson notes.
+
+3. **Teacher <-> Parent Direct Communication Card**:
+   - In `/teacher/students`, for each selected learner, an authenticated **Connected Guardian / Parent Card** is displayed:
+     - Shows Guardian Full Name (e.g. `Mr. Tariq Khan`, `Dr. Farooq Khan`), verified phone number, and guardian email.
+     - Displays the synchronized classroom code (`qra-xxx-101`).
+     - Includes a 1-click **WhatsApp Parent** action (`wa.me`) with a prefilled greeting identifying the academy, student name, and lesson topic.
+
+4. **Classroom 3-Way Unified Presence**:
+   - In `ClassroomHeader.tsx`: Contextual badge dynamically displays role and participant identity:
+     - `Teacher Control (Ustadha Maryam)`
+     - `Student View (Yusuf Khan)`
+     - `Parent Observer (Yusuf Khan)`
+   - In `GoogleMeetSideDrawer.tsx`: Meeting details tab displays the **Connected Classroom Roster** identifying Teacher (Host), Student (Learner), and Parent (Observer).
+
+5. **Connected Database Seed Schemas**:
+   - Standardized `DEFAULT_CONNECTING_SCHEDULES`, `DEFAULT_CONNECTING_ENROLMENTS`, and `DEFAULT_CONNECTING_NOTES` across `/api/scheduling`, `/api/enrolments`, and `/api/progress` linking Yusuf Khan, Hana Farooq, Amina Tariq, and Omar Farooq to their respective teachers, parent contacts, and meeting room codes.
+
+### Verification & Quality Assurance
+- **TypeScript Static Analysis**: `tsc --noEmit` executed with 0 errors.
+- **Vitest Unit & Integration Suites**: **30 / 30 test files passed, 517 / 517 tests passing (100% green)**.

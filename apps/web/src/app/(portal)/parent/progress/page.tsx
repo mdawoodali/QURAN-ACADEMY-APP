@@ -61,7 +61,7 @@ export default function ParentProgress() {
               name: en.student_name,
               age: en.student_age || 10,
               course: en.course_title || "Quran Reading & Tajweed",
-              teacher: "Ustadha Maryam",
+              teacher: en.matchedTeacher || en.matched_teacher || "Ustadha Maryam",
               progressPercent: 75,
               totalClasses: studentNotes.length > 0 ? studentNotes.length * 4 : 12,
               attendanceRate: "100%",
@@ -110,8 +110,25 @@ export default function ParentProgress() {
           };
         }
 
+        // Respect selected child via URL parameter or registration cookie
+        let initialKey = Object.keys(built)[0] || "yusuf";
+        if (typeof window !== "undefined") {
+          const params = new URLSearchParams(window.location.search);
+          const childQuery = params.get("child");
+          if (childQuery && built[childQuery.toLowerCase()]) {
+            initialKey = childQuery.toLowerCase();
+          } else {
+            const wardCookie = document.cookie.match(/selected_ward=([^;]+)/);
+            if (wardCookie) {
+              const wardKey = decodeURIComponent(wardCookie[1]).trim().toLowerCase().split(" ")[0];
+              if (built[wardKey]) {
+                initialKey = wardKey;
+              }
+            }
+          }
+        }
         setChildrenData(built);
-        setActiveChildKey(Object.keys(built)[0]);
+        setActiveChildKey(initialKey);
       })
       .catch((err) => console.error("Failed to load parent progress:", err))
       .finally(() => setLoading(false));
