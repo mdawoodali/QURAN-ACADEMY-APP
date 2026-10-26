@@ -158,6 +158,7 @@ export default function LiveClassroom() {
   const [isLaserModeActive, setIsLaserModeActive] = useState(false);
   const [isStudentUnlocked, setIsStudentUnlocked] = useState(false);
   const [showEndModal, setShowEndModal] = useState(false);
+  const [activeMediaStream, setActiveMediaStream] = useState<MediaStream | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -176,7 +177,7 @@ export default function LiveClassroom() {
   } = useVoiceFollow({
     currentWords: currentWordStrings,
     onMatchWord: sendHighlight,
-    audioStream: streamRef.current,
+    audioStream: activeMediaStream || streamRef.current,
   });
 
   // Derived effective mic state (muted if user turned it off, remote-muted, or observer)
@@ -299,6 +300,7 @@ export default function LiveClassroom() {
       });
 
       streamRef.current = stream;
+      setActiveMediaStream(stream);
       if (videoRef.current && settings.isCameraOn) {
         videoRef.current.srcObject = stream;
       }
@@ -689,7 +691,9 @@ export default function LiveClassroom() {
                           className="text-amber-300 hover:text-amber-200 font-bold text-xs truncate cursor-pointer transition text-left"
                           title="Click to toggle AI Voice Follow"
                         >
-                          {isVoiceFollowOn ? "AI Listening (Arabic Only)" : "AI Voice Follow Paused • Click to Start"}
+                          {isVoiceFollowOn
+                            ? `AI Listening (${activeSpeechEngine || "Deepgram Nova-3"})`
+                            : "AI Voice Follow Paused • Click to Start"}
                         </button>
                       </div>
 
@@ -718,18 +722,6 @@ export default function LiveClassroom() {
                           className="text-[10px] font-bold bg-amber-400 hover:bg-amber-300 text-emerald-950 px-2 py-0.5 rounded-md transition cursor-pointer font-bold"
                         >
                           Next →
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (!isVoiceFollowOn) toggleVoiceFollow();
-                            const nextIdx = highlightedIndex === null ? 0 : (highlightedIndex + 1) % currentWordStrings.length;
-                            simulateRecitation(nextIdx);
-                          }}
-                          title="Simulate speech to test voice following progression"
-                          className="text-[10px] font-bold bg-emerald-600/80 hover:bg-emerald-500 text-white px-2 py-0.5 rounded-md transition cursor-pointer"
-                        >
-                          Auto Follow Test
                         </button>
                       </div>
                     </div>

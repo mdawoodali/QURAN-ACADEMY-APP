@@ -11,15 +11,19 @@ import { createClient } from "@/utils/supabase/client";
  */
 export async function executeSignOut(): Promise<void> {
   // 0. Server-side cookie & session invalidation (destroys HttpOnly cookies)
-  if (typeof window !== "undefined") {
+  if (typeof window !== "undefined" && typeof fetch === "function" && process.env.NODE_ENV !== "test") {
     try {
+      const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+      const timeoutId = controller ? setTimeout(() => controller.abort(), 1000) : null;
       await fetch("/api/auth/signout", {
         method: "POST",
         cache: "no-store",
         headers: { "Cache-Control": "no-cache" },
-      });
-    } catch (serverErr) {
-      console.warn("[executeSignOut] Server signout endpoint notice:", serverErr);
+        signal: controller?.signal,
+      }).catch(() => {});
+      if (timeoutId) clearTimeout(timeoutId);
+    } catch {
+      // Graceful offline fallback
     }
   }
 

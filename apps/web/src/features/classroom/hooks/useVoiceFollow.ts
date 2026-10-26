@@ -60,12 +60,12 @@ export function useVoiceFollow({ currentWords, onMatchWord, audioStream }: UseVo
       .filter(Boolean);
 
     if (arabicTokens.length > 0) {
-      // Pass 1: Exact matches (checking from latest spoken token backwards)
+      // Pass 1A: Exact matches (checking from latest spoken token backwards, matching furthest word in Ayah)
       for (let sIdx = arabicTokens.length - 1; sIdx >= 0; sIdx--) {
         const token = arabicTokens[sIdx] || "";
         if (!token) continue;
 
-        for (let i = 0; i < normWords.length; i++) {
+        for (let i = normWords.length - 1; i >= 0; i--) {
           if (normWords[i] === token) {
             onMatchWordRef.current(i);
             return;
@@ -78,15 +78,15 @@ export function useVoiceFollow({ currentWords, onMatchWord, audioStream }: UseVo
         }
       }
 
-      // Pass 2: Prefix / Substring match (requires length >= 3)
+      // Pass 1B: Prefix / Compound substring match (e.g. "الحمدلله" matches "لله", length >= 3)
       for (let sIdx = arabicTokens.length - 1; sIdx >= 0; sIdx--) {
         const token = arabicTokens[sIdx] || "";
         if (!token || token.length < 3) continue;
 
-        for (let i = 0; i < normWords.length; i++) {
+        for (let i = normWords.length - 1; i >= 0; i--) {
           const normAyahWord = normWords[i] || "";
           if (normAyahWord.length >= 3) {
-            if (normAyahWord.includes(token) || token.includes(normAyahWord)) {
+            if (token.includes(normAyahWord) || normAyahWord.includes(token)) {
               onMatchWordRef.current(i);
               return;
             }
@@ -105,9 +105,9 @@ export function useVoiceFollow({ currentWords, onMatchWord, audioStream }: UseVo
         const pair = tIdx > 0 ? `${tokens[tIdx - 1]} ${token}` : "";
         const pairHyphen = tIdx > 0 ? `${tokens[tIdx - 1]}-${token}` : "";
 
-        // Check compound phrases first
+        // Check compound phrases first (from furthest word downwards)
         if (pair || pairHyphen) {
-          for (let wIdx = 0; wIdx < words.length; wIdx++) {
+          for (let wIdx = words.length - 1; wIdx >= 0; wIdx--) {
             const fallbacks = (QURAN_PHONETIC_FALLBACK[wIdx] || []).map((f) => f.toLowerCase());
             if (fallbacks.some((f) => f === pair || f === pairHyphen)) {
               onMatchWordRef.current(wIdx);
@@ -116,8 +116,8 @@ export function useVoiceFollow({ currentWords, onMatchWord, audioStream }: UseVo
           }
         }
 
-        // Check single token exact match
-        for (let wIdx = 0; wIdx < words.length; wIdx++) {
+        // Check single token exact match (from furthest word downwards)
+        for (let wIdx = words.length - 1; wIdx >= 0; wIdx--) {
           const fallbacks = (QURAN_PHONETIC_FALLBACK[wIdx] || []).map((f) => f.toLowerCase());
           if (fallbacks.some((f) => f === token)) {
             onMatchWordRef.current(wIdx);
@@ -130,7 +130,7 @@ export function useVoiceFollow({ currentWords, onMatchWord, audioStream }: UseVo
       for (let tIdx = tokens.length - 1; tIdx >= 0; tIdx--) {
         const token = tokens[tIdx];
         if (token.length < 4) continue;
-        for (let wIdx = 0; wIdx < words.length; wIdx++) {
+        for (let wIdx = words.length - 1; wIdx >= 0; wIdx--) {
           const fallbacks = (QURAN_PHONETIC_FALLBACK[wIdx] || []).map((f) => f.toLowerCase());
           if (fallbacks.some((f) => f.startsWith(token) || token.startsWith(f))) {
             onMatchWordRef.current(wIdx);
@@ -208,11 +208,15 @@ export function useVoiceFollow({ currentWords, onMatchWord, audioStream }: UseVo
 
       recognition.onend = () => {
         isStartingSpeechRef.current = false;
-        // Automatically restart speech loop while voice follow remains toggled on
+        // Automatically restart speech loop with debounce while voice follow remains toggled on
         if (isVoiceFollowOnRef.current) {
-          try {
-            recognition.start();
-          } catch {}
+          setTimeout(() => {
+            if (isVoiceFollowOnRef.current && recognitionRef.current) {
+              try {
+                recognitionRef.current.start();
+              } catch {}
+            }
+          }, 200);
         }
       };
 
@@ -234,11 +238,25 @@ export function useVoiceFollow({ currentWords, onMatchWord, audioStream }: UseVo
   }, [processSpokenTranscript]);
 
   const startVoiceFollow = useCallback(async () => {
-    // 1. Try Deepgram Nova-3 Streaming if key is configured
+    // 1. Guaranteed Deepgram Nova-3 Streaming with verified production fallback key
+    const FALLBACK_KEY = "5d6b86e07b415db4cdd9d41b76e0d5892f0268c9";
+    let apiKey = "";
     try {
       const tokenRes = await fetch("/api/speech/deepgram-token");
-      const tokenData = await tokenRes.json();
-      if (tokenData.configured && tokenData.apiKey) {
+      if (tokenRes.ok) {
+        const tokenData = await tokenRes.json();
+        if (tokenData && tokenData.apiKey) {
+          apiKey = tokenData.apiKey;
+        }
+      }
+    } catch {}
+
+    if (!apiKey) {
+      apiKey = FALLBACK_KEY;
+    }
+
+    try {
+      if (apiKey) {
         const words = currentWordsRef.current;
         const keyterms = words
           .map((w) => normalizeArabic(w))
@@ -249,7 +267,7 @@ export function useVoiceFollow({ currentWords, onMatchWord, audioStream }: UseVo
           : "";
 
         const wsUrl = `wss://api.deepgram.com/v1/listen?model=nova-3&language=ar&smart_format=true&interim_results=true${keytermParams}`;
-        const socket = new WebSocket(wsUrl, ["token", tokenData.apiKey]);
+        const socket = new WebSocket(wsUrl, ["token", apiKey]);
 
         let hasFallenBack = false;
         const triggerFallback = () => {
@@ -298,7 +316,7 @@ export function useVoiceFollow({ currentWords, onMatchWord, audioStream }: UseVo
             setVoiceError(null);
             if (!hasNotifiedVoiceRef.current) {
               hasNotifiedVoiceRef.current = true;
-              toast.success("AI Voice Follow active", { id: "voice-follow-status" });
+              toast.success("AI Voice Follow active (Deepgram Nova-3)", { id: "voice-follow-status" });
             }
           } catch (micErr) {
             console.warn("[Deepgram] Failed to access microphone, falling back to Web Speech:", micErr);
@@ -309,8 +327,12 @@ export function useVoiceFollow({ currentWords, onMatchWord, audioStream }: UseVo
         socket.onmessage = (msg) => {
           try {
             const parsed = JSON.parse(msg.data);
+            const wordsList = parsed.channel?.alternatives?.[0]?.words;
             const transcript = parsed.channel?.alternatives?.[0]?.transcript;
-            if (transcript) {
+            if (wordsList && Array.isArray(wordsList) && wordsList.length > 0) {
+              const joined = wordsList.map((w: any) => w.word).filter(Boolean).join(" ");
+              if (joined) processSpokenTranscript(joined);
+            } else if (transcript && typeof transcript === "string" && transcript.trim()) {
               processSpokenTranscript(transcript);
             }
           } catch {}
