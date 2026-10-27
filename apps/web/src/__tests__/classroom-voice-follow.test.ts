@@ -49,7 +49,10 @@ describe("Classroom AI Voice Following & Recitation Alignment Suite", () => {
     function matchTranslit(text: string): number {
       const lower = text.toLowerCase().trim();
       for (let i = 0; i < currentWords.length; i++) {
-        const fallbacks = QURAN_PHONETIC_FALLBACK[i] || [];
+        const fallbacks = [
+          ...(QURAN_PHONETIC_FALLBACK[i] || []),
+          ...getWordFallbacks(currentWords[i] || "")
+        ];
         if (fallbacks.some((p) => lower.includes(p.toLowerCase()))) return i;
       }
       return -1;
@@ -236,7 +239,10 @@ describe("Classroom AI Voice Following & Recitation Alignment Suite", () => {
 
         if (pair || pairHyphen) {
           for (let wIdx = 0; wIdx < currentWords.length; wIdx++) {
-            const fallbacks = (QURAN_PHONETIC_FALLBACK[wIdx] || []).map((f) => f.toLowerCase());
+            const fallbacks = [
+              ...(QURAN_PHONETIC_FALLBACK[wIdx] || []),
+              ...getWordFallbacks(currentWords[wIdx] || "")
+            ].map((f) => f.toLowerCase());
             if (fallbacks.some((f) => f === pair || f === pairHyphen)) {
               return wIdx;
             }
@@ -244,7 +250,10 @@ describe("Classroom AI Voice Following & Recitation Alignment Suite", () => {
         }
 
         for (let wIdx = 0; wIdx < currentWords.length; wIdx++) {
-          const fallbacks = (QURAN_PHONETIC_FALLBACK[wIdx] || []).map((f) => f.toLowerCase());
+          const fallbacks = [
+            ...(QURAN_PHONETIC_FALLBACK[wIdx] || []),
+            ...getWordFallbacks(currentWords[wIdx] || "")
+          ].map((f) => f.toLowerCase());
           if (fallbacks.some((f) => f === token)) {
             return wIdx;
           }
@@ -255,7 +264,10 @@ describe("Classroom AI Voice Following & Recitation Alignment Suite", () => {
         const token = tokens[tIdx];
         if (token.length < 4) continue;
         for (let wIdx = 0; wIdx < currentWords.length; wIdx++) {
-          const fallbacks = (QURAN_PHONETIC_FALLBACK[wIdx] || []).map((f) => f.toLowerCase());
+          const fallbacks = [
+            ...(QURAN_PHONETIC_FALLBACK[wIdx] || []),
+            ...getWordFallbacks(currentWords[wIdx] || "")
+          ].map((f) => f.toLowerCase());
           if (fallbacks.some((f) => f.startsWith(token) || token.startsWith(f))) {
             return wIdx;
           }
@@ -505,5 +517,259 @@ it("normalizes IndoPak and Uthmani Lillah to canonical لله preventing dagger-
 
     expect(processToken("الله")).toBe(1);
     expect(lastIndex).toBe(1);
+  });
+
+  describe("Context-Aware Duplicate Word Disambiguation & Ayah-Gated Progression Suite", () => {
+    const fatihahLesson = CURRICULUM_LESSONS.find((l) => l.id === "fatihah-all")!;
+    const words = fatihahLesson.wordsUthmani.map((w) => w.word);
+    const normWords = words.map(normalizeArabic);
+    const prefixStrippedWords = normWords.map(stripArabicPrefix);
+
+    let currentAyah = fatihahLesson.ayahNumber || 1;
+    const wordAyahs = fatihahLesson.wordsUthmani.map((w) => {
+      const ayah = currentAyah;
+      if (w.isAyahEnd) currentAyah = (w.ayahNumber ?? currentAyah) + 1;
+      return ayah;
+    });
+
+    // Mirror the exact matchTokenToWord and scoreCandidate logic from useVoiceFollow
+    function matchToken(token: string, wordIdx: number): boolean {
+      if (wordIdx < 0 || wordIdx >= words.length) return false;
+      const normTok = normalizeArabic(token);
+      if (normTok) {
+        if (normWords[wordIdx] === normTok) return true;
+        if (
+          (normTok === "الرحمن" && (normWords[wordIdx] === "رحمان" || normWords[wordIdx] === "الرحمن")) ||
+          (normTok === "رحمان" && (normWords[wordIdx] === "الرحمن" || normWords[wordIdx] === "رحمان")) ||
+          (normTok === "مالك" && (normWords[wordIdx] === "ملك" || normWords[wordIdx] === "مالك")) ||
+          (normTok === "ملك" && (normWords[wordIdx] === "مالك" || normWords[wordIdx] === "ملك")) ||
+          (normTok === "لله" && normWords[wordIdx] === "الله") ||
+          (normTok === "الله" && normWords[wordIdx] === "لله")
+        ) return true;
+        const strippedTok = stripArabicPrefix(normTok);
+        if (strippedTok.length >= 3 && prefixStrippedWords[wordIdx] === strippedTok) return true;
+        const w = normWords[wordIdx] || "";
+        if (normTok.length >= 4 && w.length >= 4 && (w.includes(normTok) || normTok.includes(w))) return true;
+        const phonetics = (PHONETIC_MAP[wordIdx] || []).map(normalizeArabic);
+        if (phonetics.includes(normTok)) return true;
+      }
+      const lowTok = token.toLowerCase().replace(/[^a-z0-9'-]/g, "").trim();
+      if (lowTok) {
+        const fallbacks = [
+          ...(QURAN_PHONETIC_FALLBACK[wordIdx] || []),
+          ...getWordFallbacks(words[wordIdx] || "")
+        ].map((f) => f.toLowerCase().replace(/[^a-z0-9'-]/g, ""));
+        if (fallbacks.some((f) => f === lowTok)) return true;
+        if (lowTok.length >= 4 && fallbacks.some((f) => f.startsWith(lowTok) || lowTok.startsWith(f))) return true;
+      }
+      return false;
+    }
+
+    function scoreCandidate(cand: number, curr: number, isSurahStartWord: boolean): number {
+      if (cand < 0 || cand >= words.length) return -99999;
+      const currAyah = wordAyahs[curr] ?? 1;
+      const candAyah = wordAyahs[cand] ?? 1;
+      const dist = cand - curr;
+
+      if (cand === 0 && isSurahStartWord) return 2000 - Math.abs(dist) * 2;
+
+      let score = 0;
+      if (dist === 1) score += 1000;
+      else if (dist === 0) score += 600;
+      else if (dist === 2) score += 450;
+      else if (dist === 3) score += 300;
+      else if (dist > 3 && dist <= 6) score += 150 - (dist - 3) * 25;
+
+      if (wordAyahs.length > 0) {
+        if (candAyah === currAyah) {
+          score += 350;
+        } else if (candAyah === currAyah + 1) {
+          const nextWordAyah = wordAyahs[curr + 1];
+          const isNearAyahEnd = nextWordAyah === undefined || nextWordAyah !== currAyah || dist <= 2;
+          if (isNearAyahEnd) score += 350;
+          else score -= 200;
+        } else if (candAyah > currAyah + 1) {
+          score -= 5000; // STRICT ANTI-SKIP GATE
+        } else if (candAyah === currAyah - 1) {
+          score += 100 - Math.abs(dist) * 15;
+        } else if (candAyah < currAyah - 1) {
+          score -= 3000;
+        }
+      }
+      if (dist < 0 && candAyah === currAyah) score += 250 - Math.abs(dist) * 20;
+      score -= Math.abs(dist) * 5;
+      return score;
+    }
+
+    function processAlignment(spokenText: string, currentPosition: number): number {
+      const clean = spokenText.trim();
+      const isArabic = /[\u0600-\u06FF]/.test(clean);
+      let tokens: string[] = [];
+
+      if (isArabic) {
+        tokens = clean.split(/\s+/).filter((w) => /[\u0600-\u06FF]/.test(w)).map(normalizeArabic).filter(Boolean);
+      } else {
+        const rawTokens = clean.toLowerCase().replace(/[^a-z0-9\s'-]/g, " ").split(/\s+/).filter(Boolean);
+        const merged: string[] = [];
+        for (let i = 0; i < rawTokens.length; i++) {
+          const cur = rawTokens[i]!;
+          const next = rawTokens[i + 1];
+          if (next && (cur === "ar" || cur === "al" || cur === "wa" || cur === "bi" || cur === "ad" || cur === "as")) {
+            merged.push(`${cur}-${next}`);
+            i++;
+          } else {
+            merged.push(cur);
+          }
+        }
+        tokens = merged;
+      }
+
+      let curr = currentPosition;
+
+      // N-Gram Multi-Word Alignment
+      if (tokens.length >= 2) {
+        const maxN = Math.min(5, tokens.length);
+        for (let N = maxN; N >= 2; N--) {
+          for (let tStart = 0; tStart <= tokens.length - N; tStart++) {
+            const phraseTokens = tokens.slice(tStart, tStart + N);
+            const firstTok = phraseTokens[0]!;
+            const isSurahStart = firstTok === "بسم" || firstTok === "bismi" || firstTok === "bism" || firstTok === "bismillah" || firstTok === "bismillahir" || firstTok === "bismillahi";
+
+            let bestSpanStart = -1;
+            let bestSpanScore = -Infinity;
+
+            for (let wStart = 0; wStart <= words.length - N; wStart++) {
+              let allMatch = true;
+              for (let k = 0; k < N; k++) {
+                if (!matchToken(phraseTokens[k]!, wStart + k)) {
+                  allMatch = false;
+                  break;
+                }
+              }
+              if (allMatch) {
+                const spanScore = scoreCandidate(wStart, curr, isSurahStart) + N * 600;
+                if (spanScore > bestSpanScore) {
+                  bestSpanScore = spanScore;
+                  bestSpanStart = wStart;
+                }
+              }
+            }
+
+            if (bestSpanStart !== -1 && bestSpanScore > 0) {
+              return bestSpanStart + N - 1;
+            }
+          }
+        }
+      }
+
+      // Single-word Alignment
+      for (const token of tokens) {
+        const isSurahStart = token === "بسم" || token === "bismi" || token === "bism" || token === "bismillah" || token === "bismillahir" || token === "bismillahi";
+        let bestCand = -1;
+        let bestScore = -Infinity;
+
+        for (let i = 0; i < words.length; i++) {
+          if (matchToken(token, i)) {
+            const score = scoreCandidate(i, curr, isSurahStart);
+            if (score > bestScore) {
+              bestScore = score;
+              bestCand = i;
+            }
+          }
+        }
+
+        if (bestCand !== -1 && bestScore > 0) {
+          curr = bestCand;
+        }
+      }
+      return curr;
+    }
+
+    it("disambiguates Ar-Rahman: matches Ayah 1 (word 2) when at Ayah 1, NEVER skipping to Ayah 3 (word 8)", () => {
+      // Reciter is at word 0 (Ayah 1)
+      expect(processAlignment("الرحمن", 0)).toBe(2);
+      expect(processAlignment("ar-rahman", 0)).toBe(2);
+
+      // Reciter is at word 1 (Ayah 1)
+      expect(processAlignment("الرحمن", 1)).toBe(2);
+      expect(processAlignment("ar-rahman", 1)).toBe(2);
+
+      // Reciter is at word 3 (end of Ayah 1), repeating Ar-Rahman stays within Ayah 1
+      expect(processAlignment("الرحمن", 3)).toBe(2);
+      expect(processAlignment("ar-rahman", 3)).toBe(2);
+    });
+
+    it("disambiguates Ar-Rahman: matches Ayah 3 (word 8) AFTER Ayah 2 has been reached or read", () => {
+      // Reciter is at word 7 (end of Ayah 2), recites Ar-Rahman
+      expect(processAlignment("الرحمن", 7)).toBe(8);
+      expect(processAlignment("ar-rahman", 7)).toBe(8);
+
+      // Reciter is at word 8 (Ayah 3), repeating Ar-Rahman stays on word 8
+      expect(processAlignment("الرحمن", 8)).toBe(8);
+      expect(processAlignment("ar-rahman", 8)).toBe(8);
+    });
+
+    it("disambiguates Ar-Raheem: matches Ayah 1 (word 3) vs Ayah 3 (word 9) contextually", () => {
+      // In Ayah 1 (word 2)
+      expect(processAlignment("الرحيم", 2)).toBe(3);
+      expect(processAlignment("ar-rahim", 2)).toBe(3);
+
+      // In Ayah 3 (word 8)
+      expect(processAlignment("الرحيم", 8)).toBe(9);
+      expect(processAlignment("ar-rahim", 8)).toBe(9);
+    });
+
+    it("disambiguates compound Ar-Rahman Ar-Raheem phrase: matches Ayah 1 (words 2-3) vs Ayah 3 (words 8-9)", () => {
+      // At word 0: matches Ayah 1 ending at word 3
+      expect(processAlignment("الرحمن الرحيم", 0)).toBe(3);
+      expect(processAlignment("ar-rahman ar-rahim", 0)).toBe(3);
+
+      // At word 7 (Ayah 2 finished): matches Ayah 3 ending at word 9
+      expect(processAlignment("الرحمن الرحيم", 7)).toBe(9);
+      expect(processAlignment("ar-rahman ar-rahim", 7)).toBe(9);
+    });
+
+    it("disambiguates duplicate 'alayhim' in Ayah 7 (word 23 vs word 26)", () => {
+      // At word 22 (an'amta), reciting alayhim matches word 23
+      expect(processAlignment("عليهم", 22)).toBe(23);
+      expect(processAlignment("alayhim", 22)).toBe(23);
+
+      // At word 25 (al-maghdubi), reciting alayhim matches word 26
+      expect(processAlignment("عليهم", 25)).toBe(26);
+      expect(processAlignment("alayhim", 25)).toBe(26);
+    });
+
+    it("disambiguates 'iyyaka' in Ayah 5 (word 13 vs word 15)", () => {
+      // At word 12 (ad-deen), iyyaka matches word 13
+      expect(processAlignment("اياك", 12)).toBe(13);
+      expect(processAlignment("iyyaka", 12)).toBe(13);
+
+      // At word 14 (na'budu), wa-iyyaka matches word 15
+      expect(processAlignment("واياك", 14)).toBe(15);
+      expect(processAlignment("wa-iyyaka", 14)).toBe(15);
+    });
+
+    it("disambiguates 'sirat' (word 18 in Ayah 6 vs word 20 in Ayah 7)", () => {
+      // At word 17 (ihdina), sirat matches word 18
+      expect(processAlignment("الصراط", 17)).toBe(18);
+      expect(processAlignment("as-sirat", 17)).toBe(18);
+
+      // At word 19 (al-mustaqeem), sirat matches word 20
+      expect(processAlignment("صراط", 19)).toBe(20);
+      expect(processAlignment("sirat", 19)).toBe(20);
+    });
+
+    it("seamlessly resets back to word 0 when reciter restarts Surah with Bismillah from anywhere", () => {
+      // From Ayah 3 (word 8)
+      expect(processAlignment("بسم", 8)).toBe(0);
+      expect(processAlignment("bismi", 8)).toBe(0);
+      expect(processAlignment("bismillah", 8)).toBe(0);
+
+      // From Ayah 5 (word 15)
+      expect(processAlignment("بسم الله الرحمن الرحيم", 15)).toBe(3);
+
+      // From Ayah 7 (word 26)
+      expect(processAlignment("bismillahir rahmanir rahim", 26)).toBe(3);
+    });
   });
 });

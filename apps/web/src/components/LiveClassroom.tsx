@@ -150,6 +150,17 @@ export default function LiveClassroom() {
   const currentWordsList = script === "indopak" ? currentLesson.wordsIndoPak : currentLesson.wordsUthmani;
   const currentWordStrings = currentWordsList.map((item) => item.word);
 
+  const wordAyahs = useMemo(() => {
+    let currentAyah = currentLesson.ayahNumber || 1;
+    return currentWordsList.map((item) => {
+      const ayah = currentAyah;
+      if (item.isAyahEnd) {
+        currentAyah = (item.ayahNumber ?? currentAyah) + 1;
+      }
+      return ayah;
+    });
+  }, [currentWordsList, currentLesson.ayahNumber]);
+
   // Local media & tool states (Observers default to MUTED)
   const [isMicOn, setIsMicOn] = useState(roleParam !== "observer");
   const [isCameraOn, setIsCameraOn] = useState(roleParam !== "observer");
@@ -176,6 +187,7 @@ export default function LiveClassroom() {
     isVoiceActive: isVoiceFollowActive,
   } = useVoiceFollow({
     currentWords: currentWordStrings,
+    wordAyahs,
     onMatchWord: sendHighlight,
     currentIndex: highlightedIndex ?? 0,
     defaultOn: false,

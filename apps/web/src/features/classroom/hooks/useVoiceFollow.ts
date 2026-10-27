@@ -12,6 +12,7 @@ import {
 
 interface UseVoiceFollowOptions {
   currentWords: string[];
+  wordAyahs?: number[];
   onMatchWord: (index: number) => void;
   audioStream?: MediaStream | null;
   currentIndex?: number | null;
@@ -20,6 +21,7 @@ interface UseVoiceFollowOptions {
 
 export function useVoiceFollow({
   currentWords,
+  wordAyahs,
   onMatchWord,
   audioStream,
   currentIndex = 0,
@@ -39,6 +41,11 @@ export function useVoiceFollow({
   useEffect(() => {
     currentWordsRef.current = currentWords;
   }, [currentWords]);
+
+  const wordAyahsRef = useRef<number[]>(wordAyahs || []);
+  useEffect(() => {
+    wordAyahsRef.current = wordAyahs || [];
+  }, [wordAyahs]);
 
   const onMatchWordRef = useRef(onMatchWord);
   useEffect(() => {
@@ -186,6 +193,142 @@ export function useVoiceFollow({
     [stopVadCadenceTracker]
   );
 
+  /**
+   * Helper: checks if a spoken token matches the word at index wordIdx
+   */
+  const matchTokenToWord = (
+    token: string,
+    wordIdx: number,
+    normWords: string[],
+    prefixStrippedWords: string[],
+    rawWords: string[]
+  ): boolean => {
+    if (wordIdx < 0 || wordIdx >= rawWords.length) return false;
+
+    // 1. Arabic normalized comparison
+    const normTok = normalizeArabic(token);
+    if (normTok) {
+      if (normWords[wordIdx] === normTok) return true;
+
+      // Common spelling variants (dagger alif, alif maqsura, hamza)
+      if (
+        (normTok === "الرحمن" && (normWords[wordIdx] === "رحمان" || normWords[wordIdx] === "الرحمن")) ||
+        (normTok === "رحمان" && (normWords[wordIdx] === "الرحمن" || normWords[wordIdx] === "رحمان")) ||
+        (normTok === "مالك" && (normWords[wordIdx] === "ملك" || normWords[wordIdx] === "مالك")) ||
+        (normTok === "ملك" && (normWords[wordIdx] === "مالك" || normWords[wordIdx] === "ملك")) ||
+        (normTok === "لله" && normWords[wordIdx] === "الله") ||
+        (normTok === "الله" && normWords[wordIdx] === "لله")
+      ) {
+        return true;
+      }
+
+      // Prefix-stripped match (e.g. "والله" -> "الله", "وبالوالدين" -> "والدين")
+      const strippedTok = stripArabicPrefix(normTok);
+      if (strippedTok.length >= 3 && prefixStrippedWords[wordIdx] === strippedTok) return true;
+
+      // Substring / stem match (requires token length >= 4 to avoid false 2-3 char matches)
+      const w = normWords[wordIdx] || "";
+      if (normTok.length >= 4 && w.length >= 4 && (w.includes(normTok) || normTok.includes(w))) return true;
+
+      // Phonetic map for this word index
+      const phonetics = (PHONETIC_MAP[wordIdx] || []).map((p) => normalizeArabic(p));
+      if (phonetics.includes(normTok)) return true;
+      if (strippedTok.length >= 3 && phonetics.some((p) => stripArabicPrefix(p) === strippedTok)) return true;
+    }
+
+    // 2. Transliteration / Latin comparison
+    const lowTok = token.toLowerCase().replace(/[^a-z0-9'-]/g, "").trim();
+    if (lowTok) {
+      const fallbacks = [
+        ...(QURAN_PHONETIC_FALLBACK[wordIdx] || []),
+        ...getWordFallbacks(rawWords[wordIdx] || ""),
+      ].map((f) => f.toLowerCase().replace(/[^a-z0-9'-]/g, ""));
+
+      if (fallbacks.some((f) => f === lowTok)) return true;
+      if (lowTok.length >= 4 && fallbacks.some((f) => f.startsWith(lowTok) || lowTok.startsWith(f))) return true;
+    }
+
+    return false;
+  };
+
+  /**
+   * Helper: computes a context-aware alignment score for candidate word index 'cand'
+   * given current word index 'curr' and word Ayah mappings.
+   */
+  const scoreCandidate = (
+    cand: number,
+    curr: number,
+    wordAyahs: number[],
+    totalWords: number,
+    isSurahStartWord: boolean
+  ): number => {
+    if (cand < 0 || cand >= totalWords) return -99999;
+
+    const currAyah = wordAyahs[curr] ?? 1;
+    const candAyah = wordAyahs[cand] ?? 1;
+    const dist = cand - curr;
+
+    // 1. Surah Restart (reciting Bismillah from any point in the lesson)
+    if (cand === 0 && isSurahStartWord) {
+      return 2000 - Math.abs(dist) * 2;
+    }
+
+    let score = 0;
+
+    // 2. Sequential Word Distance Bias
+    if (dist === 1) {
+      // Immediate next word (highest natural expectation)
+      score += 1000;
+    } else if (dist === 0) {
+      // Repeating current word
+      score += 600;
+    } else if (dist === 2) {
+      // 1 missed word
+      score += 450;
+    } else if (dist === 3) {
+      // 2 missed words
+      score += 300;
+    } else if (dist > 3 && dist <= 6) {
+      score += 150 - (dist - 3) * 25;
+    }
+
+    // 3. Ayah Relationship & Strict Anti-Skip Gating
+    if (wordAyahs.length > 0) {
+      if (candAyah === currAyah) {
+        // Same Ayah
+        score += 350;
+      } else if (candAyah === currAyah + 1) {
+        // Natural progression to next Ayah
+        const nextWordAyah = wordAyahs[curr + 1];
+        const isNearAyahEnd = nextWordAyah === undefined || nextWordAyah !== currAyah || dist <= 2;
+        if (isNearAyahEnd) {
+          score += 350;
+        } else {
+          score -= 200;
+        }
+      } else if (candAyah > currAyah + 1) {
+        // STRICT GATE: Ambiguous single words can NEVER skip unread Ayahs!
+        score -= 5000;
+      } else if (candAyah === currAyah - 1) {
+        // Natural re-recitation of immediate previous Ayah
+        score += 100 - Math.abs(dist) * 15;
+      } else if (candAyah < currAyah - 1) {
+        // Backward across 2+ Ayahs
+        score -= 3000;
+      }
+    }
+
+    // 4. Backward penalty within same Ayah
+    if (dist < 0 && candAyah === currAyah) {
+      score += 250 - Math.abs(dist) * 20;
+    }
+
+    // 5. General distance decay
+    score -= Math.abs(dist) * 5;
+
+    return score;
+  };
+
   const processSpokenTranscript = useCallback((rawText: string) => {
     const clean = rawText.trim();
     if (!clean) return;
@@ -195,183 +338,121 @@ export function useVoiceFollow({
     const words = currentWordsRef.current;
     if (!words || words.length === 0) return;
     const totalWords = words.length;
+    const wordAyahs = wordAyahsRef.current || [];
 
     const normWords = words.map((w) => normalizeArabic(w));
     const prefixStrippedWords = normWords.map((w) => stripArabicPrefix(w));
 
-    // Forward-biased candidate search order based on currentIndex
-    const getCandidateIndices = (curr: number): number[] => {
-      const candidates: number[] = [];
-      const visited = new Set<number>();
-
-      const addIdx = (idx: number) => {
-        if (idx >= 0 && idx < totalWords && !visited.has(idx)) {
-          visited.add(idx);
-          candidates.push(idx);
-        }
-      };
-
-      if (curr >= 0 && curr < totalWords) {
-        // 1. Next word (highest expectation in sequential recitation)
-        addIdx(curr + 1);
-
-        // 2. Immediate forward window (2-6 words ahead)
-        for (let i = 2; i <= 6; i++) {
-          addIdx(curr + i);
-        }
-
-        // 3. Current word repeated
-        addIdx(curr);
-
-        // 4. Further ahead in the lesson
-        for (let i = curr + 7; i < totalWords; i++) {
-          addIdx(i);
-        }
-
-        // 5. Earlier in the lesson: proximity order (re-reciting previous words or restarting)
-        for (let i = curr - 1; i >= 0; i--) {
-          addIdx(i);
-        }
-      } else {
-        // Natural start: iterate from word 0 to end
-        for (let i = 0; i < totalWords; i++) {
-          addIdx(i);
-        }
-      }
-
-      return candidates;
-    };
-
-    // 1. Check for Arabic script tokens
     const ARABIC_SCRIPT_REGEX = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/;
-    const arabicTokens = clean
-      .split(/\s+/)
-      .filter((w) => ARABIC_SCRIPT_REGEX.test(w))
-      .map((w) => normalizeArabic(w))
-      .filter(Boolean);
+    const isArabic = ARABIC_SCRIPT_REGEX.test(clean);
 
-    if (arabicTokens.length > 0) {
-      for (const token of arabicTokens) {
-        const tokenStripped = stripArabicPrefix(token);
-        const candidates = getCandidateIndices(currentIndexRef.current);
-        let matchedIdx = -1;
+    let tokens: string[] = [];
+    if (isArabic) {
+      tokens = clean
+        .split(/\s+/)
+        .filter((w) => ARABIC_SCRIPT_REGEX.test(w))
+        .map((w) => normalizeArabic(w))
+        .filter(Boolean);
+    } else {
+      const lower = clean.toLowerCase().replace(/[^a-z0-9\s'-]/g, " ").trim();
+      const rawTokens = lower.split(/\s+/).filter(Boolean);
 
-        // Tier 1: Exact normalized Arabic match
-        for (const idx of candidates) {
-          if (normWords[idx] === token) {
-            matchedIdx = idx;
-            break;
-          }
-        }
-
-        // Tier 2: Prefix-stripped match
-        if (matchedIdx === -1 && tokenStripped.length >= 3) {
-          for (const idx of candidates) {
-            if (prefixStrippedWords[idx] === tokenStripped) {
-              matchedIdx = idx;
-              break;
-            }
-          }
-        }
-
-        // Tier 3: Substring / stem containment (requires length >= 3)
-        if (matchedIdx === -1 && token.length >= 3) {
-          for (const idx of candidates) {
-            const w = normWords[idx] || "";
-            if (w.length >= 3 && (w.includes(token) || token.includes(w))) {
-              matchedIdx = idx;
-              break;
-            }
-          }
-        }
-
-        // Tier 4: Phonetic map / letter name fallback
-        if (matchedIdx === -1) {
-          for (const idx of candidates) {
-            const phonetics = (PHONETIC_MAP[idx] || []).map((p) => normalizeArabic(p));
-            if (
-              phonetics.includes(token) ||
-              (tokenStripped.length >= 3 && phonetics.some((p) => stripArabicPrefix(p) === tokenStripped))
-            ) {
-              matchedIdx = idx;
-              break;
-            }
-          }
-        }
-
-        if (matchedIdx !== -1) {
-          currentIndexRef.current = matchedIdx;
-          lastAdvanceTimeRef.current = Date.now();
-          onMatchWordRef.current(matchedIdx);
+      // Pre-merge compound pairs (e.g. "ar" "rahman" -> "ar-rahman", "al" "mustaqeem" -> "al-mustaqeem")
+      const merged: string[] = [];
+      for (let i = 0; i < rawTokens.length; i++) {
+        const cur = rawTokens[i]!;
+        const next = rawTokens[i + 1];
+        if (
+          next &&
+          (cur === "ar" || cur === "al" || cur === "wa" || cur === "bi" || cur === "ad" || cur === "as")
+        ) {
+          merged.push(`${cur}-${next}`);
+          i++; // skip next
+        } else {
+          merged.push(cur);
         }
       }
-      return;
+      tokens = merged;
     }
 
-    // 2. Transliteration / Phonetic matching for non-Arabic transcription streams
-    const lower = clean.toLowerCase().replace(/[^a-z0-9\s'-]/g, " ").trim();
-    const tokens = lower.split(/\s+/).filter(Boolean);
-    if (tokens.length > 0) {
-      for (let tIdx = 0; tIdx < tokens.length; tIdx++) {
-        const token = tokens[tIdx];
-        const nextToken = tokens[tIdx + 1];
-        const pair = nextToken ? `${token} ${nextToken}` : "";
-        const pairHyphen = nextToken ? `${token}-${nextToken}` : "";
+    if (tokens.length === 0) return;
 
-        const candidates = getCandidateIndices(currentIndexRef.current);
-        let matchedIdx = -1;
+    let curr = currentIndexRef.current;
 
-        // Pass 2A: Compound two-word phrases
-        if (pair || pairHyphen) {
-          for (const idx of candidates) {
-            const fallbacks = [
-              ...(QURAN_PHONETIC_FALLBACK[idx] || []),
-              ...getWordFallbacks(words[idx] || ""),
-            ].map((f) => f.toLowerCase());
+    // Phase 1: Multi-word N-Gram Alignment (evaluate contiguous phrases from length 5 down to 2)
+    if (tokens.length >= 2) {
+      const maxN = Math.min(5, tokens.length);
+      for (let N = maxN; N >= 2; N--) {
+        for (let tStart = 0; tStart <= tokens.length - N; tStart++) {
+          const phraseTokens = tokens.slice(tStart, tStart + N);
+          const firstTok = phraseTokens[0]!;
+          const isSurahStart = firstTok === "بسم" || firstTok === "bismi" || firstTok === "bism" || firstTok === "bismillah" || firstTok === "bismillahir" || firstTok === "bismillahi";
 
-            if (fallbacks.some((f) => f === pair || f === pairHyphen)) {
-              matchedIdx = idx;
-              tIdx++; // consumed pair
-              break;
+          let bestSpanStart = -1;
+          let bestSpanScore = -Infinity;
+
+          for (let wStart = 0; wStart <= totalWords - N; wStart++) {
+            let allMatch = true;
+            for (let k = 0; k < N; k++) {
+              if (
+                !matchTokenToWord(
+                  phraseTokens[k]!,
+                  wStart + k,
+                  normWords,
+                  prefixStrippedWords,
+                  words
+                )
+              ) {
+                allMatch = false;
+                break;
+              }
+            }
+
+            if (allMatch) {
+              const spanScore =
+                scoreCandidate(wStart, curr, wordAyahs, totalWords, isSurahStart) + N * 600;
+              if (spanScore > bestSpanScore) {
+                bestSpanScore = spanScore;
+                bestSpanStart = wStart;
+              }
             }
           }
-        }
 
-        // Pass 2B: Single token exact match
-        if (matchedIdx === -1) {
-          for (const idx of candidates) {
-            const fallbacks = [
-              ...(QURAN_PHONETIC_FALLBACK[idx] || []),
-              ...getWordFallbacks(words[idx] || ""),
-            ].map((f) => f.toLowerCase());
-
-            if (fallbacks.some((f) => f === token)) {
-              matchedIdx = idx;
-              break;
+          if (bestSpanStart !== -1 && bestSpanScore > 0) {
+            for (let s = bestSpanStart; s < bestSpanStart + N; s++) {
+              curr = s;
+              currentIndexRef.current = s;
+              lastAdvanceTimeRef.current = Date.now();
+              onMatchWordRef.current(s);
             }
+            return;
           }
         }
+      }
+    }
 
-        // Pass 2C: Stem / Prefix match for longer tokens (length >= 4)
-        if (matchedIdx === -1 && token.length >= 4) {
-          for (const idx of candidates) {
-            const fallbacks = [
-              ...(QURAN_PHONETIC_FALLBACK[idx] || []),
-              ...getWordFallbacks(words[idx] || ""),
-            ].map((f) => f.toLowerCase());
+    // Phase 2: Single-word Token Alignment with Contextual Ayah-Gated Scoring
+    for (const token of tokens) {
+      const isSurahStart = token === "بسم" || token === "bismi" || token === "bism" || token === "bismillah" || token === "bismillahir" || token === "bismillahi";
 
-            if (fallbacks.some((f) => f.startsWith(token) || token.startsWith(f))) {
-              matchedIdx = idx;
-              break;
-            }
+      let bestCand = -1;
+      let bestScore = -Infinity;
+
+      for (let i = 0; i < totalWords; i++) {
+        if (matchTokenToWord(token, i, normWords, prefixStrippedWords, words)) {
+          const score = scoreCandidate(i, curr, wordAyahs, totalWords, isSurahStart);
+          if (score > bestScore) {
+            bestScore = score;
+            bestCand = i;
           }
         }
+      }
 
-        if (matchedIdx !== -1) {
-          currentIndexRef.current = matchedIdx;
-          lastAdvanceTimeRef.current = Date.now();
-          onMatchWordRef.current(matchedIdx);
-        }
+      if (bestCand !== -1 && bestScore > 0) {
+        curr = bestCand;
+        currentIndexRef.current = bestCand;
+        lastAdvanceTimeRef.current = Date.now();
+        onMatchWordRef.current(bestCand);
       }
     }
   }, []);

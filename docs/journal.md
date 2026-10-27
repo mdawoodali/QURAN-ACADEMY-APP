@@ -3348,3 +3348,74 @@ Specifically, when recitation proceeds through verses:
 - **Vitest Suite**: **31 / 31 test files and 531 / 531 tests passing (100% green)**.
 - **Production Build**: Turbopack compiled and prerendered all **84 / 84 routes** with 0 errors (`pnpm build`).
 - **Git Repository**: Clean working tree committed and pushed to `origin/main`.
+
+
+---
+
+## 9.123. Context-Aware Duplicate Word Disambiguation, Strict Ayah-Gating & Multi-Word N-Gram Alignment
+
+### Context & User Requirement
+In Surah Al-Fatihah, the divine phrase *Ar-Rahmān ar-Rahīm* (`ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ`) appears in two distinct positions:
+1. **Ayah 1 (Basmalah)**: Words 2 & 3 (`بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ`).
+2. **Ayah 3 (Al-Fatihah)**: Words 8 & 9 (`ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ`).
+
+The user reported that reciting the Basmalah or "Ar-Rahman" prematurely jumped the highlight directly to Ayah 3 (`9/29`), skipping Ayah 2 (`ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ`), and stated:
+*"right now there are two arr rehman nir rahim texts, more or less in the same place, i want the logic to be good that it should know that the first time i am reading arr rehman, its with bismillah and the second time i am reading it is with surah fatiha. i want this logic for every word and that too accurate"*.
+
+### Root Cause Analysis
+1. **Greedy Forward Lookahead Without Ayah Gating**:
+   - `getCandidateIndices` in `useVoiceFollow.ts` checked candidates 2 to 6 words ahead of `currentIndex`. When reciting Ayah 1 (index 0, 1, 2, or 3), Word 8 (`ٱلرَّحْمَـٰنِ` in Ayah 3) fell inside the forward lookahead window (`curr + 5 = 8`).
+   - When speech recognition streamed interim results or when the reciter repeated "Ar-Rahman", candidate 8 was evaluated *before* candidate 2 (which was in step 5 backward proximity). Because candidate 8 matched "الرحمن", the highlight jumped across the unread Ayah 2 directly into Ayah 3.
+2. **Hardcoded Index Collisions in Fallback Maps**:
+   - `PHONETIC_MAP` and `QURAN_PHONETIC_FALLBACK` contained static indices conflating a 25-word Fatihah (starting at Alhamdu) with a 29-word Fatihah (starting with Bismillah). Index 2 had mapped to both `رب` and `الرحمن`, and index 4 had mapped to both `الرحمن` and `الحمد`.
+3. **Absence of Multi-Word N-Gram Phrase Alignment**:
+   - Spoken multi-word sequences (e.g., *"Bismi Allahi Ar-Rahman"* vs *"Rabbi al-Alameena Ar-Rahman"*) were split and evaluated strictly as individual isolated tokens, discarding the sequence context that unambiguously pinpoints the verse.
+
+### Engineering Decisions & Fix Implementation
+1. **Strict Context-Aware Ayah-Gated Scorer (`useVoiceFollow.ts`)**:
+   - Introduced `scoreCandidate(cand, curr, wordAyahs, totalWords, isSurahStartWord)`:
+     - **Strict Anti-Skip Gate**: If `candAyah > currAyah + 1`, the candidate receives a heavy penalty of `-5000` points. A solitary ambiguous token can **never** jump past an unread Ayah.
+     - **Natural Sequential Progression**: Immediate next word (`cand === curr + 1`) receives a `+1000` point bonus; repeated word (`cand === curr`) receives `+600`; 1-word gap receives `+450`.
+     - **Smooth Ayah Transitions**: Natural transition from near the end of `currAyah` to the beginning of `currAyah + 1` receives `+350`.
+     - **Surah Restart Override**: When reciting Bismillah (`cand === 0`), `isSurahStartWord` awards a `+2000` bonus, allowing instant reset to verse 1 from any position in the Surah.
+     - **Backward Proximity**: Re-reciting an earlier word in the same Ayah receives `+250 - dist * 20`.
+2. **Multi-Word N-Gram Phrase Alignment (`useVoiceFollow.ts`)**:
+   - Implemented Phase 1 N-gram alignment evaluating contiguous phrase windows of length 5 down to 2 in both Arabic and transliteration.
+   - Searches candidate spans in the active lesson; when all $N$ tokens match, calculates the span score (`scoreCandidate(wStart) + N * 600`).
+   - The best positive span wins, advancing the recitation highlight sequentially through the recited phrase and eliminating ambiguity.
+3. **Dynamic Lesson Ayah Mapping (`LiveClassroom.tsx`)**:
+   - Added `wordAyahs: number[]` computed dynamically from `currentWordsList`:
+     ```ts
+     const wordAyahs = useMemo(() => {
+       let currentAyah = currentLesson.ayahNumber || 1;
+       return currentWordsList.map((item) => {
+         const ayah = currentAyah;
+         if (item.isAyahEnd) currentAyah = (item.ayahNumber ?? currentAyah) + 1;
+         return ayah;
+       });
+     }, [currentWordsList, currentLesson.ayahNumber]);
+     ```
+   - Passed `wordAyahs` into `useVoiceFollow({ ..., wordAyahs })`, supporting any curriculum lesson.
+4. **Deduplicated Quranic Fallback Maps (`constants.ts`)**:
+   - Cleaned `PHONETIC_MAP` and `QURAN_PHONETIC_FALLBACK` to align 1:1 with all 29 words of `fatihah-all` without index collisions.
+   - Added authentic genitive junction forms (*bismillahir*, *rahmanir*, *rabbil*, *alhamdulillahi*) to `ARABIC_TO_TRANSLITERATION_MAP` and `QURAN_PHONETIC_FALLBACK`.
+5. **Universal Application Across Every Duplicate Word**:
+   - **Ar-Rahman**: Matches Ayah 1 (word 2) when in Ayah 1; matches Ayah 3 (word 8) when in Ayah 2 or 3.
+   - **Ar-Raheem**: Matches Ayah 1 (word 3) when in Ayah 1; matches Ayah 3 (word 9) when in Ayah 2 or 3.
+   - **Alayhim**: Matches word 23 after `an'amta` (word 22); matches word 26 after `al-maghdubi` (word 25).
+   - **Iyyaka**: Matches word 13 after `ad-deen` (word 12); matches word 15 after `na'budu` (word 14).
+   - **Sirat**: Matches `as-sirat` (word 18, Ayah 6) after `ihdina` (word 17); matches `sirat` (word 20, Ayah 7) after `al-mustaqeem` (word 19).
+
+### Verification & Quality Assurance
+- **Vitest Suite**: **31 / 31 test files and 539 / 539 tests passing (100% green)**:
+  - Added 8 dedicated unit tests in `classroom-voice-follow.test.ts` covering all repeated word scenarios:
+    - `disambiguates Ar-Rahman: matches Ayah 1 (word 2) when at Ayah 1, NEVER skipping to Ayah 3 (word 8)`
+    - `disambiguates Ar-Rahman: matches Ayah 3 (word 8) AFTER Ayah 2 has been reached or read`
+    - `disambiguates Ar-Raheem: matches Ayah 1 (word 3) vs Ayah 3 (word 9) contextually`
+    - `disambiguates compound Ar-Rahman Ar-Raheem phrase: matches Ayah 1 (words 2-3) vs Ayah 3 (words 8-9)`
+    - `disambiguates duplicate 'alayhim' in Ayah 7 (word 23 vs word 26)`
+    - `disambiguates 'iyyaka' in Ayah 5 (word 13 vs word 15)`
+    - `disambiguates 'sirat' (word 18 in Ayah 6 vs word 20 in Ayah 7)`
+    - `seamlessly resets back to word 0 when reciter restarts Surah with Bismillah from anywhere`
+- **TypeScript Verification**: Turbopack Next.js production build passed with 0 compiler errors.
+- **Production Build**: Prerendered and compiled all **84 / 84 routes** successfully (`pnpm build`).
