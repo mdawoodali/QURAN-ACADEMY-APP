@@ -211,16 +211,46 @@ export default function LiveClassroom() {
   const studentScrollRef = useRef<HTMLDivElement>(null);
   const dualScrollRef = useRef<HTMLDivElement>(null);
   const isProgrammaticScrollRef = useRef(false);
+  const scrollSourceRef = useRef<"teacher" | "student" | null>(null);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Real-time synchronization of Teacher scroll to Student view (when following teacher)
+  // Proportional smooth scroll mirroring between Teacher and Student whiteboards
+  const syncWhiteboardScroll = useCallback(
+    (source: "teacher" | "student") => {
+      if (isProgrammaticScrollRef.current) return;
+      if (scrollSourceRef.current && scrollSourceRef.current !== source) return;
+
+      scrollSourceRef.current = source;
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+      scrollTimeoutRef.current = setTimeout(() => {
+        scrollSourceRef.current = null;
+      }, 100);
+
+      if (!isStudentUnlocked && teacherScrollRef.current && studentScrollRef.current) {
+        const from = source === "teacher" ? teacherScrollRef.current : studentScrollRef.current;
+        const to = source === "teacher" ? studentScrollRef.current : teacherScrollRef.current;
+        const maxFrom = from.scrollHeight - from.clientHeight;
+        const maxTo = to.scrollHeight - to.clientHeight;
+
+        if (maxFrom > 0 && maxTo > 0) {
+          to.scrollTop = (from.scrollTop / maxFrom) * maxTo;
+        } else {
+          to.scrollTop = from.scrollTop;
+        }
+      }
+    },
+    [isStudentUnlocked]
+  );
+
   const handleTeacherScroll = useCallback(() => {
-    if (isProgrammaticScrollRef.current) return;
-    if (!isStudentUnlocked && teacherScrollRef.current && studentScrollRef.current) {
-      studentScrollRef.current.scrollTop = teacherScrollRef.current.scrollTop;
-    }
-  }, [isStudentUnlocked]);
+    syncWhiteboardScroll("teacher");
+  }, [syncWhiteboardScroll]);
 
-  // Synchronized smooth auto-scroll to keep active highlighted word in viewport on both sides
+  const handleStudentScroll = useCallback(() => {
+    syncWhiteboardScroll("student");
+  }, [syncWhiteboardScroll]);
+
+  // Synchronized auto-scroll: as words get out of sight, both whiteboards scroll together
   useEffect(() => {
     if (highlightedIndex === null || highlightedIndex === undefined) return;
 
@@ -234,28 +264,40 @@ export default function LiveClassroom() {
       const containerRect = container.getBoundingClientRect();
       const wordRect = wordEl.getBoundingClientRect();
 
-      // Only scroll if the word is not comfortably visible within middle 70% of viewport
-      const isComfortablyVisible =
-        wordRect.top >= containerRect.top + 30 &&
-        wordRect.bottom <= containerRect.bottom - 30;
+      // Check if word is out of sight or approaching the visible bounds:
+      // - approaching bottom (within 55px of container bottom)
+      // - or above visible top (within 40px of container top while scrolled down)
+      const isPastBottom = wordRect.bottom > containerRect.bottom - 55;
+      const isPastTop = wordRect.top < containerRect.top + 40 && container.scrollTop > 0;
 
-      if (!isComfortablyVisible) {
+      if (isPastBottom || isPastTop) {
         isProgrammaticScrollRef.current = true;
-        const currentScrollTop = container.scrollTop;
-        const wordRelativeTop = wordRect.top - containerRect.top + currentScrollTop;
-        const targetScrollTop = Math.max(
-          0,
-          wordRelativeTop - container.clientHeight / 2 + wordEl.clientHeight / 2
-        );
 
-        container.scrollTo({
-          top: targetScrollTop,
-          behavior: "smooth",
-        });
+        if (typeof wordEl.scrollIntoView === "function") {
+          wordEl.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+            inline: "nearest",
+          });
+        } else if (typeof container.scrollTo === "function") {
+          const currentScrollTop = container.scrollTop;
+          const wordRelativeTop = wordRect.top - containerRect.top + currentScrollTop;
+          const targetScrollTop = Math.max(
+            0,
+            Math.min(
+              container.scrollHeight - container.clientHeight,
+              wordRelativeTop - container.clientHeight / 2 + wordEl.clientHeight / 2
+            )
+          );
+          container.scrollTo({
+            top: targetScrollTop,
+            behavior: "smooth",
+          });
+        }
 
         setTimeout(() => {
           isProgrammaticScrollRef.current = false;
-        }, 350);
+        }, 450);
       }
     };
 
@@ -771,7 +813,7 @@ export default function LiveClassroom() {
                   </div>
 
                   {/* Central Mushaf Board */}
-                  <div ref={teacherScrollRef} onScroll={handleTeacherScroll} className="flex-1 min-h-0 w-full overflow-y-auto flex flex-col items-center justify-start py-2">
+                  <div ref={teacherScrollRef} onScroll={handleTeacherScroll} className="flex-1 min-h-0 w-full overflow-y-auto scroll-smooth flex flex-col items-center justify-start py-2">
                     <div className="my-auto w-full flex flex-col items-center">
                       <MushafBoard
                         script={script}
@@ -892,7 +934,8 @@ export default function LiveClassroom() {
                   {/* Student Mushaf Board */}
                   <div
                     ref={studentScrollRef}
-                    className="flex-1 min-h-0 w-full overflow-y-auto flex flex-col items-center justify-start py-2"
+                    onScroll={handleStudentScroll}
+                    className="flex-1 min-h-0 w-full overflow-y-auto scroll-smooth flex flex-col items-center justify-start py-2"
                   >
                     <div className="my-auto w-full flex flex-col items-center">
                       <MushafBoard
@@ -925,6 +968,17 @@ export default function LiveClassroom() {
                       <button
                         onClick={() => {
                           setIsStudentUnlocked(false);
+                          if (teacherScrollRef.current && studentScrollRef.current) {
+                            const t = teacherScrollRef.current;
+                            const s = studentScrollRef.current;
+                            const maxT = t.scrollHeight - t.clientHeight;
+                            const maxS = s.scrollHeight - s.clientHeight;
+                            if (maxT > 0 && maxS > 0) {
+                              s.scrollTop = (t.scrollTop / maxT) * maxS;
+                            } else {
+                              s.scrollTop = t.scrollTop;
+                            }
+                          }
                           toast.success("Following teacher sync restored");
                         }}
                         className={`hover:text-amber-300 transition ${

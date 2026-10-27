@@ -3318,3 +3318,33 @@ The user reported that voice follow was not working in the live classroom (`/cla
 - **Vitest Suite**: **31 / 31 test files and 531 / 531 tests passing (100% green)**.
 - **Production Build**: Turbopack compiled and prerendered all **84 / 84 routes** with 0 errors (`pnpm build`).
 - **Git Repository**: Clean working tree committed and pushed to `origin/main`.
+
+
+---
+
+## 9.122. Out-of-Sight Predictive Auto-Scroll Trigger & Bidirectional Proportional Scroll Sync
+
+### Context & User Requirement
+The user requested: *"i want the whiteboards to autoscroll together as the words get out of sight"*.
+Specifically, when recitation proceeds through verses:
+1. When words are within the comfortable middle reading band, the whiteboards should remain stationary without jitter.
+2. The exact moment the active word approaches the visible bounds (bottom threshold ~55px or top threshold ~40px) and is getting out of sight, both whiteboards must smoothly scroll together to center the active line vertically.
+3. When scrolling manually with mouse wheel or touch on either the Teacher or Student viewport, both whiteboards must scroll together proportionally in lockstep.
+
+### Engineering Decisions & Fix Implementation
+1. **Out-of-Sight Auto-Scroll Detection (`LiveClassroom.tsx`)**:
+   - Calculated geometric bounding rects of the active word relative to the container viewport:
+     `isPastBottom = wordRect.bottom > containerRect.bottom - 55`
+     `isPastTop = wordRect.top < containerRect.top + 40 && container.scrollTop > 0`
+   - When `isPastBottom || isPastTop`, triggered native `wordEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' })` with mathematical centering fallback on `container.scrollTo`.
+   - Enabled `scroll-smooth` on both whiteboard containers.
+2. **Bidirectional Proportional Scroll Synchronization (`LiveClassroom.tsx`)**:
+   - Added `syncWhiteboardScroll` with `scrollSourceRef` and debounce timer to prevent echo-loops between panes.
+   - Synchronized scroll positions using relative height fraction: `(from.scrollTop / maxFrom) * maxTo`, ensuring exact parity even if bottom telemetry docks introduce slight pixel differences.
+   - Attached `onScroll={handleStudentScroll}` to the student container and `onScroll={handleTeacherScroll}` to the teacher container.
+   - When clicking "Follow Teacher", immediately restores exact proportional scroll alignment.
+
+### Verification & Quality Assurance
+- **Vitest Suite**: **31 / 31 test files and 531 / 531 tests passing (100% green)**.
+- **Production Build**: Turbopack compiled and prerendered all **84 / 84 routes** with 0 errors (`pnpm build`).
+- **Git Repository**: Clean working tree committed and pushed to `origin/main`.
