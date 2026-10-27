@@ -3,7 +3,6 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { ChevronDown } from "lucide-react";
 
 import {
   ClassroomHeader,
@@ -206,6 +205,71 @@ export default function LiveClassroom() {
   useEffect(() => {
     sendHighlightRef.current = sendHighlight;
   }, [sendHighlight]);
+
+  // Scroll container refs for dual viewport synchronization
+  const teacherScrollRef = useRef<HTMLDivElement>(null);
+  const studentScrollRef = useRef<HTMLDivElement>(null);
+  const dualScrollRef = useRef<HTMLDivElement>(null);
+  const isProgrammaticScrollRef = useRef(false);
+
+  // Real-time synchronization of Teacher scroll to Student view (when following teacher)
+  const handleTeacherScroll = useCallback(() => {
+    if (isProgrammaticScrollRef.current) return;
+    if (!isStudentUnlocked && teacherScrollRef.current && studentScrollRef.current) {
+      studentScrollRef.current.scrollTop = teacherScrollRef.current.scrollTop;
+    }
+  }, [isStudentUnlocked]);
+
+  // Synchronized smooth auto-scroll to keep active highlighted word in viewport on both sides
+  useEffect(() => {
+    if (highlightedIndex === null || highlightedIndex === undefined) return;
+
+    const scrollContainerToWord = (container: HTMLElement | null) => {
+      if (!container) return;
+      const wordEl = container.querySelector(
+        `[data-word-index="${highlightedIndex}"]`
+      ) as HTMLElement | null;
+      if (!wordEl) return;
+
+      const containerRect = container.getBoundingClientRect();
+      const wordRect = wordEl.getBoundingClientRect();
+
+      // Only scroll if the word is not comfortably visible within middle 70% of viewport
+      const isComfortablyVisible =
+        wordRect.top >= containerRect.top + 30 &&
+        wordRect.bottom <= containerRect.bottom - 30;
+
+      if (!isComfortablyVisible) {
+        isProgrammaticScrollRef.current = true;
+        const currentScrollTop = container.scrollTop;
+        const wordRelativeTop = wordRect.top - containerRect.top + currentScrollTop;
+        const targetScrollTop = Math.max(
+          0,
+          wordRelativeTop - container.clientHeight / 2 + wordEl.clientHeight / 2
+        );
+
+        container.scrollTo({
+          top: targetScrollTop,
+          behavior: "smooth",
+        });
+
+        setTimeout(() => {
+          isProgrammaticScrollRef.current = false;
+        }, 350);
+      }
+    };
+
+    scrollContainerToWord(teacherScrollRef.current);
+    scrollContainerToWord(studentScrollRef.current);
+    scrollContainerToWord(dualScrollRef.current);
+  }, [highlightedIndex]);
+
+  // Reset scroll containers to top whenever active lesson changes
+  useEffect(() => {
+    if (teacherScrollRef.current) teacherScrollRef.current.scrollTop = 0;
+    if (studentScrollRef.current) studentScrollRef.current.scrollTop = 0;
+    if (dualScrollRef.current) dualScrollRef.current.scrollTop = 0;
+  }, [activeLessonId]);
 
   // Unlock AudioContext on initial user gesture in browser
   useEffect(() => {
@@ -640,7 +704,7 @@ export default function LiveClassroom() {
                     Maximize Whiteboard
                   </button>
                 </div>
-                <div className="flex-1 min-h-0 overflow-y-auto flex flex-col items-center justify-center">
+                <div ref={dualScrollRef} className="flex-1 min-h-0 overflow-y-auto flex flex-col items-center justify-start py-2">
                   <MushafBoard
                     script={script}
                     tajweedMode={tajweedMode}
@@ -654,6 +718,7 @@ export default function LiveClassroom() {
                     laserPointer={laserPointer}
                     interactive={roleParam === "teacher" || isStudentUnlocked}
                     onWordClick={handleWordClick}
+                    idPrefix="dual"
                   />
                   <LetterPracticeTray wordIndex={splitIndex} words={currentWordStrings} />
                 </div>
@@ -687,21 +752,9 @@ export default function LiveClassroom() {
                   </span>
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs text-emerald-100/70 font-mono hidden sm:inline">Ayah:</span>
-                    <div className="relative flex items-center">
-                      <select
-                        value={activeLessonId}
-                        onChange={(e) => sendLessonChange(e.target.value)}
-                        className="appearance-none bg-black/60 hover:bg-black/80 border border-amber-400/40 hover:border-amber-400 text-amber-300 text-[11px] font-bold rounded-lg pl-2 pr-6 py-1 focus:outline-none focus:ring-1 focus:ring-amber-400 max-w-[220px] sm:max-w-[280px] truncate cursor-pointer [&>option]:bg-[#052b20] [&>option]:text-white shadow-xs"
-                        aria-label="Whiteboard Ayah Selector"
-                      >
-                        {CURRICULUM_LESSONS.map((les) => (
-                          <option key={les.id} value={les.id}>
-                            {les.title}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown size={12} className="absolute right-1.5 text-amber-400/80 pointer-events-none" />
-                    </div>
+                    <span className="text-amber-300 text-[11px] font-bold bg-black/50 border border-amber-400/30 rounded-lg px-2.5 py-1 max-w-[220px] sm:max-w-[280px] truncate shadow-xs">
+                      {currentLesson.title}
+                    </span>
                   </div>
                 </div>
 
@@ -718,7 +771,7 @@ export default function LiveClassroom() {
                   </div>
 
                   {/* Central Mushaf Board */}
-                  <div className="flex-1 min-h-0 w-full overflow-y-auto flex flex-col items-center justify-start py-2">
+                  <div ref={teacherScrollRef} onScroll={handleTeacherScroll} className="flex-1 min-h-0 w-full overflow-y-auto flex flex-col items-center justify-start py-2">
                     <div className="my-auto w-full flex flex-col items-center">
                       <MushafBoard
                         script={script}
@@ -735,6 +788,7 @@ export default function LiveClassroom() {
                         interactive={true}
                         onWordClick={handleWordClick}
                         onLaserMove={sendLaserPointer}
+                        idPrefix="teacher"
                       />
 
                       <LetterPracticeTray wordIndex={splitIndex} words={currentWordStrings} />
@@ -837,9 +891,8 @@ export default function LiveClassroom() {
 
                   {/* Student Mushaf Board */}
                   <div
-                    className={`flex-1 min-h-0 w-full overflow-y-auto flex flex-col items-center justify-start py-2 ${
-                      !isStudentUnlocked ? "pointer-events-none" : ""
-                    }`}
+                    ref={studentScrollRef}
+                    className="flex-1 min-h-0 w-full overflow-y-auto flex flex-col items-center justify-start py-2"
                   >
                     <div className="my-auto w-full flex flex-col items-center">
                       <MushafBoard
@@ -855,6 +908,7 @@ export default function LiveClassroom() {
                         laserPointer={laserPointer}
                         interactive={isStudentUnlocked}
                         onWordClick={sendHighlight}
+                        idPrefix="student"
                       />
 
                       <LetterPracticeTray wordIndex={splitIndex} words={currentWordStrings} />

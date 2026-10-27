@@ -3288,3 +3288,33 @@ The user reported that voice follow was not working in the live classroom (`/cla
 
 - **Production Build**: Turbopack compiled and prerendered all **84 / 84 routes** with 0 errors (`pnpm build`).
 - **Git Repository**: Clean working tree committed and pushed to `origin/main`.
+
+
+---
+
+## 9.121. Dual Viewport Auto-Scroll Synchronization & Ayah Selector Dropdown Deduplication
+
+### Problem & UX Friction Analysis
+1. **Viewport Desync on Multi-Line Verses ("Voice follow only working on one side")**:
+   - In the dual-pane whiteboard layout (`/classroom/demo` and live sessions), when recitation advanced to later verses (e.g. Ayah 6–7 / Word 29 `الضَّآلِّیْنَ` in Surah Al-Fatihah), the Teacher Interactive Whiteboard scrolled to line 7, but the Student Synced Viewport remained scrolled to the top (lines 1–3).
+   - Because the active highlighted word was off-screen, it appeared as though Voice Follow was only functioning on the teacher side.
+   - Furthermore, `pointer-events-none` on the student scroll container blocked mouse-wheel and touch scrolling, preventing users from seeing lower verses.
+2. **Redundant Ayah Selector Dropdowns**:
+   - `ClassroomHeader.tsx` rendered an Ayah selector dropdown in the top bar (`AYAH: Surah Al-Fatihah • Complete (1:1–7)`), and directly below it inside the Teacher Whiteboard sub-header (`LiveClassroom.tsx`), an identical second `<select>` dropdown was rendered, creating confusion and cluttering the UI.
+
+### Engineering Decisions & Fix Implementation
+1. **Deduplicated Ayah Selector Dropdown (`LiveClassroom.tsx`)**:
+   - Removed the duplicate `<select>` dropdown and unused `ChevronDown` icon from the Teacher Whiteboard sub-header in `LiveClassroom.tsx`.
+   - Replaced it with a clean, read-only Ayah title badge (`<span className="text-amber-300 text-[11px] font-bold bg-black/50 border border-amber-400/30 rounded-lg px-2.5 py-1 ...">`), keeping the top bar selector as the single source of truth.
+2. **Synchronized Smooth Auto-Scroll Across Both Viewports (`LiveClassroom.tsx` & `MushafBoard.tsx`)**:
+   - Added `idPrefix?: string` to `MushafBoardProps` and assigned `data-word-index={i}` and `id={idPrefix ? `${idPrefix}-word-${i}` : `word-${i}`}` to each word `<span>`, ensuring unique DOM targets across concurrent panes.
+   - Attached `teacherScrollRef`, `studentScrollRef`, and `dualScrollRef` to their respective scrollable containers.
+   - Implemented a synchronized smooth auto-scroll `useEffect` on `[highlightedIndex]`: whenever a word is highlighted (via Deepgram speech recognition, Web Speech fallback, manual arrow keys, or word clicking), BOTH viewports smoothly scroll to keep the active word centered and visible.
+   - Removed `pointer-events-none` from the Student Synced Viewport scroll container to re-enable natural mouse-wheel, touchpad, and touch gesture inspection.
+   - Added `handleTeacherScroll` on the teacher container: when following the teacher (`!isStudentUnlocked`), any manual scroll by the teacher is mirrored directly to the student viewport in real time.
+   - Added automatic scroll reset to top whenever `activeLessonId` changes.
+
+### Verification & Quality Assurance
+- **Vitest Suite**: **31 / 31 test files and 531 / 531 tests passing (100% green)**.
+- **Production Build**: Turbopack compiled and prerendered all **84 / 84 routes** with 0 errors (`pnpm build`).
+- **Git Repository**: Clean working tree committed and pushed to `origin/main`.

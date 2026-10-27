@@ -19,6 +19,7 @@ interface MushafBoardProps {
   interactive?: boolean;
   onWordClick?: (index: number) => void;
   onLaserMove?: (laser: LaserPointerState) => void;
+  idPrefix?: string;
 }
 
 export default function MushafBoard({
@@ -35,7 +36,8 @@ export default function MushafBoard({
   isLaserModeActive = false,
   interactive = true,
   onWordClick,
-  onLaserMove
+  onLaserMove,
+  idPrefix,
 }: MushafBoardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const words = wordsList || SCRIPT_DATA[script];
@@ -117,6 +119,8 @@ export default function MushafBoard({
           return (
             <React.Fragment key={i}>
               <span
+                id={idPrefix ? `${idPrefix}-word-${i}` : `word-${i}`}
+                data-word-index={i}
                 onClick={(e) => {
                   if (isLaserModeActive) {
                     e.stopPropagation();
