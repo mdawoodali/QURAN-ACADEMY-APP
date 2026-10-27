@@ -804,12 +804,9 @@ export default function LiveClassroom() {
                     <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse" />
                     Teacher Interactive Whiteboard
                   </span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs text-emerald-100/70 font-mono hidden sm:inline">Ayah:</span>
-                    <span className="text-amber-300 text-[11px] font-bold bg-black/50 border border-amber-400/30 rounded-lg px-2.5 py-1 max-w-[220px] sm:max-w-[280px] truncate shadow-xs">
-                      {currentLesson.title}
-                    </span>
-                  </div>
+                  <span className="text-xs text-emerald-100/60 font-mono">
+                    Mode: <strong className="text-emerald-300 uppercase">Interactive</strong>
+                  </span>
                 </div>
 
                 <div className="flex-1 glass-container rounded-3xl border border-white/15 shadow-2xl flex flex-col p-4 md:p-6 overflow-hidden relative">

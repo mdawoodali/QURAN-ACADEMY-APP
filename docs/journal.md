@@ -3419,3 +3419,28 @@ The user reported that reciting the Basmalah or "Ar-Rahman" prematurely jumped t
     - `seamlessly resets back to word 0 when reciter restarts Surah with Bismillah from anywhere`
 - **TypeScript Verification**: Turbopack Next.js production build passed with 0 compiler errors.
 - **Production Build**: Prerendered and compiled all **84 / 84 routes** successfully (`pnpm build`).
+
+
+---
+
+## 9.124. Complete Removal of Redundant Ayah Badge on Teacher Whiteboard Header
+
+### Context & User Feedback
+The user provided a screenshot (`media_1793110080369_f98f3e02.png`) showing that two Ayah labels/boxes were still visible concurrently on screen:
+1. In the top navigation bar (`ClassroomHeader.tsx`): `AYAH: [Surah Al-Fatihah • Complete (1:1–7) ▼]` (interactive dropdown selector).
+2. Directly below on the Teacher Whiteboard sub-header (`LiveClassroom.tsx`): `Ayah: [Surah Al-Fatihah • Complete (1:1–7)]` (enclosed in a yellow border box).
+
+The user reported: *"there still are two ayats selector"*.
+
+### Root Cause
+In `LiveClassroom.tsx` line 807–812, although the `<select>` tag had been replaced by a `<span>` badge in an earlier step, it still rendered the text `"Ayah:"` and styled the lesson title with `border border-amber-400/30 bg-black/50 rounded-lg px-2.5 py-1 text-amber-300`, making it look almost identical to the real dropdown selector located just 20px above it.
+
+### Fix Implementation
+- In [`LiveClassroom.tsx`](file:///C:/Users/ESHOP/.gemini/antigravity/scratch/QuranAcademy/apps/web/src/components/LiveClassroom.tsx#L807-L812), completely removed the redundant `Ayah: {currentLesson.title}` box.
+- Replaced it with a clean pane status badge matching the student pane format:
+  `Mode: INTERACTIVE` (`<span className="text-xs text-emerald-100/60 font-mono">Mode: <strong className="text-emerald-300 uppercase">Interactive</strong></span>`).
+- Left the single interactive Ayah dropdown in `ClassroomHeader.tsx` as the sole, authoritative Ayah selector on screen.
+
+### Verification & Quality Assurance
+- **Vitest Suite**: 31 / 31 test files and 539 / 539 tests passing (100% green).
+- **TypeScript & Build**: Turbopack Next.js compiled all 84 / 84 routes with 0 errors (`pnpm build`).
