@@ -334,9 +334,9 @@ By affixing their authorized signatures below, both parties formally certify tha
 
 ### EXECUTION & SIGN-OFF BLOCK
 
-#### DELIVERED BY (Engineering Development Team):
-- **Lead Software Architect / Developer**: ___________________________________________
-- **Authorized Signature**: ________________________________________________________
+#### DELIVERED BY (Developers):
+- **Developers**: ___________________________________________
+- **Authorized Signature(s)**: ____________________________________________________
 - **CNIC / National Identity**: ____________________________________________________
 - **Date of Execution**: ___________________________________________________________
 

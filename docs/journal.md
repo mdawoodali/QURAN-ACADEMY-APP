@@ -3570,5 +3570,25 @@ Clarified and updated the maintenance terms across all contract deliverables:
 - Re-compiled the 14-page master PDF with Page 12 and Page 14 verified.
 
 
+---
+
+## 9.129. Signature Block Execution Label Update to "Developers"
+
+### Context & User Request
+The user requested updating the signature execution block on Page 14 from "Lead Architect / Developer" to "Developers" (`media_1793187481003_400f49b4.png`), accommodating multiple developers signing the agreement.
+
+### Changes Applied
+1. **HTML Master Document (`apps/web/public/QURAN_ACADEMY_SYSTEM_SPECIFICATION_AND_CONTRACT.html`)**:
+   - Updated the role badge to `<span class="sign-role-badge">Delivered By: Developers</span>`.
+   - Updated sign-field to `<strong>Developers:</strong> ____________________________________`.
+   - Updated signature line to `<strong>Signature(s):</strong> ____________________________________`.
+2. **Markdown Specification (`docs/SYSTEM_SPECIFICATION_AND_CONTRACT.md`)**:
+   - Updated the execution block to `DELIVERED BY (Developers):` and `- **Developers**: ...`.
+3. **Re-Rendered 14-Page Executive PDF**:
+   - Re-compiled and visually verified Page 14 via headless Microsoft Edge with `--no-pdf-header-footer`.
+   - Synced across `apps/web/public/`, `docs/`, and conversation artifacts.
+
+
+
 
 
