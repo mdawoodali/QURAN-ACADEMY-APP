@@ -281,13 +281,15 @@ The total consideration shall be disbursed strictly according to the following p
 
 ## 07. Maintenance Agreement, Feature Scope Boundaries & Cloud Costs
 
-### 7.1 Maintenance Terms & Retainer Structure
-1. **Year 1 Maintenance (100% Free)**:
-   - For a period of twelve (12) calendar months commencing from the date of complete operational handover, technical maintenance shall be **100% FREE (PKR 0)**.
-   - Covers resolution of software bugs, security patches, framework compatibility fixes, and WebSocket connection monitoring.
-2. **Year 2 & Subsequent Years Maintenance**:
-   - Following the conclusion of Year 1, annual ongoing maintenance shall be billed at a fixed rate of **PKR 15,000 per annum** (or an optional monthly retainer of **PKR 2,500 per month**).
-   - Covers ongoing database vacuuming, performance optimization, annual security audits, SSL certificate renewals, and technical advisory.
+### 7.1 Maintenance Terms, 3-Month Free Window & Retainer Options
+1. **Initial 3 Months (Months 1–3) Maintenance: 100% FREE**:
+   - For a period of three (3) calendar months commencing immediately from the date of complete operational handover, technical maintenance is **100% FREE (PKR 0)**.
+   - Covers resolution of any software regressions, security patches, framework compatibility fixes, and WebSocket uptime monitoring.
+2. **Month 4 & Subsequent Maintenance Options**:
+   - Commencing from Month four (4), maintenance shall be billable under the Client's choice of billing structure:
+     - **Option A (Discounted Annual Plan)**: **PKR 15,000 per annum** (Fifteen Thousand Pakistani Rupees per year, paid upfront annually).
+     - **Option B (Monthly Retainer)**: **PKR 2,500 per month** (billed quarterly at PKR 7,500 every 3 months).
+   - Covers ongoing database vacuuming, performance optimization, security audits, SSL certificate rotations, and ongoing technical advisory.
 
 ### 7.2 Post-Handover 90-Day Grace Window & Feature Scope Control
 1. **Within 90 Days (Months 1–3 Stabilization)**:

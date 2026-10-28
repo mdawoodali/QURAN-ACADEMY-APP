@@ -3557,4 +3557,18 @@ The client requested adjustments to the financial staging, maintenance structure
    - Version-controlled clauses updated.
 
 
+---
+
+## 9.128. Formalization of 3-Month Free Maintenance and Dual Retainer Structure
+
+### Context & Contract Refinement
+Clarified and updated the maintenance terms across all contract deliverables:
+- Replaced the preliminary "Year 1 Free" placeholder with the client's preferred **3 Months Free Maintenance** window (Months 1–3 post-handover).
+- Established dual billable pathways starting from **Month 4**:
+  - **Option A (Discounted Annual Package)**: PKR 15,000 per annum paid upfront.
+  - **Option B (Monthly Retainer)**: PKR 2,500 per month (invoiced quarterly at PKR 7,500 every 3 months).
+- Re-compiled the 14-page master PDF with Page 12 and Page 14 verified.
+
+
+
 
