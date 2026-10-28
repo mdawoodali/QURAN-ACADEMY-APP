@@ -3444,3 +3444,47 @@ In `LiveClassroom.tsx` line 807–812, although the `<select>` tag had been repl
 ### Verification & Quality Assurance
 - **Vitest Suite**: 31 / 31 test files and 539 / 539 tests passing (100% green).
 - **TypeScript & Build**: Turbopack Next.js compiled all 84 / 84 routes with 0 errors (`pnpm build`).
+
+
+---
+
+## 9.125. Creation of Master System Specification (SRS/SDS), DFDs & Legal Handover Contract
+
+### Context & Requirements
+The client requested a comprehensive, theme-matched system operations document, architectural specification, and formal legal contract modeled after a standardized enterprise software delivery manual (Shaheen Traders Reference Standard).
+
+Key business and commercial terms mandated:
+1. **Financial Consideration**:
+   - **Base Contract Price**: PKR 130,000 (Standard commercial deployment without proprietary source code transfer).
+   - **Source Code Handover Option**: Total price becomes **PKR 150,000** (PKR 130k base + PKR 20k source code surcharge).
+2. **Staged Milestone Payment Schedule**:
+   - **Milestone 1 (Advance)**: PKR 30,000 payable strictly before November 1, 2026.
+   - **Milestone 2 (Prototype & Testing)**: PKR 50,000 payable immediately upon interactive prototype testing and demo sign-off.
+   - **Milestone 3 (Production Cutover)**: PKR 50,000 payable immediately once the system is live on production and accessible to all users.
+   - **Source Code Delivery**: Remaining PKR 20,000 (if opted) prior to final Git repository transfer.
+3. **Maintenance Terms**:
+   - **Year 1 Maintenance**: 100% **FREE** (included in initial deployment).
+   - **Year 2 & Subsequent Years**: Fixed PKR 15,000 per annum.
+4. **Third-Party Subscriptions & Operating Costs**:
+   - 100% paid directly and exclusively by the Client (Supabase, LiveKit WebRTC SFU, Deepgram Speech AI, Resend Email, Vercel/Hosting, Domain/DNS).
+5. **Restrictive Intellectual Property Covenants**:
+   - Strict legal prohibition against sharing, reselling, sub-licensing, open-sourcing, or redistributing the source code to any third party.
+   - Single-institution internal operational license for Quran Learn Academy only.
+   - Immediate injunctive relief and 3x contract value liquidated damages under the Laws of the Islamic Republic of Pakistan for unauthorized redistribution.
+
+### Deliverables Implemented
+1. **Interactive Standalone Printable Document (`apps/web/public/QURAN_ACADEMY_SYSTEM_SPECIFICATION_AND_CONTRACT.html`)**:
+   - 230KB+ self-contained HTML document featuring Quran Academy's luxury emerald green (`#052b20`, `#021a13`, `#047857`) and gold/amber styling.
+   - Base64-embedded Quran Academy logo (`logo_quran_learn_academy.png`).
+   - Standardized 14-page printable document structure with `@media print` rules, A4 page headers, footers, and page counters.
+   - Interactive table of contents, executive summary, DFD Level 0 and Level 1 ASCII/SVG architecture diagrams, SRS requirements matrix, SDS for all 4 portals, LiveKit SFU engine, audio FFT VAD cadence tracker, and Deepgram voice-follow Ayah gating mathematical formulation.
+   - Complete commercial section, milestone schedule, subscription policies, legal covenants, and dual-signature sign-off execution blocks.
+2. **Repository Markdown Specification (`docs/SYSTEM_SPECIFICATION_AND_CONTRACT.md`)**:
+   - Complete technical, architectural, and commercial documentation maintained in version control.
+3. **Conversation Artifact (`QURAN_ACADEMY_SPECIFICATION_AND_CONTRACT.md`)**:
+   - Published in the conversation artifact directory for immediate interactive previewing.
+
+### Verification & Quality Assurance
+- **Document Integrity**: Validated all mathematical formulations, milestone amounts (30k + 50k + 50k = 130k base / 150k with code), and dates (Nov 1, 2026 advance).
+- **Public Accessibility**: The HTML document is hosted at `/QURAN_ACADEMY_SYSTEM_SPECIFICATION_AND_CONTRACT.html` in the Next.js public directory for instant browser viewing and print-to-PDF export.
+
