@@ -3488,3 +3488,43 @@ Key business and commercial terms mandated:
 - **Document Integrity**: Validated all mathematical formulations, milestone amounts (30k + 50k + 50k = 130k base / 150k with code), and dates (Nov 1, 2026 advance).
 - **Public Accessibility**: The HTML document is hosted at `/QURAN_ACADEMY_SYSTEM_SPECIFICATION_AND_CONTRACT.html` in the Next.js public directory for instant browser viewing and print-to-PDF export.
 
+
+---
+
+## 9.126. Headless Rendering and Delivery of Master Specification & Legal Contract PDF
+
+### Context & User Request
+The user requested the official handover specification and legal agreement explicitly in **native PDF format** (`.pdf`), fully matching the 14-page master structure and theme.
+
+### Implementation & Print Optimization
+1. **Print Engine Optimization**:
+   - Refactored `@page` rules to `size: A4 portrait; margin: 0;` with `-webkit-print-color-adjust: exact`.
+   - Tuned `.page` height to exactly `297mm` with `box-sizing: border-box`, `display: flex; flex-direction: column; justify-content: space-between;` and `page-break-after: always; break-after: page;`.
+   - Scaled down padding (`30px 42px 20px`), heading margins, table padding, and callout boxes to prevent page-overflow spillovers.
+2. **Headless Chromium Execution via Microsoft Edge**:
+   - Executed `msedge.exe --headless --disable-gpu --no-pdf-header-footer --run-all-compositor-stages-before-draw --print-to-pdf=...`
+   - Stripped default browser headers, URLs, and timestamps, producing an unblemished executive PDF.
+3. **Multi-Location Delivery**:
+   - `docs/QURAN_ACADEMY_SYSTEM_SPECIFICATION_AND_CONTRACT.pdf` (Git version control).
+   - `apps/web/public/QURAN_ACADEMY_SYSTEM_SPECIFICATION_AND_CONTRACT.pdf` (Next.js public asset download).
+   - Direct conversation artifact path for user access.
+
+### Visual Verification & Quality Assurance
+- **Visual Inspection**: Checked all 14 rendered pages via visual OCR & PDF screenshots:
+  - Page 1: Full-bleed cover with Quran Academy gold emblem and emerald geometry.
+  - Page 2: Table of Contents & Navigation Map (`Page 2 of 14`).
+  - Page 3: Executive Architecture & WebSocket Sync Engine (`Page 3 of 14`).
+  - Page 4: DFD Level 0 & Level 1 System Context (`Page 4 of 14`).
+  - Page 5: Audio Cadence Tracker & Strict Ayah-Gated AI Voice Follow (`Page 5 of 14`).
+  - Page 6: Software Requirements Specification (SRS) & Scope (`Page 6 of 14`).
+  - Page 7: SDS: Live Quran Classroom Engine (`Page 7 of 14`).
+  - Page 8: SDS: Tajweed Engine & Dual-Script Mushaf Renderer (`Page 8 of 14`).
+  - Page 9: SDS: Multi-Role Portals & Headless PDF Engine (`Page 9 of 14`).
+  - Page 10: Database Schema & Entity-Relationship Architecture (`Page 10 of 14`).
+  - Page 11: Master Commercial Contract & Milestone Payment Schedule (`Page 11 of 14`).
+  - Page 12: Annual Maintenance Agreement & Third-Party Services (`Page 12 of 14`).
+  - Page 13: Source Code Transfer & Restrictive Legal Covenants (`Page 13 of 14`).
+  - Page 14: Formal Handover Sign-Off & Dual Execution Block (`Page 14 of 14`).
+- **Page Parity**: Exactly 14 physical PDF pages generated, aligning 1:1 with document footers without spillover or cutoff.
+
+
