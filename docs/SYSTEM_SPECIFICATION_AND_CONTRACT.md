@@ -263,7 +263,7 @@ This Master Commercial Agreement ("Agreement") is formally entered into between 
 
 ### 6.1 Total Financial Consideration
 1. **Standard Commercial Deployment**: **PKR 130,000** (One Hundred Thirty Thousand Pakistani Rupees).
-2. **Proprietary Source Code Handover Option**: In the event that the Client elects to receive the full proprietary source code repository, the total project consideration shall be **PKR 150,000** (One Hundred Fifty Thousand Pakistani Rupees), reflecting a PKR 20,000 code handover surcharge.
+2. **Proprietary Source Code Handover Option**: In the event that the Client elects to receive the full proprietary source code repository, the total project consideration shall be **PKR 150,000** (One Hundred Fifty Thousand Pakistani Rupees), reflecting a PKR 20,000 code handover surcharge payable strictly concurrently with the final handover.
 
 ### 6.2 Staged Milestone Payment Schedule
 The total consideration shall be disbursed strictly according to the following performance milestones:
@@ -271,31 +271,40 @@ The total consideration shall be disbursed strictly according to the following p
 | Milestone | Deliverable & Verification Criteria | Deadline / Trigger | Standard Amount | With Code Handover |
 | :--- | :--- | :--- | :---: | :---: |
 | **Milestone 1** | **Project Kickoff & Advance Commitment**<br>Database provisioning, monorepo setup, core architecture initialization. | <strong style="color:#b91c1c;">Strictly Before November 1, 2026</strong> | **PKR 30,000** | **PKR 30,000** |
-| **Milestone 2** | **Testing, Prototyping & Interactive Demo Sign-Off**<br>Live dual-board Mushaf demo, Tajweed engine verification, AI Voice Follow testing. | Immediately upon testing demo completion | **PKR 50,000** | **PKR 50,000** |
-| **Milestone 3** | **Production Cutover & Public Deployment**<br>System live on custom production domain, all 4 portals active and publicly available. | Immediately upon public deployment | **PKR 50,000** | **PKR 50,000** |
-| **Code Surcharge** | **Full Git Repository & Architecture Transfer**<br>Delivery of complete unminified source code, Docker configs, and setup documentation. | Prior to repository transfer | *N/A* | **PKR 20,000** |
+| **Milestone 2** | **Prototyping & Testing Sign-Off**<br>Live dual-board Mushaf demo, Tajweed engine verification, AI Voice Follow testing. | Immediately upon prototyping demonstration | **PKR 60,000** | **PKR 60,000** |
+| **Milestone 3** | **Complete Handover & Production Cutover**<br>System live on production domain, all 4 portals active, and complete operational handover. | Immediately upon complete handover | **PKR 40,000** | **PKR 60,000*** |
 | **TOTAL** | **Complete Project Investment** | | **PKR 130,000** | **PKR 150,000** |
+
+*\*Note: If source code ownership is exercised, the PKR 20,000 surcharge is paid concurrently with Milestone 3, bringing the final handover disbursement to PKR 60,000 (PKR 40,000 base + PKR 20,000 code transfer).*
 
 ---
 
-## 07. Annual Maintenance Agreement & Third-Party Operating Subscriptions Policy
+## 07. Maintenance Agreement, Feature Scope Boundaries & Cloud Costs
 
-### 7.1 Software Maintenance Terms
+### 7.1 Maintenance Terms & Retainer Structure
 1. **Year 1 Maintenance (100% Free)**:
-   - For a period of twelve (12) calendar months commencing from the date of Milestone 3 production cutover, technical maintenance shall be **100% FREE (PKR 0)**.
+   - For a period of twelve (12) calendar months commencing from the date of complete operational handover, technical maintenance shall be **100% FREE (PKR 0)**.
    - Covers resolution of software bugs, security patches, framework compatibility fixes, and WebSocket connection monitoring.
 2. **Year 2 & Subsequent Years Maintenance**:
-   - Following the conclusion of Year 1, annual ongoing maintenance shall be billed at a fixed rate of **PKR 15,000 per annum** (Fifteen Thousand Pakistani Rupees per year).
-   - Covers ongoing database vacuuming, performance optimization, annual security audits, and technical advisory.
+   - Following the conclusion of Year 1, annual ongoing maintenance shall be billed at a fixed rate of **PKR 15,000 per annum** (or an optional monthly retainer of **PKR 2,500 per month**).
+   - Covers ongoing database vacuuming, performance optimization, annual security audits, SSL certificate renewals, and technical advisory.
 
-### 7.2 Mandatory Third-Party Subscriptions Policy
-**Each and every recurring external operational cost, third-party hosting subscription, and API usage fee required to run the live system shall be paid directly and exclusively by the Client (Quran Academy).** The Developer bears zero financial responsibility for recurring vendor subscriptions:
+### 7.2 Post-Handover 90-Day Grace Window & Feature Scope Control
+1. **Within 90 Days (Months 1–3 Stabilization)**:
+   - **Minor Changes & Cosmetic Tweaks**: Free of charge. Includes label renamings, text revisions, minor button placements, and bug fixes directly relating to the agreed specification.
+   - **Major Functional Additions**: Any substantial workflow addition, new portal module, or architecture alteration requested during this period will be classified as a Change Request (CR) and billed separately.
+2. **After 90 Days (Month 4 Onward)**:
+   - **Feature Freeze**: Any and all new features, functional additions, new third-party integrations, or custom modules requested by the Client shall be strictly billable upon written quotation before engineering work commences.
+
+### 7.3 Mandatory Third-Party Operating Subscriptions & App Store Policy
+**Each and every recurring external operational cost, third-party hosting subscription, app store fee, and API usage fee required to run the live system shall be paid directly and exclusively by the Client (Quran Academy).** The Developer bears zero financial responsibility for recurring vendor subscriptions:
 - **Supabase Cloud**: Database hosting, auth, and realtime storage (Free tier / $25/mo Pro as scaled).
 - **LiveKit Cloud SFU**: WebRTC real-time audio/video streaming bandwidth.
 - **Deepgram AI**: Nova-3 Arabic speech recognition API usage for the Voice Follower.
-- **Resend Email API**: Transactional email dispatch for invoices, alerts, and credentials.
-- **Vercel / Cloud Hosting**: Production serverless web application hosting.
-- **Domain & DNS**: Annual registrar renewal fees.
+- **Resend Email API**: Free tier handles up to 100 emails/day (3,000 emails/month). If email volume exceeds 100 emails/day, the Client must upgrade and pay for the vendor plan directly.
+- **Google Play & Apple App Store Accounts**: If native app store publishing is requested, the Client must create and pay for the developer accounts ($25 one-time for Google Play; $99/year for Apple Developer Program) under the Client's own organizational identity.
+- **Future Subscriptions Covenant**: Any future third-party software, SMS gateways, payment processor gateway fees, or infrastructure subscriptions required by the Client are 100% Client responsibility.
+- **Zero Developer Liability**: The Developer carries zero liability for system interruption or suspension caused by vendor billing issues or exhausted third-party credits.
 
 ---
 

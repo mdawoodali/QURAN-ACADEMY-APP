@@ -3528,3 +3528,33 @@ The user requested the official handover specification and legal agreement expli
 - **Page Parity**: Exactly 14 physical PDF pages generated, aligning 1:1 with document footers without spillover or cutoff.
 
 
+---
+
+## 9.127. Updated Commercial Staging, 90-Day Scope Control & Third-Party Safeguards
+
+### Context & Requirements Update
+The client requested adjustments to the financial staging, maintenance structure, feature change boundaries, and cloud vendor liability safeguards:
+1. **Re-Staged Milestone Schedule**:
+   - **Milestone 1 (Advance)**: PKR 30,000 strictly before November 1, 2026.
+   - **Milestone 2 (Prototyping & Testing)**: PKR 60,000 immediately upon live interactive prototype demonstration and testing sign-off.
+   - **Milestone 3 (Complete Handover & Live)**: PKR 40,000 upon production launch and complete operational handover.
+   - **Source Code Option**: Remains PKR 150,000 total (PKR 20,000 surcharge paid with complete handover, making Milestone 3 PKR 60,000).
+2. **Feature Changes & Scope Control**:
+   - **Within 90 Days (Months 1–3)**: Minor cosmetic tweaks, label updates, and bug fixes are complimentary (unpaid). Substantial additions or major architectural changes are billable.
+   - **After 90 Days (Month 4+)**: All new feature requests, functional additions, or module expansions are strictly charged via written quotation.
+3. **Third-Party Subscriptions & Store Accounts Policy**:
+   - Explicit client responsibility for Supabase Cloud, LiveKit SFU, Deepgram Speech AI, Resend Email (client-paid if daily emails exceed 100/day), Google Play ($25) and Apple Developer ($99/yr) accounts.
+   - Any future subscriptions, APIs, or SMS gateways required by the client are 100% client responsibility.
+   - Developer strictly indemnified against third-party service suspensions or billing quota limits.
+
+### Deliverables & Verification
+1. **Updated HTML Master Document (`apps/web/public/QURAN_ACADEMY_SYSTEM_SPECIFICATION_AND_CONTRACT.html`)**:
+   - Updated Pages 11, 12, 13, and 14 with the revised milestone pricing, 90-day feature policy, and subscription tables.
+2. **Re-Compiled 14-Page Executive PDF**:
+   - Re-rendered via headless Chromium Edge with zero headers/footers (`--no-pdf-header-footer`), maintaining exact 14-page count and 1:1 layout alignment.
+   - Synced across `apps/web/public/`, `docs/`, and conversation artifacts.
+3. **Updated Markdown Contract (`docs/SYSTEM_SPECIFICATION_AND_CONTRACT.md`)**:
+   - Version-controlled clauses updated.
+
+
+
