@@ -8,7 +8,7 @@
 
 <br />
 
-<img src="./preview.gif" alt="Quran Learn Academy Platform Preview" width="100%" style="max-width: 960px; border-radius: 12px;" />
+<img src="./preview.png" alt="Quran Learn Academy Platform Preview" width="100%" style="max-width: 960px; border-radius: 12px;" />
 
 <br />
 

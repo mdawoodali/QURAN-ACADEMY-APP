@@ -3636,3 +3636,25 @@ The user requested updating the signature execution block on Page 14 from "Lead 
 ### Verification & Quality Assurance
 - **Binary Inspection**: Verified exact 4.5s (`450 / 100s`) delay across all frames using byte-level buffer inspection.
 - **Git Hooks & Governance**: Updated `docs/journal.md` prior to commit & push as mandated by governance policy.
+
+
+---
+
+## 9.132. README Hero Asset Update: Static High-Resolution Landing Page Preview
+
+### Problem & UX Refinement
+1. **Visual Preview Preference**:
+   - The user requested replacing the multi-frame animated recording preview with a clean, static, high-resolution preview of the main landing page to eliminate motion and provide an immediate, crisp view of the platform hero.
+
+### Engineering Decisions & Fix Implementation
+1. **High-Resolution Landing Page Capture (`preview.png`)**:
+   - Captured the production landing page at 1280x720 native resolution via headless Chromium.
+   - Processed the frame using GDI+ anti-aliased geometry with 18px rounded corners, subtle emerald border accent, and 1200x675 (16:9) aspect ratio.
+2. **README Documentation Alignment**:
+   - Updated `README.md` to reference `preview.png`.
+   - Purged `preview.gif` from the repository tracking to reduce artifact weight.
+
+### Verification & Quality Assurance
+- **Visual & Layout Inspection**: Verified 16:9 aspect ratio and anti-aliased border radius.
+- **Strict Linting & Governance**: Zero emojis, clean direct links, and compliant formatting.
+- **Git Hooks & Governance**: Updated `docs/journal.md` prior to commit & push as mandated by governance policy.
