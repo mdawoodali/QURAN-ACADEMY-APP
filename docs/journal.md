@@ -3615,3 +3615,24 @@ The user requested updating the signature execution block on Page 14 from "Lead 
 - **Strict Linting & Governance**: Zero emojis, clean direct links, and compliant formatting.
 - **Git Hooks & Governance**: Updated docs/journal.md prior to commit & push as mandated by governance policy.
 
+
+
+---
+
+## 9.131. Preview Animation Frame Pacing Calibration: 4.5-Second Cadence Enhancement
+
+### Problem & Visual UX Analysis
+1. **Uncalibrated GIF Frame Delay**:
+   - The initial `preview.gif` encoding generated via WPF `GifBitmapEncoder` left the binary Graphic Control Extension delay fields at zero (`0s`), causing browsers to cycle through the UI frames in milliseconds rather than holding for inspection.
+   - The rapid flashing prevented viewers from examining the classroom layout, synchronized Mushaf, or companion toolkit details.
+
+### Engineering Decisions & Fix Implementation
+1. **Graphic Control Extension Binary Delay Patching**:
+   - Directly patched each frame's Graphic Control Extension block (`0x21 0xF9 0x04`) with a 450-centisecond delay (`4.5s`).
+   - Each featured view (Landing Page Hero, Synchronized Live Classroom, and Shia Companion Toolkit) now remains statically visible for 4.5 seconds before transitioning.
+2. **Infinite Loop Extension Retention**:
+   - Preserved the embedded `NETSCAPE2.0` application block to guarantee smooth continuous looping across GitHub, markdown viewers, and documentation sites.
+
+### Verification & Quality Assurance
+- **Binary Inspection**: Verified exact 4.5s (`450 / 100s`) delay across all frames using byte-level buffer inspection.
+- **Git Hooks & Governance**: Updated `docs/journal.md` prior to commit & push as mandated by governance policy.
