@@ -1,142 +1,136 @@
 <div align="center">
-  <img src="./logo.png" alt="Quran Learn Academy Logo" width="160" height="160" style="border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin-bottom: 16px;" />
 
-  # Quran Academy 📖
+# QURAN LEARN ACADEMY
 
-  <p align="center">
-    <strong>A production-grade, bilingual (English/Urdu) Islamic education platform engineered for 1-on-1 personalized Quran and Tajweed pedagogy.</strong>
-  </p>
+**Enterprise-Grade Bilingual Islamic Pedagogy Platform**
 
-  <p align="center">
-    <a href="https://quranacademyapp.vercel.app"><img src="https://img.shields.io/badge/Production-Live%20on%20Vercel-052b20?style=for-the-badge&logo=vercel&logoColor=34d399" alt="Production Live on Vercel" /></a>
-    <a href="https://github.com/mdawoodali/QURAN-ACADEMY-APP/actions"><img src="https://img.shields.io/badge/CI-100%25%20Passing-10b981?style=for-the-badge&logo=githubactions&logoColor=white" alt="CI Status" /></a>
-    <img src="https://img.shields.io/badge/Next.js-16.4%20Turbopack-000000?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js 16" />
-    <img src="https://img.shields.io/badge/TypeScript-Strict%205.0-3178c6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
-    <img src="https://img.shields.io/badge/WebRTC-LiveKit%20Cloud-ff5722?style=for-the-badge&logo=webrtc&logoColor=white" alt="LiveKit Cloud" />
-    <img src="https://img.shields.io/badge/Backend-Supabase-3ecf8e?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" />
-  </p>
+[Explore Live Platform](https://quranacademyapp.vercel.app) · [Live Classroom Demo](https://quranacademyapp.vercel.app/classroom/demo) · [Companion Toolkit](https://quranacademyapp.vercel.app/companion)
 
-  <p align="center">
-    <a href="https://quranacademyapp.vercel.app"><strong>Explore Live Platform »</strong></a> ·
-    <a href="https://quranacademyapp.vercel.app/classroom/demo"><strong>Launch Classroom Demo »</strong></a> ·
-    <a href="https://quranacademyapp.vercel.app/companion"><strong>Shia Companion Toolkit »</strong></a>
-  </p>
+<br />
+
+<img src="./preview.gif" alt="Quran Learn Academy Platform Preview" width="100%" style="max-width: 960px; border-radius: 12px;" />
+
+<br />
+
+*A production-grade, bilingual Islamic education platform engineered for 1-on-1 personalized Quran and Tajweed instruction, featuring sub-50ms synchronized WebRTC classrooms, real-time Arabic speech recognition, and institutional multi-currency direct banking rails.*
+
 </div>
 
 ---
 
-A production-quality bilingual (English/Urdu) Quran learning platform built on Next.js, Supabase, and LiveKit. This monorepo powers the public marketing site, four deeply-integrated user portals (Student, Parent, Teacher, Admin), and a flagship real-time synchronized live classroom.
+## Live Deployment & Links
 
-## ✨ Features
+- Production Platform: [https://quranacademyapp.vercel.app](https://quranacademyapp.vercel.app)
+- Interactive Classroom Demo: [https://quranacademyapp.vercel.app/classroom/demo](https://quranacademyapp.vercel.app/classroom/demo)
+- Shia Companion Toolkit: [https://quranacademyapp.vercel.app/companion](https://quranacademyapp.vercel.app/companion)
+- Public Curriculum Index: [https://quranacademyapp.vercel.app/curriculum](https://quranacademyapp.vercel.app/curriculum)
+- Direct Payment Portal: [https://quranacademyapp.vercel.app/payments](https://quranacademyapp.vercel.app/payments)
 
-- **Live One-to-One Classroom**: A sub-50ms latency synchronized classroom where a teacher's interactions (dual-cursor laser pointer, word highlights, underlines, and isolated letter splitting) are mirrored in real time to the student. Built on LiveKit WebRTC data channels and an ultra-lightweight WebSocket state relay.
-- **Pre-Call Hardware Diagnostics**: Built-in interactive pre-flight modal with real-time video preview, Web Audio `AnalyserNode` live microphone decibel visualizer, synthesized dual harmonic speaker chime ($\text{F}_4$ / $\text{C}_5$), and live network latency ping check.
-- **Bilingual & RTL Ready**: Full native support for English and Urdu with logical CSS properties ensuring `dir="rtl"` behaves perfectly out of the box with zero layout shift.
-- **Role-Based Portals**:
-  - **Student**: Progress tracking, homework ledger, interactive Mushaf, and 1-click live classroom entry.
-  - **Parent**: Multi-child family switcher, tuition billing, official downloadable PDF progress reports, and silent classroom observer mode.
-  - **Teacher**: Earnings ledger calculated per completed 30-min session, student lesson notes, availability schedule matrix, and applicant onboarding desk.
-  - **Admin**: Master academy cockpit, teacher vetting workflow, direct wire receipt clearance queue, and immutable audit logs.
-- **Zero-Stripe Multi-Currency Payment Engine**: Direct bank settlement rails across the UK (Barclays Faster Payments), US (Chase ACH/Wire/Zelle), Eurozone (Wise SEPA Instant), Pakistan (Meezan Bank, Raast Instant ID, JazzCash, EasyPaisa), and international handles.
-- **Automated Tax Invoicing & PDF Receipts**: On-demand vector PDF generation via `@react-pdf/renderer` with Academy legal registration (NTN: PK-8291048-Q, UK Registry: 849201) and Section 13(1) educational tax exemptions.
-- **Transactional Messaging via Resend**: Responsive Islamic-branded HTML email notifications for student welcomes, 24h/30m class reminders, cleared payment receipts, and missed class rescheduling alerts.
-- **High-Security Standards**: End-to-end Zod boundary validation, CSP security headers, strict Postgres Row-Level Security (RLS), and specialized abuse-prevention logic for child safety.
+---
 
-## 🏗️ Architecture & Tech Stack
+## Architectural & Technical Highlights
 
-This project is structured as a **Modular Monolith with Vertical Feature Slices** using `pnpm` workspaces.
+1. Real-Time Synchronized Classroom Engine
+   - Ultra-low latency state replication operating under 50ms across WebRTC data channels and a dedicated Node.js WebSocket relay.
+   - Bi-directional dual-cursor laser pointer tracking, synchronized word-by-word Mushaf highlighting, Tajweed markup pens, and isolated phoneme letter trays for Qaida instruction.
+   - Integrated Google Meet-style WebRTC grid supporting adaptive bandwidth switching and OPUS 48kHz high-fidelity voice transmission.
 
-- **Frontend**: Next.js 16 (App Router + Turbopack), React 19, Tailwind CSS, Framer Motion, Lucide Icons
-- **Backend & Auth**: Supabase (Postgres, Auth, Row-Level Security, Edge Functions)
-- **Realtime / Media**: LiveKit Cloud (WebRTC 48kHz OPUS audio/video) + Custom Node.js WebSocket engine (`apps/ws`)
-- **Speech Recognition**: Deepgram Nova-2 Arabic STT + Web Speech API fallback with Levenshtein phonetic distance matcher
-- **Validation / Types**: Zod + TypeScript (`strict: true`)
-- **PDF Generation**: `@react-pdf/renderer`
-- **Transactional Messaging**: Resend API Engine with sandbox fallback
+2. Speech Recognition & Voice Follow
+   - Live recitation tracking powered by Deepgram Nova-3 Multilingual Arabic streaming via WebSockets, supplemented by browser Web Speech API fallbacks.
+   - Custom Arabic phonetic comparison engine with diacritic normalization and Levenshtein distance calculations.
+   - Reverse-proximity search progression allowing immediate snap-back recovery when a student pauses or re-recites a prior word.
 
-### Monorepo Structure
+3. Pre-Flight Hardware Calibration & Diagnostics
+   - Native browser device diagnostics verifying microphone, camera, and audio playback before classroom entry.
+   - Live microphone decibel metering via Web Audio API AnalyserNode, synthesized dual-harmonic audio chime playback, and dynamic round-trip ping latency checks.
 
-```text
-├── apps/
-│   ├── web/                  # Next.js 16 PWA, public site, and 4 role portals
-│   └── ws/                   # Lightweight WebSocket state relay for classroom sync
-├── packages/
-│   ├── domain/               # Pure, framework-free business logic, prayer math & speech matchers
-│   ├── contracts/            # Zod schemas and inferred TypeScript types (shared client/server)
-│   └── adapters/             # External integration adapters (LiveKit, Direct Wire, Resend)
-├── supabase/                 # Database migrations, seed data, RLS security policies & pgTAP tests
-├── tests/                    # Vitest integration test suites (Classroom, Payments, Health)
-└── docs/                     # Engineering journal, launch roadmap, and architecture docs
-```
+4. Bilingual & Directional Design System
+   - Native dual-language interface supporting English and Urdu with zero layout shift between LTR and RTL orientations.
+   - Typography rendered with authentic Arabic diacritics using Amiri Quran, Noto Nastaliq Urdu, and Figtree typefaces.
 
-## 🚀 Getting Started
+5. Role-Partitioned Portals & Multi-Tenancy
+   - Four distinct, permission-bounded interfaces: Student, Parent, Teacher, and Administrator.
+   - Strict PostgreSQL Row-Level Security (RLS) ensuring strict tenant isolation.
+   - Multi-ward linkage allowing parents to manage multiple enrolled children, track lesson notes, monitor attendance, and download formal academic progress reports.
 
-### 1. Prerequisites
-- Node.js 20+
-- `pnpm` v9+
+6. Institutional Multi-Currency Settlement Engine
+   - Direct bank wire and local clearing integration bypassing third-party card processors.
+   - Supports verified domestic rails across the United Kingdom (Barclays FPS), United States (Chase ACH/Wire/Zelle), Eurozone (Wise SEPA Instant), and Pakistan (Meezan Bank, Raast Instant ID, JazzCash, EasyPaisa).
+   - Automated dynamic vector PDF invoice and tax receipt generation via React-PDF, compliant with educational tax exemption standards.
+
+7. Child Safety & Safeguarding Controls
+   - Parental consent verification enforced prior to enabling session recording features.
+   - Strict Personally Identifiable Information (PII) partitioning preventing tutors from accessing student phone numbers or personal email addresses.
+   - Anonymous parental observer mode enabling silent classroom monitoring with disabled camera and microphone feeds.
+   - Immutable append-only audit logs recording administrative approvals, user verification, and financial status transitions.
+
+---
+
+## Technology Stack
+
+### Core
+- Next.js 16 (App Router with Turbopack)
+- React 19
+- TypeScript (Strict Mode)
+- Node.js Runtime
+
+### Styling & Design System
+- Tailwind CSS v4
+- Framer Motion
+- Lucide React
+- Amiri Quran, Noto Nastaliq Urdu, and Figtree Typography
+
+### Architecture & Real-Time Services
+- LiveKit Cloud WebRTC (Audio/Video Data Channels)
+- Node.js WebSocket State Server (Classroom Synchronization)
+- Supabase (PostgreSQL Database, Auth SSR, Row-Level Security)
+- Deepgram Nova-3 (Arabic Speech-to-Text Streaming)
+- React-PDF (Dynamic Vector Tax Invoicing)
+- Resend API (Transactional Email Messaging)
+
+### Deployment & Quality Assurance
+- Vercel Edge Platform
+- Vitest Suite (Unit, Integration, and Lifecycle Testing)
+- Strict ESLint and TypeScript Compiler Verification
+- GitHub Actions CI/CD Pipeline
+
+---
+
+## Local Development
+
+### Prerequisites
+- Node.js 20 or higher
+- pnpm package manager (v9+)
 - Git
 
-### 2. Installation
-Clone the repository and install all workspace dependencies:
-```bash
-git clone https://github.com/mdawoodali/QURAN-ACADEMY-APP.git
-cd QURAN-ACADEMY-APP
-pnpm install
-```
+### Installation & Execution
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/mdawoodali/QURAN-ACADEMY-APP.git
+   cd QURAN-ACADEMY-APP
+   ```
 
-### 3. Environment Setup
-Copy the example environment files and configure your credentials:
-```bash
-cp .env.example apps/web/.env.local
-```
+2. Install dependencies:
+   ```bash
+   pnpm install
+   ```
 
-Key environment variables:
-```ini
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-LIVEKIT_API_KEY=your_livekit_key
-LIVEKIT_API_SECRET=your_livekit_secret
-NEXT_PUBLIC_LIVEKIT_URL=wss://your-livekit.livekit.cloud
-DEEPGRAM_API_KEY=your_deepgram_key
-RESEND_API_KEY=re_your_resend_key
-```
-*(Note: If API keys are omitted in development, the platform automatically falls back to offline sandbox pairing and mock dispatchers with zero crashes).*
+3. Configure environment variables:
+   ```bash
+   cp .env.example apps/web/.env.local
+   ```
 
-### 4. Running Locally
+4. Launch the application:
+   ```bash
+   # Terminal 1: Real-time WebSocket relay
+   cd apps/ws
+   npm run dev
 
-The application requires two components for full real-time classroom functionality: the WebSocket relay and the Next.js frontend.
+   # Terminal 2: Next.js frontend (from repository root)
+   pnpm dev
+   ```
 
-**Start the WebSocket Sync Server:**
-```bash
-cd apps/ws
-npm run dev
-```
+---
 
-**Start the Next.js Web App:**
-In a separate terminal, from the project root:
-```bash
-pnpm dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-## 🔐 Security & Child Safety
-
-Child safety is a first-class requirement across all layers of the architecture:
-- **Consent-Gated Recording**: Live classes are only recorded if the parent/guardian has explicitly granted consent in the database.
-- **Strict PII Partitioning**: Teachers cannot view a student's personal phone number or email. All communication is strictly mediated through the academy ledger.
-- **Silent Observer Mode**: Parents can join active classrooms anonymously as silent observers with camera/mic disabled.
-- **Audit Logs**: Every administrative action, teacher approval, and payment modification writes to an append-only `audit_log` table.
-
-For a detailed breakdown of the threat model, refer to `docs/security.md`.
-
-## 🛠️ Commands & Scripts
-
-- `pnpm dev`: Start Next.js development server with Turbopack.
-- `pnpm build`: Compile and build the entire workspace for production.
-- `pnpm lint`: Run ESLint checks across all packages (zero-warning policy).
-- `pnpm typecheck`: Execute TypeScript compiler verification (`tsc --noEmit`).
-- `pnpm test`: Execute Vitest unit and integration suites (39/39 passing).
-
-## 📄 License
-Commercial / Proprietary. All rights reserved by Quran Learn Academy Global.
+## License
+Commercial and proprietary. All rights reserved by Quran Learn Academy Global.
